@@ -44,6 +44,9 @@
 - Primary cohort, 170 curves, mutually exclusive outcomes: optimizer failure 0; non-physical 71 (all: fitted LSE at 0 J); boundary-limited 3;
   weakly identified 47; usable fit without index 13 (miniature); usable fit with T41J 36. T41J calculated for 132 of 134 full-size curves.
 - Method evolution, including every change after results existed: D-051. Method locked at commit `0d5e548` before any published curve was fitted.
+- Reproducibility check for CP3: a fresh clone of commit `20481dd` with a newly created `.venv` (from `requirements.txt`) ran `./run_all.sh`
+  in 6 min 9 s and left 0 tracked files changed (all WP0–WP3 outputs byte-identical). Synthetic scenarios rerun in a single process matched
+  the 8-worker results bit for bit (spot check of 4 scenarios, compared with exact float parsing).
 
 ## Decisions awaiting the author at CP3
 - D-042: keep the fitted lower shelf (pre-registered outcome) or approve LSE fixed at 2.7 J for full-size curves. Evidence both ways: synthetic
@@ -64,6 +67,8 @@
 - Whether miniature curves get intervals on T0 and USE only (no index temperature, D-045).
 
 ## Unresolved data issues carried forward
+- WP3 sources read only in part: Wallin & Baer (2023) and Miura et al. (2025), abstracts only (full texts not accessible); the CVGRAPH
+  lower-shelf convention of US surveillance reports could not be retrieved and is not used (DECISIONS.md, WP3 sources).
 - Refs 7, 8, 9, 53: irradiation status unresolved without full texts (excluded from the primary population, D-035).
 - Ref 21's series being HSST Plate 02 is inferred from provenance evidence and the point pattern, not read from its full text (D-019).
 - The approximately 0.10–0.85 transition-band alternative has no documented source; one must be cited before it is used (D-037).
