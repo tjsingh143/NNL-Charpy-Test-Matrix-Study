@@ -269,7 +269,8 @@ Zero energy is kept because a lower-shelf point digitized on a graph's axis read
 **Why.** For digitized values carrying 12+ decimals, identical rows are copy errors, not replicates. For whole-number tabular values, replicates are possible; none occur in scope, so the question does not arise.
 
 ## D-019 — Exclusion E8: the same tests reported more than once
-**Status:** APPROVED (CP1) — deduplication approved; the choice of which copy to keep was replaced by the canonical-source hierarchy below
+**Status:** APPROVED (CP1) — deduplication and the hierarchy's criteria approved by the author; their operationalization, the matching change for
+unresolved labels, and the two detection additions made after CP1 are PROVISIONAL (CP2)
 
 **CP1 decision (author).** Deduplicate republished tests for the primary analysis, because counting a republication as a new
 experiment would overstate confidence. "Keep the copy with most points" is not acceptable as the sole rule (extra points can be
@@ -385,7 +386,7 @@ setting its resolution to `pre-cracked` or `unresolved` in `SPECIMEN_TYPE_CHECKS
 **If the alternative were chosen.** Loss of hundreds of ordinary Charpy V-notch records, including ref 1's irradiated and reconstituted SA533B-1 data, on the strength of a paper-level note.
 
 ## D-021 — Irradiation status that differs between releases
-**Status:** DECIDED (CP1 decision 1: disagreements remain data-quality flags; newer is not assumed correct)
+**Status:** CP1 decision 1 applied (disagreements remain flags; newer is not assumed correct); resolution by source check PROVISIONAL (CP2)
 
 **Decision (after CP1).** Keep record-B's label in the data, flag every disagreement, and check the source. The field
 `irradiated_resolved` holds the label both releases agree on, or the source-supported value where a check resolves the disagreement,
@@ -458,14 +459,14 @@ step (D-034): refs 22, 23, 30, 32, 40, identified by grade in the citation title
 **Why.** Correcting requires deciding what the curve should be, which is WP2's curve definition.
 
 ## D-029 — Material label that contradicts composition
-**Status:** DECIDED; resolved in E8 after CP1
+**Status:** DECIDED (flag); duplicate resolution in E8 after CP1 PROVISIONAL (CP2)
 **Decision.** Flag, do not relabel, the 11 records of ref 53 curve 237: labelled A533B base metal but carrying the weld-metal composition (C 0.08, Ni 0.83, Mn 1.33) of the same paper, in a sequence (base, HAZ 1 mm, HAZ 4 mm, weld) that repeats for another figure.
 **Why.** The evidence strongly suggests weld metal, but relabelling is an inference.
 **Resolution (WP2 inspection).** Its 11 points are identical to weld-metal curve 241 of the same paper, so it is the weld-metal series shown a
 second time under a wrong label. Because a contradicted material label can no longer rule out a duplicate match (D-019), E8 now removes it in favour of curve 241 (criterion (c)).
 
 ## D-030 — Git repository
-**Status:** APPROVED (CP1 decision 6)
+**Status:** APPROVED (CP1 decision 6); branch-per-unapproved-work-package convention PROVISIONAL (CP2)
 **Decision.** Git initialized after CP1. Commit `9bc28fc` on `main` is the CP1 state exactly as presented (verified to regenerate
 byte-identically before committing). Later work is committed at meaningful boundaries on a branch named for the work package
 (`wp2`), so `main` holds only checkpoint-approved states; merge after approval. No remote, no push, unless the author asks.
@@ -474,7 +475,7 @@ Repository-local author identity (`git config user.name/user.email`); global set
 **Why.** A branch per unapproved work package keeps the approved state recoverable and makes each checkpoint's changes reviewable as one diff.
 
 ## D-031 — Condition labels that the source contradicts
-**Status:** DECIDED
+**Status:** PROVISIONAL (CP2)
 **Context.** Checking ref 1 for D-020 showed two labeling errors present in both releases (`SOURCE_CONTRADICTED_LABELS`):
 - *Shock-hardening treatment labels shifted by one series.* [NP-1661] Table 3-1 gives tanh fits for heat IbH: non-shocked USE ≈ 136 J,
   T0 ≈ 13 °C; bottom layer USE ≈ 108 J, T0 ≈ 21 °C; top layer USE ≈ 41 J, T0 ≈ 7 °C. Dataset curves 3, 4, 5 (labelled bottom-surface
