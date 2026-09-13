@@ -1,25 +1,29 @@
 """WP2 - Curve grouping and inclusion criteria.
 
-Assigns every record retained by WP1 to one transition curve, describes how each curve samples the lower shelf, the
-transition and the upper shelf WITHOUT fitting anything, applies looser / primary / stricter inclusion rules, and writes
-cohort memberships so later work packages can propagate every sensitivity case. Nothing is fitted here (WP3).
-The dataset's own USE, DBTT and curve IDs are carried as provenance only (D-022).
+Assigns every record retained by WP1 to one transition curve, describes how each curve samples its energy range WITHOUT
+fitting anything, applies looser / primary / stricter pre-fit screening rules, and writes cohort memberships so later work
+packages can propagate every sensitivity case. Nothing is fitted here (WP3). Passing a screening rule means only that a curve
+appears sufficiently sampled to attempt a fit (D-038). The dataset's own USE, DBTT and curve IDs are provenance only (D-022).
 
 Outputs (run = 'primary' for the 2025.30 release, 'sensitivity_<record>' for the 2024.206 release):
   data/processed/<run>/charpy_records_with_curves.csv   every WP1-retained record with its curve, population and cohorts
   outputs/wp2[_sensitivity_<record>]/curve_inventory.csv  one row per curve: descriptors, rule outcomes, cohorts
+  outputs/wp2[...]/cohort_membership.csv, cohort_manifest.csv   the cohorts frozen at CP2, as explicit files (D-039)
   outputs/wp2[...]/population_accounting.csv, rule_outcomes.csv, rule_outcomes_by_group.csv, dataset_series_splits.csv,
-      fluence_treatments.csv, fluence_by_source.csv, upper_reference_diagnostic.csv, wp2_summary.md
+      fluence_treatments.csv, fluence_by_source.csv, screening_upper_reference_diagnostic.csv, wp2_summary.md
   outputs/wp2/version_sensitivity_comparison.md (+ .csv), outputs/wp2/example_curves.png   (primary run, after both runs)
+Every run ends by checking each cohort's membership against data/FROZEN_COHORTS_CP2.csv and stops on any difference.
 
-Run:  .venv/bin/python src/wp2_curves.py      (both releases, then the comparison and the figure)
+Run:  .venv/bin/python src/wp2_curves.py      (both releases, then the comparison, the figure and the frozen-cohort check)
 """
 from __future__ import annotations
+
+import hashlib
 
 import numpy as np
 import pandas as pd
 
-from common import DATASETS, OUTPUTS, PRIMARY_DATASET, PROCESSED, SENSITIVITY_DATASET, md_table, write_text
+from common import DATA, DATASETS, OUTPUTS, PRIMARY_DATASET, PROCESSED, SENSITIVITY_DATASET, md_table, write_text
 
 # ---------------------------------------------------------------------------
 # 1. Definitions (each justified in DECISIONS.md)
@@ -41,17 +45,24 @@ COMPOSITION_FIELDS = ["c_wt_pct", "si_wt_pct", "mn_wt_pct", "p_wt_pct", "s_wt_pc
 # uncertainty quoted by Jendrich & Tricot 2003) are one level; applied inside the same source and dataset series.
 FLUENCE_TOLERANCE_FACTOR = 1.2
 
-# D-037. Sampling descriptors. Test temperatures closer than 2 °C are one test temperature (about twice the 95th percentile of the
-# digitization difference between copies of the same point, D-019). Energy bands follow the tanh model's half-width C: between
-# T0 - C and T0 + C the curve completes the middle 76 % of its rise, i.e. from 12 % to 88 % of the way between its shelves.
-# Shelf references without fitting: lower = lowest energy; upper = mean of the three highest energies (ASTM E185-82 §4.18 defines
-# upper-shelf energy as an average of normally three specimens; a single high point must not define the shelf).
+# D-037. Pre-fit sampling descriptors. Test temperatures closer than 2 °C are one test temperature (about twice the 95th percentile of
+# the digitization difference between copies of the same point, D-019).
+# Screening references, without fitting: lower = the lowest measured energy; SCREENING UPPER REFERENCE = the mean of the three highest
+# measured energies, so that no single high point sets the scale (ASTM E185-82 §4.18 likewise averages normally three upper-shelf
+# specimens). It is a screening quantity, NOT the upper-shelf energy (USE): nothing here shows that those three points lie on a flat
+# shelf. USE is estimated in WP3 by its own, separately justified method.
+# Energy bands: each point's position between the two references, 0 to 1. The transition band 0.12-0.88 is a PROJECT-DEFINED,
+# MODEL-BASED screening convention, not an ASTM requirement: for the normalized tanh y = (1 + tanh x) / 2 with x = (T - T0) / C,
+# y = 0.119 at x = -1 and y = 0.881 at x = +1, so the band is the central characteristic interval T0 - C to T0 + C. An approximately
+# 0.10-0.85 transition-region convention is preserved as a later sensitivity option; its literature basis is not yet documented (D-037).
 DISTINCT_TEMPERATURE_GAP_C = 2.0
 BAND_LOWER, BAND_UPPER = 0.12, 0.88
 UPPER_REFERENCE_POINTS = 3
 
-# D-038. Inclusion rules. min_points_* : number of records; min_T_* : distinct test temperatures in that energy band;
-# max_energy_ratio : lowest energy / upper reference (mean of the three highest energies).
+# D-038. Pre-fit screening rules. Passing one means only that a curve appears sufficiently sampled to ATTEMPT a transition-curve fit in
+# WP3. It does not show that a tanh fit will converge, be well conditioned or give physically reasonable parameters, and a curve whose
+# WP3 fit fails must be reported, never silently removed. min_points_* : number of records; min_T_* : distinct test temperatures in that
+# energy band; max_energy_ratio : lowest energy / screening upper reference.
 RULES = {
     "looser": dict(min_points_unirradiated=5, min_points_irradiated=5, min_T_transition=1, min_T_upper=1, min_points_upper=1,
                    min_T_lower=1, max_energy_ratio=0.30),
@@ -62,34 +73,42 @@ RULES = {
 }
 RULE_BASIS = {
     "points": "5 = fewest that leave one residual degree of freedom for a 4-parameter tanh; 6 = two; 15 unirradiated / 12 irradiated = "
-              "ASTM E185-82 §6.3 minimum Charpy specimens for a baseline curve / per irradiated capsule",
-    "transition temperatures": "1 locates the transition; 2 fix location and width (T0 and C); 3 add one check on the shape",
-    "upper band": "1 = no requirement; 2 distinct temperatures show the rise has stopped; 3 specimens = ASTM E185-82 §4.18 "
-                  "upper-shelf energy is the average of normally three specimens",
-    "energy ratio": "lowest energy / upper reference: the coldest point lies at or below the lower band edge (T0 - C) whenever the true "
-                    "lower-to-upper shelf ratio is at most 0.20 (limit 0.30), 0.09 (limit 0.20), 0.03 (limit 0.15)",
+              "historical ASTM E185-82 §6.3 surveillance-programme specimen minimums (baseline curve / irradiated capsule), used as a "
+              "deliberately conservative comparison, not as a statistical law that fewer points make a curve unusable",
+    "transition temperatures": "transition band = 0.12-0.88 of the rise between the screening references, i.e. T0 - C to T0 + C of a "
+                               "normalized tanh (project-defined, model-based, not an ASTM requirement); 1 temperature locates the "
+                               "transition; 2 fix location and width (T0 and C); 3 add one check on the shape",
+    "upper band": "1 = no requirement; 2 distinct temperatures show the rise has stopped; 3 specimens mirrors the normally three "
+                  "specimens ASTM E185-82 §4.18 averages for upper-shelf energy (a screening count only; USE is estimated in WP3)",
+    "energy ratio": "lowest energy / screening upper reference: the coldest point lies at or below the lower band edge (T0 - C) whenever "
+                    "the true lower-to-upper shelf ratio is at most 0.20 (limit 0.30), 0.09 (limit 0.20), 0.03 (limit 0.15)",
 }
 
 # D-034, D-035. Analysis populations, evaluated in this order; each record is assigned to the first that applies.
 POPULATION_STEPS = [
     ("P1", "excluded: specimen type not supported as ordinary Charpy V-notch", "CP1 decision 2; D-020"),
-    ("P2", "excluded: condition label contradicted by the source", "D-031"),
-    ("P3", "excluded: irradiation status unresolved between releases", "CP1 decision 1; D-021; D-035"),
+    ("P2", "excluded: condition label contradicted by the source", "D-031 (approved at CP2)"),
+    ("P3", "excluded: irradiation status unresolved between releases", "CP1 decision 1; D-021; D-035 (approved at CP2)"),
     ("P4", "secondary: SA508 Gr.1A main-steam-line piping steel", "CP1 decision 3; D-027"),
-    ("P5", "secondary: additively manufactured SA508 Gr.3 (not an RPV product form)", "D-034 (provisional, CP2)"),
+    ("P5", "secondary: additively manufactured SA508 Gr.3 (manufacturing route differs from conventional RPV material)",
+     "D-034 (approved at CP2)"),
 ]
 PRIMARY_POPULATION = "primary RPV population"
 
-# Cohorts carried to later work packages (D-039). Each is the primary cohort with one thing changed.
+# Cohorts carried to later work packages (D-039): (role, definition). Each is the primary cohort with one thing changed. Membership is
+# frozen at CP2: every run compares it with FROZEN_COHORTS and stops on any difference.
 COHORTS = {
-    "primary": "primary population, primary rule, canonical keep rule",
-    "looser": "primary population, looser rule",
-    "stricter": "primary population, stricter rule",
-    "alt_keep_rule": "primary population, primary rule, alternative duplicate keep rule (most records first)",
-    "plus_unresolved_irradiation": "primary population plus records with unresolved irradiation labels (this release's labels), primary rule",
-    "plus_additively_manufactured": "primary population plus additively manufactured SA508 Gr.3, primary rule",
-    "piping_secondary": "SA508 Gr.1A piping steel only, primary rule",
+    "primary": ("primary analysis", "primary population, primary rule, canonical keep rule"),
+    "looser": ("inclusion-rule sensitivity", "primary population, looser rule"),
+    "stricter": ("inclusion-rule sensitivity", "primary population, stricter rule"),
+    "alt_keep_rule": ("duplicate keep-rule sensitivity", "primary population, primary rule, alternative duplicate keep rule (most records first)"),
+    "plus_unresolved_irradiation": ("population sensitivity", "primary population plus records with unresolved irradiation labels "
+                                                              "(this release's labels), primary rule"),
+    "plus_additively_manufactured": ("population sensitivity (secondary material)", "primary population plus additively manufactured "
+                                                                                    "SA508 Gr.3, primary rule"),
+    "piping_secondary": ("secondary group", "SA508 Gr.1A piping steel only, primary rule"),
 }
+FROZEN_COHORTS = DATA / "FROZEN_COHORTS_CP2.csv"
 
 
 # ---------------------------------------------------------------------------
@@ -186,21 +205,22 @@ def n_distinct_temperatures(t: np.ndarray) -> int:
     return int(1 + np.sum(np.diff(t) > DISTINCT_TEMPERATURE_GAP_C))
 
 
-def shelf_references(e: np.ndarray, upper_points: int = UPPER_REFERENCE_POINTS) -> tuple:
-    """(lower reference, upper reference): the lowest energy and the mean of the highest `upper_points` energies."""
+def screening_references(e: np.ndarray, upper_points: int = UPPER_REFERENCE_POINTS) -> tuple:
+    """(lowest measured energy, screening upper reference = mean of the highest `upper_points` measured energies). Screening quantities
+    only: the screening upper reference is not an upper-shelf energy (D-037)."""
     return float(e.min()), float(np.sort(e)[-upper_points:].mean())
 
 
 def describe_curve(s: pd.DataFrame, upper_points: int = UPPER_REFERENCE_POINTS) -> dict:
     t, e = s["test_temp_c"].to_numpy(float), s["energy_j"].to_numpy(float)
-    e_lo, e_hi = shelf_references(e, upper_points)
+    e_lo, e_hi = screening_references(e, upper_points)
     pos = (e - e_lo) / (e_hi - e_lo) if e_hi > e_lo else np.zeros_like(e)
     lower, upper = pos <= BAND_LOWER, pos >= BAND_UPPER
     trans = ~lower & ~upper
     rho = float(pd.Series(t).rank().corr(pd.Series(e).rank())) if len(t) > 2 and np.ptp(t) > 0 and np.ptp(e) > 0 else np.nan
     return dict(n_points=len(s), n_temperatures=n_distinct_temperatures(t), T_min_c=t.min(), T_max_c=t.max(), T_span_c=np.ptp(t),
-                E_min_j=e_lo, E_max_j=float(e.max()), E_upper_reference_j=e_hi,
-                energy_ratio_min_to_upper=(e_lo / e_hi) if e_hi > 0 else np.nan,
+                E_min_j=e_lo, E_max_j=float(e.max()), E_screening_upper_reference_j=e_hi,
+                energy_ratio_min_to_screening_upper=(e_lo / e_hi) if e_hi > 0 else np.nan,
                 n_points_lower_band=int(lower.sum()), n_points_transition_band=int(trans.sum()), n_points_upper_band=int(upper.sum()),
                 n_T_lower_band=n_distinct_temperatures(t[lower]), n_T_transition_band=n_distinct_temperatures(t[trans]),
                 n_T_upper_band=n_distinct_temperatures(t[upper]), spearman_rho_T_E=rho,
@@ -219,33 +239,38 @@ def rule_failures(c: pd.Series, rule: dict) -> list:
                      f"(needs >= {rule['min_points_upper']} points at >= {rule['min_T_upper']})")
     if c["n_T_lower_band"] < rule["min_T_lower"]:
         fails.append(f"lower-band temperatures {c['n_T_lower_band']} (needs >= {rule['min_T_lower']})")
-    if not c["energy_ratio_min_to_upper"] <= rule["max_energy_ratio"]:
-        fails.append(f"lowest energy / upper reference {c['energy_ratio_min_to_upper']:.2f} (needs <= {rule['max_energy_ratio']:.2f})")
+    if not c["energy_ratio_min_to_screening_upper"] <= rule["max_energy_ratio"]:
+        fails.append(f"lowest energy / screening upper reference {c['energy_ratio_min_to_screening_upper']:.2f} "
+                     f"(needs <= {rule['max_energy_ratio']:.2f})")
     return fails
 
 
 def sampling_class(c: pd.Series) -> str:
-    """Plain description of what the points cover, using the primary thresholds."""
+    """Plain description of what the points cover, using the primary thresholds (screening bands, not fitted shelves)."""
     r = RULES["primary"]
     if c["n_points"] < 3:
         return "too few points to describe"
-    lower_ok = c["energy_ratio_min_to_upper"] <= r["max_energy_ratio"]
+    lower_ok = c["energy_ratio_min_to_screening_upper"] <= r["max_energy_ratio"]
     upper_ok = c["n_T_upper_band"] >= r["min_T_upper"]
     trans_ok = c["n_T_transition_band"] >= r["min_T_transition"]
     if lower_ok and upper_ok and trans_ok:
-        return "brackets the transition (lower side, transition and upper shelf sampled)"
-    missing = [name for ok, name in [(lower_ok, "lower shelf not approached"), (trans_ok, "fewer than 2 transition temperatures"),
-                                     (upper_ok, "upper shelf not demonstrated")] if not ok]
+        return "brackets the transition in the screening bands (lower side, transition band and upper band sampled)"
+    missing = [name for ok, name in [(lower_ok, "lower shelf not approached"), (trans_ok, "fewer than 2 transition-band temperatures"),
+                                     (upper_ok, "upper band not sampled at 2 temperatures")] if not ok]
     return "; ".join(missing)
 
 
 def build_inventory(df: pd.DataFrame) -> pd.DataFrame:
+    steps_per_curve = df.groupby("curve_id")["population_step"].nunique()
+    if (steps_per_curve > 1).any():
+        raise AssertionError(f"Curves spanning more than one population: {sorted(steps_per_curve[steps_per_curve > 1].index)}")
     rows = []
     for cid, s in df.groupby("curve_id", sort=False):
         first = s.iloc[0]
         row = dict(curve_id=cid, ref_id=int(first.ref_id), ref_year=int(first.ref_year),
                    dataset_series=("none" if pd.isna(first.curve_id_dataset) else f"{first.curve_id_dataset:g}"),
                    population=first.population, population_step=first.population_step,
+                   condition_label_contradicted_by_source=first.flag_condition_label_contradicted_by_source,
                    material_family=first.material_family, material_std=first.material_std, product_form=first.product_form,
                    product_form_group=product_form_group(first), product_form_basis=first.product_form_basis,
                    product_form_uncertain=bool(s["flag_title_reports_weld_or_haz_not_identified_in_records"].any()),
@@ -255,7 +280,8 @@ def build_inventory(df: pd.DataFrame) -> pd.DataFrame:
                    irradiation_temp_c=first.irradiation_temp_c, treatment=first.treatment,
                    test_condition_statement=first.test_condition_statement,
                    reconstituted=bool(first.tag_reconstituted_specimen),
-                   irradiation_label_check=first.irradiation_label_check, specimen_type_check=first.specimen_type_check,
+                   irradiation_label_check=first.irradiation_label_check, irradiated_in_other_release=first.irradiated_in_other_release,
+                   specimen_type_check=first.specimen_type_check,
                    retained_chosen_keep_rule=bool(first.retained_chosen_keep_rule), retained_alt_keep_rule=bool(first.retained_alt_keep_rule),
                    dataset_use_j=first.use_j_dataset, dataset_dbtt_c=first.dbtt_c_dataset,
                    first_source_row=int(s["source_row"].min()), record_ids=" ".join(s["record_id"]))
@@ -339,7 +365,7 @@ def criterion_failures(inv: pd.DataFrame) -> pd.DataFrame:
                   "transition temperatures": base["n_T_transition_band"] < rule["min_T_transition"],
                   "upper band": (base["n_T_upper_band"] < rule["min_T_upper"]) | (base["n_points_upper_band"] < rule["min_points_upper"]),
                   "lower band temperatures": base["n_T_lower_band"] < rule["min_T_lower"],
-                  "energy ratio": ~(base["energy_ratio_min_to_upper"] <= rule["max_energy_ratio"])}
+                  "energy ratio": ~(base["energy_ratio_min_to_screening_upper"] <= rule["max_energy_ratio"])}
         for crit, hit in checks.items():
             rows.append(dict(rule=name, criterion=crit, curves_failing=int(hit.sum()),
                              curves_failing_only_this=int((hit & (sum(v.astype(int) for v in checks.values()) == 1)).sum())))
@@ -362,8 +388,8 @@ def series_splits(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["ref_id", "dataset_series", "records", "curves", "split_by", "pieces"])
 
 
-def upper_reference_diagnostic(df: pd.DataFrame, inv: pd.DataFrame) -> pd.DataFrame:
-    """D-037 history: rule outcomes if the upper reference were the single highest energy (the first definition tried in WP2)."""
+def screening_upper_reference_diagnostic(df: pd.DataFrame, inv: pd.DataFrame) -> pd.DataFrame:
+    """D-037 history: rule outcomes if the screening upper reference were the single highest energy (the first definition tried in WP2)."""
     base = inv[inv["population"].eq(PRIMARY_POPULATION) & inv["retained_chosen_keep_rule"]]
     rows = []
     for label, k in [("mean of the three highest energies (adopted)", UPPER_REFERENCE_POINTS), ("single highest energy (superseded)", 1)]:
@@ -371,8 +397,41 @@ def upper_reference_diagnostic(df: pd.DataFrame, inv: pd.DataFrame) -> pd.DataFr
                              for cid, g in df[df["curve_id"].isin(base["curve_id"])].groupby("curve_id")])
         for name, rule in RULES.items():
             ok = desc.apply(lambda c: not rule_failures(c, rule), axis=1)
-            rows.append(dict(upper_reference=label, rule=name, curves=int(ok.sum()), records=int(desc.loc[ok, "n_points"].sum())))
+            rows.append(dict(screening_upper_reference=label, rule=name, curves=int(ok.sum()), records=int(desc.loc[ok, "n_points"].sum())))
     return pd.DataFrame(rows)
+
+
+def cohort_tables(inv: pd.DataFrame) -> tuple:
+    """Explicit cohort files (D-039): membership (one row per cohort and curve, with the tags later work packages must carry and the
+    record IDs) and a manifest whose SHA-256 fingerprint covers each cohort's curve IDs and their record IDs."""
+    members, manifest = [], []
+    for c, (role, definition) in COHORTS.items():
+        m = inv[inv[f"cohort_{c}"]]
+        lines = sorted(f"{cid}:{' '.join(sorted(recs.split()))}" for cid, recs in zip(m["curve_id"], m["record_ids"]))
+        manifest.append(dict(cohort=c, role=role, definition=definition, curves=len(m), records=int(m["n_points"].sum()),
+                             membership_sha256=hashlib.sha256("\n".join(lines).encode()).hexdigest()))
+        members.append(m[["curve_id", "ref_id", "population_step", "product_form", "reconstituted", "irradiated", "irradiation_label_check",
+                          "geometry_class", "n_points", "record_ids"]].assign(cohort=c))
+    membership = pd.concat(members, ignore_index=True)
+    return membership[["cohort"] + [col for col in membership.columns if col != "cohort"]], pd.DataFrame(manifest)
+
+
+def verify_frozen_cohorts(manifests: dict) -> None:
+    """Stop if any cohort's membership differs from the one frozen at CP2 (FROZEN_COHORTS). Changing a frozen cohort requires an approved,
+    logged decision and an edit of that file in the same commit (D-039)."""
+    if not FROZEN_COHORTS.exists():
+        raise RuntimeError(f"{FROZEN_COHORTS.relative_to(DATA.parent)} is missing: the CP2-frozen cohorts cannot be verified.")
+    frozen = pd.read_csv(FROZEN_COHORTS, dtype={"membership_sha256": str})
+    now = pd.concat([m.assign(release=key) for key, m in manifests.items()], ignore_index=True)
+    merged = frozen.merge(now, on=["release", "cohort"], how="outer", suffixes=("_frozen", "_now"), indicator=True)
+    differs = merged[(merged["_merge"] != "both") | (merged["curves_frozen"] != merged["curves_now"])
+                     | (merged["records_frozen"] != merged["records_now"]) | (merged["membership_sha256_frozen"] != merged["membership_sha256_now"])]
+    if len(differs):
+        raise RuntimeError("WP2 cohort membership differs from the CP2-frozen cohorts in data/FROZEN_COHORTS_CP2.csv: "
+                           + "; ".join(f"{r.release} {r.cohort}: frozen {r.curves_frozen}/{r.records_frozen}, now {r.curves_now}/{r.records_now}"
+                                       for r in differs.itertuples(index=False))
+                           + ". A frozen cohort changes only through an approved decision logged in DECISIONS.md.")
+    print(f"Frozen-cohort check passed: {len(now)} cohorts match data/FROZEN_COHORTS_CP2.csv")
 
 
 def fluence_by_source(df: pd.DataFrame) -> tuple:
@@ -445,15 +504,26 @@ def summary_markdown(key, df, inv, pop, rules, bygroup, crit, splits, flu, wp1, 
          "Points per curve:", "",
          md_table(pd.cut(base["n_points"], [0, 4, 5, 7, 9, 11, 14, 19, 29, 1000], labels=["1-4", "5", "6-7", "8-9", "10-11", "12-14", "15-19", "20-29", "30+"])
                   .value_counts().sort_index().rename_axis("points").reset_index(name="curves")), "",
-         "## 4. Inclusion rules (D-038)", "",
+         "## 4. Pre-fit screening rules (D-038)", "",
+         "**What passing means.** A curve that passes a rule appears sufficiently sampled to *attempt* a transition-curve fit in WP3. "
+         "Passing does not show that a tanh fit will converge, be well conditioned or give physically reasonable parameters, nor that the "
+         "curve is scientifically valid; a curve whose WP3 fit fails is reported as a failure, never silently removed.", "",
+         f"**Screening references and bands (D-037).** Lower reference = lowest measured energy; screening upper reference = mean of the "
+         f"{UPPER_REFERENCE_POINTS} highest measured energies. The screening upper reference is not an upper-shelf energy (USE); USE is "
+         f"estimated in WP3. Transition band = {BAND_LOWER:.2f}-{BAND_UPPER:.2f} of the rise between the references: for the normalized tanh "
+         "y = (1 + tanh x) / 2, y = 0.119 at x = -1 and 0.881 at x = +1, so the band is T0 - C to T0 + C. This is a project-defined, "
+         "model-based convention, not an ASTM requirement. The stricter rule's specimen counts are historical ASTM E185-82 surveillance "
+         "guidance, used as a deliberately conservative comparison.", "",
          md_table(pd.DataFrame([dict(rule=name, **rule) for name, rule in RULES.items()])), "",
          md_table(pd.DataFrame([dict(criterion=k, basis=v) for k, v in RULE_BASIS.items()])), "",
          "## 5. What each rule keeps", "", md_table(rules), "",
          "Curves failing each criterion (a curve can fail several):", "", md_table(crit), "",
          "By material family, product form, irradiation status and geometry:", "", md_table(bygroup), "",
          "## 6. Cohorts carried forward (D-039)", "",
-         md_table(pd.DataFrame([dict(cohort=c, definition=d, curves=int(inv[f"cohort_{c}"].sum()),
-                                     records=int(inv.loc[inv[f'cohort_{c}'], 'n_points'].sum())) for c, d in COHORTS.items()])), "",
+         "Membership is frozen at CP2: explicit files `cohort_membership.csv` and `cohort_manifest.csv`, checked on every run against "
+         "`data/FROZEN_COHORTS_CP2.csv`. Later work packages read these cohorts; they do not regenerate them with other thresholds.", "",
+         md_table(pd.DataFrame([dict(cohort=c, role=role, definition=d, curves=int(inv[f"cohort_{c}"].sum()),
+                                     records=int(inv.loc[inv[f'cohort_{c}'], 'n_points'].sum())) for c, (role, d) in COHORTS.items()])), "",
          "## 7. Accounting of special cases", "",
          f"- Duplicated (WP1 E8, D-019): {e8['duplicate_comparison_unit'].nunique()} series, {len(e8)} records removed as republications. "
          f"Curves that exist under only one of the two keep rules: {int((inv['retained_chosen_keep_rule'] != inv['retained_alt_keep_rule']).sum())}; "
@@ -465,13 +535,18 @@ def summary_markdown(key, df, inv, pop, rules, bygroup, crit, splits, flu, wp1, 
          f"{int(pop.loc[pop['step'] == 'P3', 'records'].iloc[0])}.",
          f"- Piping (secondary): {int(pop.loc[pop['step'] == 'P4', 'records'].iloc[0])} records; additively manufactured (secondary): "
          f"{int(pop.loc[pop['step'] == 'P5', 'records'].iloc[0])} records.",
+         "- Curves excluded because the source contradicts their condition labels (P2, D-031). Measurements and labels are unchanged; "
+         "the exact reason is kept per record and per curve:", "",
+         md_table(inv.loc[inv["population_step"].eq("P2") & inv["retained_chosen_keep_rule"],
+                          ["curve_id", "n_points", "irradiated", "treatment", "test_condition_statement", "condition_label_contradicted_by_source"]]), "",
          f"- Mixed dataset series split into more than one curve: {len(splits)} series ({int(splits['records'].sum()) if len(splits) else 0} records):", "",
          md_table(splits), "",
          "Special conditions inside the primary cohort (each forms its own curves; none is excluded for being special):", "",
          md_table(special_conditions(df, inv)), "",
          "Primary-population curves rejected by the primary rule:", "",
          md_table(base.loc[~base["passes_primary"], ["curve_id", "material_family", "product_form", "geometry", "irradiated", "n_points",
-                                                       "n_T_transition_band", "n_T_upper_band", "energy_ratio_min_to_upper", "fails_primary"]]
+                                                       "n_T_transition_band", "n_T_upper_band", "energy_ratio_min_to_screening_upper",
+                                                       "fails_primary"]]
                   .round(2)), "",
          "## 8. Fluence treatment (D-036)", "",
          f"Irradiated records retained by WP1: {flu_facts['irradiated_records']}; with a fluence value: {flu_facts['with_fluence']}; with an "
@@ -527,11 +602,14 @@ def run(key: str):
     flu = fluence_treatment_comparison(df)
     flu.to_csv(out / "fluence_treatments.csv", index=False)
     flu_src, flu_facts = fluence_by_source(df)
-    upper_reference_diagnostic(df, inv).to_csv(out / "upper_reference_diagnostic.csv", index=False)
+    screening_upper_reference_diagnostic(df, inv).to_csv(out / "screening_upper_reference_diagnostic.csv", index=False)
     flu_src.to_csv(out / "fluence_by_source.csv", index=False)
+    membership, manifest = cohort_tables(inv)
+    membership.to_csv(out / "cohort_membership.csv", index=False)
+    manifest.to_csv(out / "cohort_manifest.csv", index=False)
     write_text(out / "wp2_summary.md", summary_markdown(key, df, inv, pop, rules, bygroup, crit, splits, flu, wp1, flu_src, flu_facts))
     print(f"WP2 ({key}): {len(inv)} curves; primary cohort {int(inv['cohort_primary'].sum())} curves -> {out}")
-    return df, inv
+    return df, inv, manifest
 
 
 def version_comparison(inv_p: pd.DataFrame, inv_s: pd.DataFrame) -> None:
@@ -579,39 +657,43 @@ EXAMPLE_CURVES = [
 
 
 def example_figure(df: pd.DataFrame, inv: pd.DataFrame) -> None:
+    import textwrap
+
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(1, 3, figsize=(11.5, 4.4))
+    fig, axes = plt.subplots(1, 3, figsize=(11.5, 5.0))
     for ax, (cid, title, expected) in zip(axes, EXAMPLE_CURVES):
         c = inv.set_index("curve_id").loc[cid]
         outcome = (bool(c["passes_looser"]), bool(c["passes_primary"]), bool(c["passes_stricter"]))
         if outcome != expected:
             raise AssertionError(f"Example curve {cid} no longer illustrates '{title}': (looser, primary, stricter) = {outcome}")
         s = df[df["curve_id"] == cid]
-        e_lo, e_hi = c["E_min_j"], c["E_upper_reference_j"]
+        e_lo, e_hi = c["E_min_j"], c["E_screening_upper_reference_j"]
         lo, hi = e_lo + BAND_LOWER * (e_hi - e_lo), e_lo + BAND_UPPER * (e_hi - e_lo)
-        ax.axhspan(lo, hi, color="0.87", zorder=0, label="transition band (12-88 % of rise)")
-        ax.axhline(e_hi, color="0.4", lw=0.8, ls="--", zorder=1, label="upper reference (mean of 3 highest)")
+        ax.axhspan(lo, hi, color="0.87", zorder=0, label="transition band (12-88 % of rise; T0 ± C of a tanh)")
+        ax.axhline(e_hi, color="0.4", lw=0.8, ls="--", zorder=1, label="screening upper reference (mean of 3 highest; not USE)")
         ax.scatter(s["test_temp_c"], s["energy_j"], s=24, facecolor="white", edgecolor="black", zorder=2, label="published test data")
         ax.set_title(f"{title}\ncurve {cid}: ref {c['ref_id']}, {c['material_family']} {c['product_form']}, {c['n_points']} points", fontsize=8.5)
         ax.set_xlabel("Test temperature (°C)")
         ax.set_ylabel("Absorbed energy (J)")
-        note = (f"temperatures in lower/transition/upper band: {c['n_T_lower_band']}/{c['n_T_transition_band']}/{c['n_T_upper_band']}\n"
-                f"lowest energy / upper reference: {c['energy_ratio_min_to_upper']:.2f}\n"
-                + ("fails primary: " + c["fails_primary"] if isinstance(c["fails_primary"], str) and c["fails_primary"]
-                   else "fails stricter: " + c["fails_stricter"] if isinstance(c["fails_stricter"], str) and c["fails_stricter"]
-                   else "meets every criterion"))
-        ax.text(0.0, -0.22, note, transform=ax.transAxes, fontsize=7, va="top")
-    axes[0].legend(loc="lower right", fontsize=6.5, frameon=False)
-    fig.suptitle("WP2 inclusion rules illustrated on published Charpy V-notch data (no curve fitted)", fontsize=9.5)
-    fig.tight_layout(rect=(0, 0.06, 1, 1))
+        lines = [f"temperatures in lower/transition/upper band: {c['n_T_lower_band']}/{c['n_T_transition_band']}/{c['n_T_upper_band']}",
+                 f"lowest energy / screening upper reference: {c['energy_ratio_min_to_screening_upper']:.2f}",
+                 ("fails primary: " + c["fails_primary"] if isinstance(c["fails_primary"], str) and c["fails_primary"]
+                  else "fails stricter: " + c["fails_stricter"] if isinstance(c["fails_stricter"], str) and c["fails_stricter"]
+                  else "meets every criterion")]
+        ax.text(0.0, -0.3, "\n".join(textwrap.fill(line, 50) for line in lines), transform=ax.transAxes, fontsize=7, va="top")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.93), ncol=3, fontsize=7.5, frameon=False)
+    fig.suptitle("WP2 pre-fit screening rules illustrated on published Charpy V-notch data (no curve fitted)", fontsize=9.5)
+    fig.tight_layout(rect=(0, 0.08, 1, 0.9))
     fig.savefig(OUTPUTS / "wp2" / "example_curves.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
 
 
 if __name__ == "__main__":
-    df_p, inv_p = run(PRIMARY_DATASET)
-    _, inv_s = run(SENSITIVITY_DATASET)
+    df_p, inv_p, manifest_p = run(PRIMARY_DATASET)
+    _, inv_s, manifest_s = run(SENSITIVITY_DATASET)
     version_comparison(inv_p, inv_s)
     example_figure(df_p, inv_p)
+    verify_frozen_cohorts({PRIMARY_DATASET: manifest_p, SENSITIVITY_DATASET: manifest_s})

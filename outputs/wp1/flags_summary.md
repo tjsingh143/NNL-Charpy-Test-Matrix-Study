@@ -7,7 +7,7 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | flag_precracked_label_in_2025_release | 338 | 1, 8, 9, 13, 23 |
 | flag_source_reports_precracked_specimens | 227 | 1, 44 |
 | flag_irradiation_status_differs_between_releases | 185 | 7, 8, 9, 13, 53 |
-| flag_condition_label_contradicted_by_source | 46 | 1 |
+| flag_condition_label_contradicted_by_source | 48 | 1 |
 | flag_title_reports_weld_or_haz_not_identified_in_records | 226 | 5, 7, 18, 34, 50, 60 |
 | flag_label_says_base_metal_but_weld_metal_composition | 0 |  |
 | flag_dataset_curve_id_mixes | 213 | 1, 15, 18, 21, 59 |

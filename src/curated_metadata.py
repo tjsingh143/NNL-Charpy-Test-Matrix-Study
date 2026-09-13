@@ -384,15 +384,41 @@ IRRADIATION_LABEL_CHECKS = {
 }
 
 # Condition labels on specific dataset series that the source contradicts (D-031). Key: (ref_id, dataset curve ID).
+#   records: 'all' records of the series, or only the records the dataset labels 'irradiated'. The label is flagged, never corrected.
 _NP1661_SHOCK = ("Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 "
                  "and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface "
                  "shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, "
                  "i.e. the labels are shifted by one series.")
+_NP1661_FLUENCE = ("Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); "
+                   "the dataset gives 3e19 n/cm2.")
 SOURCE_CONTRADICTED_LABELS = {
-    (1, 3): _NP1661_SHOCK,
-    (1, 4): _NP1661_SHOCK,
-    (1, 5): _NP1661_SHOCK,
-    (1, 7): "Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); "
-            "the dataset gives 3e19 n/cm2.",
+    (1, 3): dict(records="all", reason=_NP1661_SHOCK),
+    (1, 4): dict(records="all", reason=_NP1661_SHOCK),
+    (1, 5): dict(records="all", reason=_NP1661_SHOCK),
+    # Added when CP2 was finalized (author decision, 2026-09-13).
+    (1, 6): dict(records="irradiated", reason=_NP1661_FLUENCE + " These two reconstituted records carry the series-7 label (irradiated, "
+                 "3e19 n/cm2) inside unirradiated HSST Plate 02 series 6. Their energies do not fit an irradiated curve (series 7 has only "
+                 "11 J at -7 C): 6.9 J at -74.8 C lies within the unirradiated data (7.4 J at -70.5 C) and 41.3 J at -59.8 C is above even "
+                 "the unirradiated original specimens at -60 C (8.9-22.3 J), so the irradiation label itself is also doubtful."),
+    (1, 7): dict(records="all", reason=_NP1661_FLUENCE),
+}
+
+# ---------------------------------------------------------------------------
+# (e) Constant-axis-offset duplicates (DECISIONS.md D-019; CP2 approval of the author, 2026-09-13).
+#     The offset test is not a generic search: it links copies only within the dataset series listed here, i.e. where the repository
+#     documents evidence that two publications report the same underlying tests. Key: ((ref_id, dataset curve ID) of the earlier
+#     publication, (ref_id, dataset curve ID) of the later one). Adding an entry is a judgement call to log in DECISIONS.md, and must
+#     never be made because of downstream fit results.
+# ---------------------------------------------------------------------------
+OFFSET_DUPLICATE_PROVENANCE = {
+    ((1, 6), (21, 99)): dict(
+        evidence="Same research programme and author: W. L. Server co-authored both reports (ref 1: Server, Wullaert, Odette & Oldfield "
+                 "1981, EPRI NP-1661; ref 21: Perrin, Fromm, Server & McConnell 1982), one year apart. Same material and specimen "
+                 "population: ref 1 series 6 is unirradiated HSST Plate 02 (SA533B-1), original plus reconstituted Charpy V-notch "
+                 "specimens [NP-1661] (D-031, D-032); ref 21 series 99 is unirradiated SA533B, original plus reconstituted specimens, "
+                 "from a report on preparing reconstituted Charpy V-notch specimens (title). Same structure (95 + 10 versus 104 + 12 "
+                 "specimens) and geometry (55x10x10 mm, 2 mm notch); no treatment recorded for either.",
+        not_verified="Ref 21's full text was not checked; that its SA533B series is HSST Plate 02 is inferred from the evidence above and "
+                     "from the point pattern (outputs/wp1/duplicate_offset_evidence.csv), not read from ref 21."),
 }
 

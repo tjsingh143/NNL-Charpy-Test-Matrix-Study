@@ -4,8 +4,25 @@ One entry per decision that could reasonably have gone another way (PROJECT_BRIE
 Each entry states what was decided, the alternatives, why, and what would change under the alternative.
 Where a number is quoted, the file that regenerates it is named.
 
-**Status legend:** `DECIDED` = in force. `APPROVED (CP1)` = decided by the author at checkpoint CP1 (the entry keeps the
-pre-CP1 reasoning as history). `PROVISIONAL (CP2)` = in force for now, put to the author at checkpoint CP2. `OPEN` = not yet decided.
+**Status legend:** `DECIDED` = in force. `APPROVED (CP1)` / `APPROVED (CP2)` = decided or approved by the author at that checkpoint
+(the entry keeps earlier reasoning as history). `APPROVED (CP2, with the WP2 state)` = in force as part of the completed WP2 state the
+author approved at CP2, without an entry-specific instruction. `OPEN` = not yet decided. After CP2 no entry is provisional.
+
+**CP2 approval record (author, 2026-09-13).** The author reviewed CP2 and approved WP2; each item is recorded in full in the entry named.
+1. Additively manufactured SA508 is a secondary group outside the primary conventional-RPV population (D-034).
+2. Records whose irradiation status cannot be resolved from adequate source evidence are excluded from the primary analysis; the state is never guessed (D-035).
+3. Reconstituted specimens are kept as their own curves and not combined with conventional specimens without a later, approved analysis (D-033).
+4. D-038 is the primary pre-fit screening rule: passing it means only that a curve appears sufficiently sampled to attempt a fit. The
+   looser, primary and stricter cohorts are frozen (D-039). Clarifications: 4A the WP2 upper quantity is a screening upper reference, not
+   the upper-shelf energy; 4B the 0.12–0.88 band is a project-defined, model-based convention; 4C the stricter rule's specimen counts are
+   historical ASTM E185 surveillance guidance used as a conservative comparison (D-037, D-038).
+5. WP1 corrections surfaced in WP2: ref 1 source-contradicted labels leave the primary analysis (D-031); ref 21's HSST Plate 02 series is a
+   republication of ref 1, under safeguards for offset-based duplicates (D-019); ref 53 curve 237 is a mislabelled duplicate of curve 241 (D-019, D-029).
+6. WP2 is merged into `main` after these are implemented and verified (D-030).
+
+Put to the author while CP2 was being finalized, and decided: the two irradiated-labelled records of ref 1 series 6 (curve 1-6.3) carry
+the same source-contradicted label and join the exclusion of item 5 (D-031); the approximately 0.10–0.85 band alternative is preserved
+with its literature source still to be documented (D-037).
 
 **Sources cited below**
 - [descriptor] Lee I., Merickel J.W., Sreenivasulu Y.K., Xu F., Tang Y., Rittenhouse J.E., Vakanski A., Song R. (2025).
@@ -269,14 +286,25 @@ Zero energy is kept because a lower-shelf point digitized on a graph's axis read
 **Why.** For digitized values carrying 12+ decimals, identical rows are copy errors, not replicates. For whole-number tabular values, replicates are possible; none occur in scope, so the question does not arise.
 
 ## D-019 — Exclusion E8: the same tests reported more than once
-**Status:** APPROVED (CP1) — deduplication and the hierarchy's criteria approved by the author; their operationalization, the matching change for
-unresolved labels, and the two detection additions made after CP1 are PROVISIONAL (CP2)
+**Status:** APPROVED (CP1) — deduplication and the hierarchy's criteria. APPROVED (CP2) — their operationalization, the matching change for
+unresolved labels and the two detection additions made after CP1 (ref 53 curve 237 = curve 241; ref 21's HSST Plate 02 copy of ref 1), with
+the safeguards for offset-based duplicates below
 
 **CP1 decision (author).** Deduplicate republished tests for the primary analysis, because counting a republication as a new
 experiment would overstate confidence. "Keep the copy with most points" is not acceptable as the sole rule (extra points can be
 contamination, e.g. ref 19 curve 90 below). Establish a transparent hierarchy before any fitting; never average separate digitizations;
 keep an audit mapping every removed copy to its kept copy; carry at least one reasonable alternative rule forward as a sensitivity case;
 do not tune the rule on downstream results.
+
+**CP2 decision (author, 2026-09-13).** Approved: (i) ref 53 curve 237 is a mislabelled duplicate of weld-metal curve 241, on the
+point-for-point evidence (11 of 11 points identical), and leaves the primary independent-data population; the raw curve, its original label,
+the canonical relationship (kept copy: curve 241) and the reason stay in the audit trail (D-029). (ii) Ref 21's HSST Plate 02 series is a
+republication/redigitization of ref 1, and ref 1, the original source, is the canonical copy. (iii) Safeguards: the constant-offset detector
+must not become a generic method that shifts arbitrary curves until unrelated curves happen to match. An offset-based duplicate
+classification requires all of: 1. compatible source, material and condition provenance; 2. evidence that the publications represent the
+same underlying experiment or specimen population; 3. strong point-pattern overlap under ONE approximately constant axis offset; 4. a
+predeclared quantitative overlap criterion; 5. an auditable retained-copy / excluded-copy mapping. An offset is never selected on downstream
+fit quality; two digitizations are never averaged into a smoother curve; the alternative duplicate-selection cohort is preserved.
 
 **Canonical-source hierarchy (implemented in `src/wp1_clean.py::KEEP_RULES`, chosen before any fitting).** Among copies linked as
 duplicates, the copy kept is the first by:
@@ -300,12 +328,32 @@ ref 9 curves 34 and 36, ref 13 curve 59; 53 records) are removed in favour of th
   composition, D-029) was never compared with weld-metal curve 241, although all 11 points are identical. A material label contradicted
   by the record's own composition can no longer rule a match out (same principle as unresolved irradiation labels).
 - *Constant axis offset between digitizations.* Ref 1 curve 6 (95 original + 10 reconstituted HSST Plate 02 specimens) and ref 21 curve 99
-  (104 + 12) matched only about half their points within 3 °C / 2 %, below the 70 % rule. Shifting ref 1's copy by a constant −3.0 °C makes 73 of
-  95 original and 8 of 10 reconstituted points coincide within 1 °C / 1 %, against far fewer without the shift and a chance baseline
-  (the same copy shifted by ±20–30 °C) that is lower still (all counts: `outputs/wp1/duplicate_offset_evidence.csv`). Independent tests cannot
-  line up point for point under one constant shift; two digitizations of the same plotted data with differently calibrated axes do.
-  Second test (`offset_aligned_pairs`): shift one copy by a constant −6 to +6 °C (0.5 °C steps) and scale its energies by 0.98–1.02,
-  match within 1 °C and 1 %; duplicate if ≥ 5 points and ≥ 70 % of the smaller copy match. Applied to every candidate pair, it links only these two pairs.
+  (104 + 12) matched only about half their points within 3 °C / 2 %, below the 70 % rule. Independent tests cannot line up point for point
+  under one constant shift; two digitizations of the same plotted data with differently calibrated axes do. How the CP2 safeguards are met
+  (`src/wp1_clean.py::offset_aligned_pairs`; audit `outputs/wp1/duplicate_offset_evidence.csv`):
+  1. *Compatible provenance:* the two copies must agree on material family (a stated class may not contradict the other copy), specimen
+     dimensions and notch depth, settled irradiation status and fluence, treatment, and test-condition statement. Unlike the plain test, no
+     disputed label is waived. Original specimens are compared only with original ones, reconstituted only with reconstituted.
+  2. *Same experiment:* the test runs only on dataset-series pairs listed in `src/curated_metadata.py::OFFSET_DUPLICATE_PROVENANCE`, each
+     with its evidence and what was not verified. Refs 1 and 21: W. L. Server co-authored both reports (1981, 1982); ref 1 series 6 is HSST
+     Plate 02, original plus reconstituted specimens [NP-1661]; ref 21 is a report on preparing reconstituted Charpy V-notch specimens whose
+     SA533B series has the same structure (95 + 10 against 104 + 12 specimens, same geometry, unirradiated). Not verified: ref 21's full text
+     was not read; that its series is HSST Plate 02 is inferred from this evidence and from the point pattern.
+  3. *One constant offset:* a single transform (temperature shift −6 to +6 °C in 0.5 °C steps, energy scale 0.98–1.02) is shared by every
+     compatible series pair of the two publications. It is chosen by the largest total number of one-to-one matched points (ties: smallest
+     shift, then scale nearest 1), never by any fit. Result: −3.0 °C and ×1.00 for both the original and the reconstituted series. (At the
+     CP2 presentation each pair was searched on its own; the reconstituted pair then reported ×1.01 purely through a tie-break, with the same 8 matches.)
+  4. *Predeclared criterion:* after the transform, points match within 1 °C and 1 % of the larger maximum energy; duplicate if ≥ 5 points
+     and ≥ 70 % of the smaller copy match. Result: 73 of 95 original and 8 of 10 reconstituted points; without the shift, 8 and 1 at the
+     same tolerance (51 and 5 at the plain 3 °C / 2 %); chance baseline (the same copy shifted by ±20 and ±30 °C, plain tolerance) 5–15 and 0.
+     History, stated plainly: the 70 % fraction is the plain test's CP1 value, but the 1 °C / 1 % tolerances, the ±6 °C and 0.98–1.02
+     search ranges and the 5-point minimum were introduced in WP2 (commit `10d4e89`), when the ref 1 / ref 21 pair had already been noticed
+     and before any fit existed. They are frozen from CP2 and apply unchanged to any future candidate.
+  5. *Audit:* `duplicate_curve_removals.csv` maps each removed copy to its kept copy (`linked_by` = constant axis offset; 29 of 104 and 4 of
+     12 points of the removed copies have no counterpart in ref 1); `duplicate_offset_evidence.csv` records the provenance evidence,
+     label compatibility, the shared transform, matches with and without it, and the chance baseline.
+  A review-only screen runs the same search on every other candidate pair so that a future pair meeting the criterion without documented
+  provenance is listed for a person to examine, never removed. It finds none.
 
 **Result (regenerated; identical for both releases).** 69 series, 910 records removed at E8: 67 series (794 records) by plain point matching,
 2 (116 records, ref 21 curve 99) by the constant-offset test. Deciding criterion: (b) 63 series (852 records); (c) 2 series (26 records:
@@ -386,7 +434,8 @@ setting its resolution to `pre-cracked` or `unresolved` in `SPECIMEN_TYPE_CHECKS
 **If the alternative were chosen.** Loss of hundreds of ordinary Charpy V-notch records, including ref 1's irradiated and reconstituted SA533B-1 data, on the strength of a paper-level note.
 
 ## D-021 — Irradiation status that differs between releases
-**Status:** CP1 decision 1 applied (disagreements remain flags; newer is not assumed correct); resolution by source check PROVISIONAL (CP2)
+**Status:** CP1 decision 1 applied (disagreements remain flags; newer is not assumed correct). Treatment of unresolved labels APPROVED (CP2,
+D-035); ref 13's source-check resolution APPROVED (CP2, with the WP2 state)
 
 **Decision (after CP1).** Keep record-B's label in the data, flag every disagreement, and check the source. The field
 `irradiated_resolved` holds the label both releases agree on, or the source-supported value where a check resolves the disagreement,
@@ -398,8 +447,8 @@ otherwise record-B's label; `irradiation_label_check` says which (`src/curated_m
   point-for-point identical to unirradiated curves in other papers; for ref 53, [Kim2012]'s abstract reports irradiated base-metal
   specimens, which record-A has (curve 242) and record-B does not. These point towards record-A but do not settle every series.
 - Unresolved labels cannot rule out a duplicate match (D-019); the four republished series are removed at E8.
-- After E8, 138 retained records carry an unresolved label (refs 7, 8, 9, 53; 11 dataset series). Their treatment in the analysis
-  populations is a WP2 decision (D-035).
+- After E8, 138 retained records carry an unresolved label (refs 7, 8, 9, 53; 11 dataset series). They are excluded from the primary
+  analysis and preserved (D-035, approved at CP2).
 
 **History — pre-CP1 provisional decision (superseded).** Use record-A's irradiation status; flag the 200 retained records where record-B differs (`flag_irradiation_status_differs_between_releases`; refs 7, 8, 9, 13, 53).
 **Evidence.** B changes 226 records from "No" to "Yes" and 12 from "Yes" to "No"; 78 of the new "Yes" records gain a fluence and the rest have none (`dataset_version_comparison.md`). Four curves B marks irradiated (refs 8, 9, 9, 13) match unirradiated curves in other publications point for point (10/10, 13/13, 15/15, 15/15) within digitization error. Neutron irradiation hardens these steels and shifts the transition curve, so an irradiated curve should not reproduce an unirradiated one point for point: those relabels are very likely wrong. The ref 53 changes could not be checked this way.
@@ -417,7 +466,7 @@ conditions, material conditions, heats or anything else that should not be fitte
 **If the alternative were chosen.** The WP4 cross-check would compare against numbers of unknown definition.
 
 ## D-023 — Special material and specimen conditions are tagged, not excluded
-**Status:** DECIDED; WP2 outcome: each condition forms its own curves in the primary population (D-033), except additively manufactured material (secondary, D-034) and ref 1's shock-hardened series (labels contradicted by the source, D-031)
+**Status:** DECIDED; WP2 outcome APPROVED (CP2): each condition forms its own curves in the primary population (D-033; reconstituted specimens are never combined with conventional ones without a later, approved analysis), except additively manufactured material (secondary, D-034) and ref 1's series whose labels the source contradicts (D-031)
 **Decision.** Keep and tag: reconstituted specimens, shock-wave-hardened surrogate (ref 1), pre-strained (ref 41), simulated HAZ (ref 15), HAZ, weld region, step cooled, PWHT, standard reference material (ref 2), orientation semantics differ (ref 31), additively manufactured (ref 31).
 **Why.** None is invalid as a Charpy test; each defines a different material condition. Whether a condition forms its own curve or is excluded is a curve-definition question (WP2) whose influence must be tested there.
 **Alternatives.** Exclude all non-standard conditions now.
@@ -459,14 +508,21 @@ step (D-034): refs 22, 23, 30, 32, 40, identified by grade in the citation title
 **Why.** Correcting requires deciding what the curve should be, which is WP2's curve definition.
 
 ## D-029 — Material label that contradicts composition
-**Status:** DECIDED (flag); duplicate resolution in E8 after CP1 PROVISIONAL (CP2)
+**Status:** DECIDED (flag); duplicate resolution in E8 APPROVED (CP2)
 **Decision.** Flag, do not relabel, the 11 records of ref 53 curve 237: labelled A533B base metal but carrying the weld-metal composition (C 0.08, Ni 0.83, Mn 1.33) of the same paper, in a sequence (base, HAZ 1 mm, HAZ 4 mm, weld) that repeats for another figure.
 **Why.** The evidence strongly suggests weld metal, but relabelling is an inference.
 **Resolution (WP2 inspection).** Its 11 points are identical to weld-metal curve 241 of the same paper, so it is the weld-metal series shown a
 second time under a wrong label. Because a contradicted material label can no longer rule out a duplicate match (D-019), E8 now removes it in favour of curve 241 (criterion (c)).
+**Approved at CP2 (author).** Curve 237 is excluded from the primary independent-data population and nothing about it is lost: its 11 raw
+records stay in `charpy_records_with_status.csv` with the verbatim label (`material_raw` 'A533B' / 'A533B '), the flag
+`flag_label_says_base_metal_but_weld_metal_composition`, `exclusion_step` E8 and an `exclusion_reason` naming the kept copy (curve 241, 11 of
+11 points matched, criterion (c)); the pair is in `duplicate_curve_pairs.csv` and `duplicate_curve_removals.csv`.
 
 ## D-030 — Git repository
-**Status:** APPROVED (CP1 decision 6); branch-per-unapproved-work-package convention PROVISIONAL (CP2)
+**Status:** APPROVED (CP1 decision 6); branch-per-unapproved-work-package convention APPROVED (CP2)
+**CP2 decision (author, 2026-09-13).** Merge the completed `wp2` branch into `main` only after the CP2 decisions are implemented and the full
+pipeline is verified from raw data; use an explicit non-fast-forward merge so the checkpoint stays visible in history; keep the `wp2`
+branch; no remote, no push.
 **Decision.** Git initialized after CP1. Commit `9bc28fc` on `main` is the CP1 state exactly as presented (verified to regenerate
 byte-identically before committing). Later work is committed at meaningful boundaries on a branch named for the work package
 (`wp2`), so `main` holds only checkpoint-approved states; merge after approval. No remote, no push, unless the author asks.
@@ -475,7 +531,22 @@ Repository-local author identity (`git config user.name/user.email`); global set
 **Why.** A branch per unapproved work package keeps the approved state recoverable and makes each checkpoint's changes reviewable as one diff.
 
 ## D-031 — Condition labels that the source contradicts
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2); extended to the two irradiated-labelled records of series 6 (curve 1-6.3) by the author while CP2 was finalized
+
+**CP2 decision (author, 2026-09-13).** Exclude from the primary analysis the records whose condition labels the source evidence
+contradicts. Raw measurements are not altered; uncertain labels are not replaced with invented corrected values; the records, the source
+evidence and the exact reason each affected series is excluded are preserved (record field `flag_condition_label_contradicted_by_source`,
+curve field `condition_label_contradicted_by_source` in `curve_inventory.csv`, table in `wp2_summary.md` §7), and the records stay outside
+the primary population (population step P2, curve IDs kept) for audit or sensitivity use.
+**Extension (author decision when CP2 was finalized).** Ref 1 series 6 is unirradiated HSST Plate 02, but two of its reconstituted records
+(R0172, R0173; curve 1-6.3) carry exactly the series-7 label "irradiated, 3×10¹⁹ n/cm²" that NP-1661 Fig. 3-17 contradicts. Their
+energies do not fit an irradiated curve either: the irradiated series 7 has only 11 J at −7 °C, while these give 6.9 J at −74.8 °C (within
+the unirradiated data, e.g. 7.4 J at −70.5 °C) and 41.3 J at −59.8 °C (above even the unirradiated original specimens at −60 °C, 8.9–22.3 J).
+(When the question was put to the author, both energies were described as inside the unirradiated scatter; that holds for the first
+point only. The decision rests on the identical contradicted label.) The original entry missed them because the contradiction map was
+keyed by dataset series. Put to the author because it changed an approved count: P2 grows from 46 records / 6 curves
+to 48 / 7, and the primary population before screening from 192 curves / 2,736 records to 191 / 2,734. No cohort changes (1-6.3 has 2
+points and fails every rule). The map now names the records it covers (`SOURCE_CONTRADICTED_LABELS`, `records` = "all" or "irradiated").
 **Context.** Checking ref 1 for D-020 showed two labeling errors present in both releases (`SOURCE_CONTRADICTED_LABELS`):
 - *Shock-hardening treatment labels shifted by one series.* [NP-1661] Table 3-1 gives tanh fits for heat IbH: non-shocked USE ≈ 136 J,
   T0 ≈ 13 °C; bottom layer USE ≈ 108 J, T0 ≈ 21 °C; top layer USE ≈ 41 J, T0 ≈ 7 °C. Dataset curves 3, 4, 5 (labelled bottom-surface
@@ -485,13 +556,15 @@ Repository-local author identity (`git config user.name/user.email`); global set
   gives 2.5×10¹⁸ n/cm² (E > 1 MeV).
 NP-1661 also covers several heats (D, IbH, HSST Plate 02 = IbA) while every ref 1 record carries one composition, so for this reference
 composition cannot identify the heat.
-**Decision.** Flag (`flag_condition_label_contradicted_by_source`, 46 retained records, curves 3, 4, 5, 7); do not relabel. Relabeling
-would create values that neither release publishes. These series are outside the primary population (D-034); they count as an
-unresolved labeling problem in the duplicate hierarchy.
+**Decision.** Flag (`flag_condition_label_contradicted_by_source`, 48 retained records: dataset series 3, 4, 5 and 7, and the two
+irradiated-labelled records of series 6; WP2 curves 1-3.1, 1-3.2, 1-4, 1-5, 1-6.3, 1-7.1, 1-7.2); do not relabel. Relabeling would create
+values that neither release publishes. These records are outside the primary population (D-034); they count as an unresolved labeling
+problem in the duplicate hierarchy.
 **Alternatives.** Relabel from the source; keep the dataset labels.
 **If the alternative were chosen.** Relabeling: 4 more curves in the primary population (one unirradiated, two shock-hardened, one
-irradiated), at the cost of project-made labels. Keeping dataset labels: an "untreated" SA533B-1 curve that is really the most-hardened
-surrogate would enter the primary analysis, and a 12× fluence error would enter the inventory.
+irradiated), at the cost of project-made labels (1-6.3 could not be relabelled at all: its true condition is unknown). Keeping dataset
+labels: an "untreated" SA533B-1 curve that is really the most-hardened surrogate would enter the primary analysis, and a 12× fluence error
+would enter the inventory.
 
 ---
 
@@ -501,7 +574,7 @@ All numbers below are for the 2025.30 primary release and regenerate with `src/w
 release: `outputs/wp2_sensitivity_eny5v-www93/`). Nothing in WP2 is fitted; the dataset's USE, DBTT and curve IDs are provenance only (D-022).
 
 ## D-032 — A curve never spans two publications or two dataset series
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2, with the WP2 state)
 **Decision.** Records from different source publications are never one curve. Within a publication, the dataset series (`curve_id_dataset`;
 records without an ID form their own set) is a boundary a curve never crosses; the grouping variables of D-033 split series, never merge them.
 **Evidence.** Seven pairs of different series agree on every recorded grouping variable yet are different materials or conditions
@@ -519,7 +592,14 @@ materials or labels; pooling across publications would mix between-laboratory di
 in series 76, left as a 2-point fragment that fails every rule.
 
 ## D-033 — The definition of one transition curve (grouping variables)
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2), with the author's interpretation for reconstituted specimens
+
+**CP2 decision (author, 2026-09-13): reconstituted specimens.** Reconstituted specimens are legitimate published Charpy measurements and
+are not discarded because they are reconstituted. Reconstitution is, however, a materially different specimen history. Therefore they are
+kept as transition curves separate from otherwise comparable original specimens (the test-condition statement is a grouping variable);
+the tag travels through every later work package (record field `tag_reconstituted_specimen`, curve field `reconstituted`, both carried in
+`cohort_membership.csv`); and reconstituted and conventional specimens are not combined unless a later, explicitly justified analysis is
+approved by the author.
 **Decision.** Within one publication and one dataset series, records are one transition curve only if they agree on all of:
 - *material identity:* `material_std` (specification, type/grade, class where stated, weld-metal label) and the heat chemistry
   (`composition_signature`, all reported elements; the heat proxy, as the dataset has no heat or lot identifier); product form (D-013);
@@ -545,22 +625,33 @@ cooled, pre-strained, standard reference material, the deliberately embrittled J
 **Alternatives.** Coarser grouping (family, geometry and irradiation status only); pool reconstituted with original specimens.
 **If the alternative were chosen.** Coarser grouping would pool, for example, ref 15's FGCG and ICCG simulated-HAZ zones (lowest energies
 8 J vs 29 J) into one curve, turning a material difference into apparent scatter. Pooling reconstituted specimens would enlarge 1-6.1
-(95 → 105 points) and 21-100.1 (14 → 20); NP-1661 reports that reconstitution did not change properties, so this is a reasonable
-sensitivity case for later stages but not the primary definition.
+(95 → 105 points) and 21-100.1 (14 → 20). NP-1661 reports that reconstitution did not change properties, but that is not enough to pool by
+default: pooling may be examined later only as an explicitly justified analysis that the author approves (CP2 decision above).
 
 ## D-034 — Primary RPV population and secondary groups
-**Status:** P1–P4 implement CP1 decisions 1–3; P5 is PROVISIONAL (CP2)
+**Status:** P1–P4 implement CP1 decisions 1–3 (P2 and P3 as approved at CP2 in D-031 and D-035); P5 APPROVED (CP2)
+
+**CP2 decision (author, 2026-09-13): additively manufactured SA508.** Approved as a SECONDARY group, not part of the primary
+conventional-RPV population: the manufacturing route can materially affect microstructure and toughness, so this material must not be
+pooled with conventional or forged SA508 as though the route were irrelevant. All 66 records are preserved. The identifying tag travels
+with every record and curve through later work packages (`product_form` = "additively manufactured" and `population_step` = P5, in
+`charpy_records_with_curves.csv`, `curve_inventory.csv` and `cohort_membership.csv`). Permitted later uses: a clearly labelled secondary or
+sensitivity population (cohort `plus_additively_manufactured`), and secondary evidence in the WP5 specimen-size analysis if scientifically
+useful. It must not affect the primary headline conclusion unless a later, explicitly approved sensitivity analysis evaluates that effect.
+
 **Decision.** Starting from the 3,198 records WP1 retains, each record is assigned to the first step that applies
 (`population_accounting.csv`; nothing is deleted, every record keeps its curve ID):
 
 | step | criterion | records | curves |
 |---|---|---|---|
 | P1 | specimen type not supported as ordinary Charpy V-notch (D-020) | 0 | 0 |
-| P2 | condition label contradicted by the source (D-031) | 46 | 6 |
+| P2 | condition label contradicted by the source (D-031) | 48 | 7 |
 | P3 | irradiation status unresolved between releases (D-035) | 138 | 11 |
 | P4 | secondary: SA508 Gr.1A main-steam-line piping steel (CP1 decision 3) | 212 | 19 |
 | P5 | secondary: additively manufactured SA508 Gr.3 (ref 31) | 66 | 5 |
-| | **primary RPV population** | **2,736** | **192** |
+| | **primary RPV population** | **2,734** | **191** |
+
+At the CP2 presentation P2 was 46 records / 6 curves and the primary population 2,736 / 192; the difference is curve 1-6.3 (D-031).
 
 **Why P5.** The brief's scope is RPV steels and their welds. Ref 31's material is laser powder directed-energy-deposited SA508 Gr.3
 chemistry, not a plate, forging or weld made by an RPV fabrication route: its layer-wise solidification microstructure and anisotropy
@@ -571,7 +662,15 @@ Laboratory heats and model alloys stay in: they are melted, hot worked and heat 
 **If the alternative were chosen.** +5 curves before inclusion, +5 curves and +66 records in the primary cohort (cohort `plus_additively_manufactured`, D-039).
 
 ## D-035 — Unresolved irradiation labels are outside the primary population
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2)
+
+**CP2 decision (author, 2026-09-13).** Where irradiation status cannot be resolved from adequate source evidence: exclude those records from
+the primary analysis; preserve the records and their uncertainty flags (record fields `irradiation_label_check`, `irradiated`,
+`irradiated_in_other_release`, `flag_irradiation_status_differs_between_releases`; curve fields `irradiation_label_check` and
+`irradiated_in_other_release`); keep them available for an explicit later sensitivity analysis where useful; never guess the irradiation
+state; never treat a conflicting dataset label as ground truth merely because it appears in the spreadsheet. The cohort
+`plus_unresolved_irradiation` is such a sensitivity case: it is run once per release, with each release's own labels, as an explicit
+"if these labels were right" comparison, not as a finding about which label is true.
 **Decision.** Records whose irradiation status the two releases disagree on and the source check could not resolve (refs 7, 8, 9, 53;
 D-021) are excluded from the primary population and preserved. Cohort `plus_unresolved_irradiation` carries them with each release's
 own labels.
@@ -583,7 +682,7 @@ exclude from the primary analysis, preserve for sensitivity) to the other disput
 (2025.30) or unirradiated (2024.206) (`outputs/wp2*/wp2_summary.md` §6).
 
 ## D-036 — How fluence is treated in curve grouping
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2, with the WP2 state)
 **Inspection** (`fluence_by_source.csv`). 570 irradiated records retained by WP1; 492 carry a fluence (6.2×10¹⁷ to 1.11×10²⁰ n/cm²) and
 343 an irradiation temperature. No dataset series contains more than one fluence value. Within sources the reported levels are distinct
 exposures: ref 59 1.3×10¹⁸, 2.7×10¹⁸, 2.7×10¹⁹; ref 104 (no series IDs) 6.2×10¹⁷, 3.9×10¹⁸, 1.3×10¹⁹, 2.34×10¹⁹; ref 16 1.48, 1.75 and
@@ -602,22 +701,33 @@ model alloys whose dataset DBTTs are −14 and −75 °C (`fluence_treatments.cs
 **If the alternative were chosen.** No change to any curve or cohort.
 
 ## D-037 — Describing how a curve samples its shelves and transition, without fitting
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2), with the author's clarifications 4A (terminology) and 4B (basis of the transition band)
 **Decision** (`curve_inventory.csv`).
 - *Distinct test temperatures:* temperatures closer than 2 °C are one (about twice the 95th percentile of the digitization difference
   between copies of the same point, D-019).
-- *Shelf references:* lower = lowest energy; upper = mean of the three highest energies. [E185-82] §4.18 defines upper-shelf energy as
-  the average of normally three specimens, so no single high point defines the shelf.
-- *Energy bands:* each point's position between the references, 0 (lower) to 1 (upper). Lower band ≤ 0.12; transition band 0.12–0.88;
-  upper band ≥ 0.88. The tanh model completes the middle 76 % of its rise between T0 − C and T0 + C, i.e. from 12 % to 88 % of the way
-  between its shelves, so the band edges correspond to one transition half-width either side of the midpoint.
-- *Energy ratio:* lowest energy / upper reference (how far the coldest test fell towards the lower shelf).
+- *Screening references (terminology fixed at CP2, clarification 4A):* lower = the lowest measured energy (`E_min_j`); **screening upper
+  reference** (acceptable alternative name: "upper-shelf reference") = the mean of the three highest measured energies
+  (`E_screening_upper_reference_j`). It is a pre-fit screening quantity. It must not be called the measured or ASTM upper-shelf energy
+  (USE) merely because it averages three high observations: nothing in WP2 shows that those points lie on a flat upper shelf (54-247's top
+  end, for example, is still rising). Three points are averaged so that no single high point sets the scale, as [E185-82] §4.18 averages
+  normally three upper-shelf specimens; that is the reason for "three", not a claim that the quantity is the E185 USE. USE estimation
+  belongs to WP3 and must follow the method separately justified and approved there.
+- *Energy bands:* each point's position between the two references, 0 (lower) to 1 (upper). Lower band ≤ 0.12; transition band 0.12–0.88;
+  upper band ≥ 0.88. **Basis (clarification 4B).** For the normalized hyperbolic tangent y = (1 + tanh x)/2 with x = (T − T0)/C,
+  y = 0.119 at x = −1 and y = 0.881 at x = +1. The 0.12–0.88 interval is therefore approximately the central characteristic transition
+  interval T0 − C to T0 + C (the middle 76 % of the rise). This is a project-defined, model-based screening convention. It is not an ASTM
+  requirement, and it is not uniquely correct.
+- *Alternative preserved (clarification 4B).* An approximately 0.10–0.85 transition-region convention is kept as a later sensitivity or
+  diagnostic option. No source for it is documented in this repository (every tracked file was searched when CP2 was finalized), so its
+  literature basis must be found and cited before it is used (brief §7). It changes no cohort now; cohort membership is never changed to
+  obtain a nicer curve count.
+- *Energy ratio:* lowest energy / screening upper reference (how far the coldest test fell towards the lower shelf).
 - *Diagnostic only:* Spearman rank correlation of energy with temperature.
-**Change made during WP2, logged under brief §7.** The first version used the single highest energy as the upper reference. Inspecting the curves that failed only the
+**Change made during WP2, logged under brief §7.** The first version used the single highest energy as the screening upper reference. Inspecting the curves that failed only the
 upper-band criterion showed flat, scattered upper shelves failing because one high point set the band (e.g. 57-264, whose points
 at 95–180 °C lie between 75 and 119 J; 56-262, levelling at 43–51 J). That definition would preferentially reject high-scatter curves and so
 bias the WP6 scatter model low. It was replaced by the E185-style average of three. The change was made because of what the descriptor measured;
-no fit or uncertainty result exists yet. Effect (`upper_reference_diagnostic.csv`): primary rule 157 → 170 curves (2,410 → 2,588 records);
+no fit or uncertainty result exists yet. Effect (`screening_upper_reference_diagnostic.csv`): primary rule 157 → 170 curves (2,410 → 2,588 records);
 stricter 48 → 60; looser 183 → 182.
 **Known limitations.** Upper-shelf scatter larger than 12 % of the rise is counted as transition; a still-rising top end can pass as upper
 band when its three highest points are close (e.g. 54-247). Rank correlation is not a criterion: its low values here come from upper-shelf-
@@ -625,35 +735,65 @@ dominated miniature curves (ref 53) and from energy falling above about 250 °C 
 **Alternatives.** Fit a model to classify shelves (that is WP3); fixed absolute energy thresholds (not transferable across specimen sizes).
 
 ## D-038 — Inclusion rules: primary, looser, stricter
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2) as the PRIMARY PRE-FIT SCREENING RULE, with the author's clarifications 4A–4C
+
+**CP2 decision (author, 2026-09-13).** The primary rule is approved as a pre-fit screening rule, and this distinction is mandatory. Passing
+D-038 means only: *this data group appears sufficiently sampled to ATTEMPT transition-curve fitting in WP3.* It does NOT establish that the
+tanh model will fit successfully, that the fit will be well conditioned, that the extracted parameters will be physically reasonable, or
+that the curve is scientifically valid because it passed the screen; and a curve whose WP3 fit fails may not be silently removed. WP3
+fitter validation and explicit fit-failure accounting remain mandatory. The looser, primary and stricter cohorts are frozen and preserved
+for downstream sensitivity analysis rather than regenerated later with changed thresholds (D-039). Clarifications: 4A the upper quantity is
+the *screening upper reference*, not a measured or ASTM upper-shelf energy (D-037); 4B the 0.12–0.88 band stays for the primary rule, as a
+project-defined, model-based convention with a preserved 0.10–0.85 alternative (D-037); 4C the 15 unirradiated / 12 irradiated specimen
+counts stay as the STRICTER comparison cohort, described as historical ASTM E185 surveillance-programme guidance/requirements used here as
+a deliberately conservative comparison, not as a universal statistical law that a curve with fewer points is unusable.
+
 **Decision** (`RULES` in `src/wp2_curves.py`; failing criteria per curve in `curve_inventory.csv`):
 
 | criterion | looser | primary | stricter | basis |
 |---|---|---|---|---|
-| points | ≥ 5 | ≥ 6 | ≥ 15 unirradiated, ≥ 12 irradiated | 5 leaves one residual degree of freedom for a 4-parameter tanh, 6 leaves two; stricter = [E185-82] §6.3.1–6.3.2 specimen minimums |
-| distinct temperatures in transition band | ≥ 1 | ≥ 2 | ≥ 3 | 1 locates the transition; 2 fix location and width (T0 and C); 3 add a check on the shape |
-| upper band | no requirement | ≥ 2 points at ≥ 2 temperatures | ≥ 3 points at ≥ 2 temperatures | two temperatures show the rise has stopped; [E185-82] §4.18 averages normally three specimens |
+| points | ≥ 5 | ≥ 6 | ≥ 15 unirradiated, ≥ 12 irradiated | 5 leaves one residual degree of freedom for a 4-parameter tanh, 6 leaves two; stricter = the historical [E185-82] §6.3.1–6.3.2 surveillance-programme specimen minimums, a deliberately conservative comparison, not a statistical law |
+| distinct temperatures in transition band (0.12–0.88, D-037) | ≥ 1 | ≥ 2 | ≥ 3 | 1 locates the transition; 2 fix location and width (T0 and C); 3 add a check on the shape |
+| upper band | no requirement | ≥ 2 points at ≥ 2 temperatures | ≥ 3 points at ≥ 2 temperatures | two temperatures show the rise has stopped; three points mirror the normally three specimens [E185-82] §4.18 averages (a screening count, not a USE determination) |
 | lower band | — | — | ≥ 2 distinct temperatures | lower-shelf plateau shown |
-| lowest energy / upper reference | ≤ 0.30 | ≤ 0.20 | ≤ 0.15 | coldest point at or below the lower band edge when the true lower/upper shelf ratio is ≤ 0.20 / 0.09 / 0.03 (full-size RPV steels are typically a few %) |
+| lowest energy / screening upper reference | ≤ 0.30 | ≤ 0.20 | ≤ 0.15 | coldest point at or below the lower band edge when the true lower/upper shelf ratio is ≤ 0.20 / 0.09 / 0.03 (full-size RPV steels are typically a few %) |
 
-**Outcome** (`rule_outcomes.csv`, `rule_outcomes_by_group.csv`). Primary population before inclusion: 192 curves, 2,736 records.
-Looser keeps 182 curves (2,692 records); primary 170 (2,588; loses 22 curves and 148 records); stricter 60 (1,333; median 19 points).
+**Outcome** (`rule_outcomes.csv`, `rule_outcomes_by_group.csv`). Primary population before screening: 191 curves, 2,734 records.
+Looser keeps 182 curves (2,692 records); primary 170 (2,588; loses 21 curves and 146 records); stricter 60 (1,333; median 19 points).
 Primary losses: 9 curves never approach the lower shelf (4 simulated HAZ, 3 plate, 1 reconstituted forging, 1 irradiated KLST), 5 jump across the
-transition with one intermediate temperature (e.g. 11-47), the rest are fragments of 1–5 points; two narrow misses have ratios of 0.21 (21-100.2, 109-291).
-The stricter rule removes most curves for point count (E185 minimums) and keeps 15 of 39 irradiated and 21 of 39 miniature curves.
+transition with one intermediate temperature (e.g. 11-47), the other 7 are fragments of 1–5 points; two narrow misses have ratios of 0.21 (21-100.2, 109-291).
+The stricter rule removes most curves for point count (the E185 counts) and keeps 15 of 38 irradiated and 21 of 39 miniature curves.
+At the CP2 presentation the population was 192 / 2,736 and the primary rule lost 22 curves / 148 records (15 of 39 irradiated); the
+difference is the 2-point curve 1-6.3, which failed every rule and now leaves earlier, at P2 (D-031). No cohort changed.
 **Why the primary rule is not the stricter one.** The project must characterise how index-temperature uncertainty grows as sampling
 becomes sparse (brief WP3 note). A rule admitting only surveillance-standard sampling would remove the sparse curves whose ill-conditioning is
 under study, and most irradiated and miniature curves with them. The primary rule asks only for what makes the tanh parameters
-identifiable in principle, with minimal redundancy. The stricter rule is the "surveillance-quality" contrast.
+identifiable in principle, with minimal redundancy. The stricter rule is the "surveillance-quality" contrast; that E185 asked for more
+specimens does not prove a curve with fewer is unusable, which is why it is the comparison cohort and not the primary rule.
 **Sensitivity.** Not yet quantified for the headline result, which does not exist until WP6. The looser, primary and stricter cohorts are
-preserved (D-039) and must be propagated.
+frozen (D-039) and must be propagated.
 **If an alternative were chosen.** Looser: +12 curves, mostly weakly sampled, which WP3 would have to fit and report as failures if they
 fail. Stricter: −110 curves; the median curve has 19 instead of 12 points.
 
 ## D-039 — Cohorts carried forward to WP3–WP6
-**Status:** PROVISIONAL (CP2)
+**Status:** APPROVED (CP2) — membership frozen
+
+**CP2 decision (author, 2026-09-13).** Freeze and preserve the looser, primary and stricter cohorts for downstream sensitivity analysis
+instead of regenerating them later with changed thresholds; persist the duplicate-selection sensitivity cohort (`alt_keep_rule`) the same way.
+**Implementation (when CP2 was finalized).** Explicit files per release, `outputs/wp2/` and `outputs/wp2_sensitivity_eny5v-www93/`:
+`cohort_membership.csv` (one row per cohort and curve, with its record IDs and the tags later stages must carry: population step, product
+form, reconstituted, irradiated and its label check, geometry class) and `cohort_manifest.csv` (role, definition, counts, and a SHA-256
+fingerprint of the cohort's curve IDs with their sorted record IDs). All seven cohorts of both releases are fingerprinted in
+`data/FROZEN_COHORTS_CP2.csv`. Every run of `src/wp2_curves.py` ends by comparing the regenerated membership with that file and stops on
+any difference (tested: raising the primary ratio limit from 0.20 to 0.21 stops the run, naming four changed cohorts). A frozen cohort
+changes only through an approved decision logged here, with the file edited in the same commit.
+**Alternative (freeze).** Keep membership only as inventory columns and rely on byte-identical regeneration. **Why not.** Later work
+packages need files they can read directly, and a check in the pipeline enforces "do not regenerate with other thresholds" instead of
+leaving it as a convention.
+
 **Decision.** Each cohort differs from the primary cohort in one respect, so later stages can attribute any change in results to one
-judgement. Membership is stored per curve (`curve_inventory.csv`, columns `cohort_*`) and per record (`data/processed/*/charpy_records_with_curves.csv`).
+judgement. Membership is stored per curve (`curve_inventory.csv`, columns `cohort_*`), per record (`data/processed/*/charpy_records_with_curves.csv`)
+and in the explicit cohort files above.
 
 | cohort | what changes | 2025.30 curves / records | 2024.206 curves / records |
 |---|---|---|---|

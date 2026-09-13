@@ -29,6 +29,8 @@ reactor pressure vessel steels. This project uses fresh context windows at check
 - Every reported number must be regenerable from code. `./run_all.sh` regenerates all outputs from `data/raw/`
   (pinned environment in `.venv/`, see `requirements.txt`; the script refuses other package versions).
 - Raw files in `data/raw/` are never modified; `data/CHECKSUMS.sha256` is verified on every run.
+- WP2 cohorts are frozen at CP2 (`data/FROZEN_COHORTS_CP2.csv`, verified on every run). Later work packages read them from
+  `outputs/wp2*/cohort_membership.csv`; changing one requires an approved decision in `DECISIONS.md` (D-039).
 - Scratch work belongs outside the repository.
 
 ## Git

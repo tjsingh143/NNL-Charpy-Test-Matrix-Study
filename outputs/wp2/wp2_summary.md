@@ -24,35 +24,35 @@ Every record is counted once, at the first step that applies. Nothing is deleted
 | --- | --- | --- | --- | --- | --- |
 | Start | Records retained by WP1 (canonical keep rule) | outputs/wp1*/reconciliation_table.md | 3198 | 233 | 56 |
 | P1 | excluded: specimen type not supported as ordinary Charpy V-notch | CP1 decision 2; D-020 | 0 | 0 | 0 |
-| P2 | excluded: condition label contradicted by the source | D-031 | 46 | 6 | 1 |
-| P3 | excluded: irradiation status unresolved between releases | CP1 decision 1; D-021; D-035 | 138 | 11 | 4 |
+| P2 | excluded: condition label contradicted by the source | D-031 (approved at CP2) | 48 | 7 | 1 |
+| P3 | excluded: irradiation status unresolved between releases | CP1 decision 1; D-021; D-035 (approved at CP2) | 138 | 11 | 4 |
 | P4 | secondary: SA508 Gr.1A main-steam-line piping steel | CP1 decision 3; D-027 | 212 | 19 | 5 |
-| P5 | secondary: additively manufactured SA508 Gr.3 (not an RPV product form) | D-034 (provisional, CP2) | 66 | 5 | 1 |
-| End | primary RPV population |  | 2736 | 192 | 47 |
+| P5 | secondary: additively manufactured SA508 Gr.3 (manufacturing route differs from conventional RPV material) | D-034 (approved at CP2) | 66 | 5 | 1 |
+| End | primary RPV population |  | 2734 | 191 | 47 |
 
 ## 3. Curve inventory before inclusion filtering (primary population)
 
-- Curves: 192; records: 2736; references: 47.
-- Points per curve: median 12, 10th-90th percentile 7-23, range 1-95.
-- Temperature span per curve: median 247 °C, 10th-90th percentile 140-363 °C.
-- Distinct test temperatures in the transition band: median 5; curves with none: 5.
+- Curves: 191; records: 2734; references: 47.
+- Points per curve: median 12, 10th-90th percentile 8-23, range 1-95.
+- Temperature span per curve: median 250 °C, 10th-90th percentile 140-364 °C.
+- Distinct test temperatures in the transition band: median 5; curves with none: 4.
 - Spearman rank correlation of energy with temperature below 0.7 (diagnostic only): 7 curves.
 
 What the points cover (primary thresholds):
 
 | sampling_class | curves | records |
 | --- | --- | --- |
-| brackets the transition (lower side, transition and upper shelf sampled) | 171 | 2593 |
-| fewer than 2 transition temperatures | 7 | 55 |
+| brackets the transition in the screening bands (lower side, transition band and upper band sampled) | 171 | 2593 |
+| fewer than 2 transition-band temperatures | 7 | 55 |
 | lower shelf not approached | 9 | 75 |
-| lower shelf not approached; fewer than 2 transition temperatures | 2 | 8 |
-| too few points to describe | 3 | 5 |
+| lower shelf not approached; fewer than 2 transition-band temperatures | 2 | 8 |
+| too few points to describe | 2 | 3 |
 
 Points per curve:
 
 | points | curves |
 | --- | --- |
-| 1-4 | 7 |
+| 1-4 | 6 |
 | 5 | 1 |
 | 6-7 | 12 |
 | 8-9 | 23 |
@@ -62,7 +62,11 @@ Points per curve:
 | 20-29 | 23 |
 | 30+ | 8 |
 
-## 4. Inclusion rules (D-038)
+## 4. Pre-fit screening rules (D-038)
+
+**What passing means.** A curve that passes a rule appears sufficiently sampled to *attempt* a transition-curve fit in WP3. Passing does not show that a tanh fit will converge, be well conditioned or give physically reasonable parameters, nor that the curve is scientifically valid; a curve whose WP3 fit fails is reported as a failure, never silently removed.
+
+**Screening references and bands (D-037).** Lower reference = lowest measured energy; screening upper reference = mean of the 3 highest measured energies. The screening upper reference is not an upper-shelf energy (USE); USE is estimated in WP3. Transition band = 0.12-0.88 of the rise between the references: for the normalized tanh y = (1 + tanh x) / 2, y = 0.119 at x = -1 and 0.881 at x = +1, so the band is T0 - C to T0 + C. This is a project-defined, model-based convention, not an ASTM requirement. The stricter rule's specimen counts are historical ASTM E185-82 surveillance guidance, used as a deliberately conservative comparison.
 
 | rule | min_points_unirradiated | min_points_irradiated | min_T_transition | min_T_upper | min_points_upper | min_T_lower | max_energy_ratio |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -72,39 +76,39 @@ Points per curve:
 
 | criterion | basis |
 | --- | --- |
-| points | 5 = fewest that leave one residual degree of freedom for a 4-parameter tanh; 6 = two; 15 unirradiated / 12 irradiated = ASTM E185-82 §6.3 minimum Charpy specimens for a baseline curve / per irradiated capsule |
-| transition temperatures | 1 locates the transition; 2 fix location and width (T0 and C); 3 add one check on the shape |
-| upper band | 1 = no requirement; 2 distinct temperatures show the rise has stopped; 3 specimens = ASTM E185-82 §4.18 upper-shelf energy is the average of normally three specimens |
-| energy ratio | lowest energy / upper reference: the coldest point lies at or below the lower band edge (T0 - C) whenever the true lower-to-upper shelf ratio is at most 0.20 (limit 0.30), 0.09 (limit 0.20), 0.03 (limit 0.15) |
+| points | 5 = fewest that leave one residual degree of freedom for a 4-parameter tanh; 6 = two; 15 unirradiated / 12 irradiated = historical ASTM E185-82 §6.3 surveillance-programme specimen minimums (baseline curve / irradiated capsule), used as a deliberately conservative comparison, not as a statistical law that fewer points make a curve unusable |
+| transition temperatures | transition band = 0.12-0.88 of the rise between the screening references, i.e. T0 - C to T0 + C of a normalized tanh (project-defined, model-based, not an ASTM requirement); 1 temperature locates the transition; 2 fix location and width (T0 and C); 3 add one check on the shape |
+| upper band | 1 = no requirement; 2 distinct temperatures show the rise has stopped; 3 specimens mirrors the normally three specimens ASTM E185-82 §4.18 averages for upper-shelf energy (a screening count only; USE is estimated in WP3) |
+| energy ratio | lowest energy / screening upper reference: the coldest point lies at or below the lower band edge (T0 - C) whenever the true lower-to-upper shelf ratio is at most 0.20 (limit 0.30), 0.09 (limit 0.20), 0.03 (limit 0.15) |
 
 ## 5. What each rule keeps
 
 | rule | curves | records | curves_lost | records_lost | median_points | median_T_span_c | median_transition_temperatures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| before inclusion filtering | 192 | 2736 | 0 | 0 | 12 | 247.2 | 5 |
-| looser | 182 | 2692 | 10 | 44 | 12 | 249.7 | 5 |
-| primary | 170 | 2588 | 22 | 148 | 12 | 249.9 | 5 |
-| stricter | 60 | 1333 | 132 | 1403 | 19 | 223.9 | 6 |
+| before inclusion filtering | 191 | 2734 | 0 | 0 | 12 | 249.6 | 5 |
+| looser | 182 | 2692 | 9 | 42 | 12 | 249.7 | 5 |
+| primary | 170 | 2588 | 21 | 146 | 12 | 249.9 | 5 |
+| stricter | 60 | 1333 | 131 | 1401 | 19 | 223.9 | 6 |
 
 Curves failing each criterion (a curve can fail several):
 
 | rule | criterion | curves_failing | curves_failing_only_this |
 | --- | --- | --- | --- |
-| looser | points | 7 | 0 |
-| looser | transition temperatures | 5 | 0 |
+| looser | points | 6 | 0 |
+| looser | transition temperatures | 4 | 0 |
 | looser | upper band | 1 | 0 |
 | looser | lower band temperatures | 0 | 0 |
 | looser | energy ratio | 7 | 3 |
-| primary | points | 8 | 1 |
-| primary | transition temperatures | 12 | 5 |
-| primary | upper band | 3 | 0 |
+| primary | points | 7 | 1 |
+| primary | transition temperatures | 11 | 5 |
+| primary | upper band | 2 | 0 |
 | primary | lower band temperatures | 0 | 0 |
-| primary | energy ratio | 14 | 9 |
-| stricter | points | 117 | 62 |
-| stricter | transition temperatures | 19 | 0 |
-| stricter | upper band | 25 | 3 |
-| stricter | lower band temperatures | 47 | 8 |
-| stricter | energy ratio | 22 | 2 |
+| primary | energy ratio | 13 | 9 |
+| stricter | points | 116 | 62 |
+| stricter | transition temperatures | 18 | 0 |
+| stricter | upper band | 24 | 3 |
+| stricter | lower band temperatures | 46 | 8 |
+| stricter | energy ratio | 21 | 2 |
 
 By material family, product form, irradiation status and geometry:
 
@@ -113,38 +117,52 @@ By material family, product form, irradiation status and geometry:
 | material_family | 20MnMoNi55 | 8 | 178 | 8 | 178 | 8 | 178 | 5 | 140 |
 | material_family | A302B | 2 | 38 | 2 | 38 | 2 | 38 | 2 | 38 |
 | material_family | A508 | 106 | 1337 | 100 | 1309 | 95 | 1260 | 24 | 456 |
-| material_family | A533B | 72 | 1105 | 68 | 1089 | 61 | 1034 | 26 | 632 |
+| material_family | A533B | 71 | 1103 | 68 | 1089 | 61 | 1034 | 26 | 632 |
 | material_family | A533B weld metal | 4 | 78 | 4 | 78 | 4 | 78 | 3 | 67 |
 | product_form_group | HAZ (incl. simulated) | 26 | 280 | 23 | 261 | 19 | 228 | 3 | 65 |
 | product_form_group | forging | 89 | 1196 | 87 | 1191 | 84 | 1157 | 24 | 456 |
 | product_form_group | not determinable | 6 | 151 | 6 | 151 | 6 | 151 | 5 | 140 |
-| product_form_group | plate | 66 | 1027 | 62 | 1011 | 57 | 974 | 25 | 605 |
+| product_form_group | plate | 65 | 1025 | 62 | 1011 | 57 | 974 | 25 | 605 |
 | product_form_group | weld metal | 4 | 78 | 4 | 78 | 4 | 78 | 3 | 67 |
 | product_form_group | weld region (zone not stated) | 1 | 4 | 0 | 0 | 0 | 0 | 0 | 0 |
-| irradiation | irradiated | 39 | 433 | 36 | 424 | 31 | 381 | 15 | 205 |
+| irradiation | irradiated | 38 | 431 | 36 | 424 | 31 | 381 | 15 | 205 |
 | irradiation | unirradiated | 153 | 2303 | 146 | 2268 | 139 | 2207 | 45 | 1128 |
-| geometry_class | full-size (55x10x10 mm) | 151 | 2167 | 143 | 2131 | 134 | 2059 | 39 | 973 |
+| geometry_class | full-size (55x10x10 mm) | 150 | 2165 | 143 | 2131 | 134 | 2059 | 39 | 973 |
 | geometry_class | miniature (reduced length) | 39 | 561 | 39 | 561 | 36 | 529 | 21 | 360 |
 | geometry_class | sub-size, standard length (55 mm, reduced thickness) | 2 | 8 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ## 6. Cohorts carried forward (D-039)
 
-| cohort | definition | curves | records |
-| --- | --- | --- | --- |
-| primary | primary population, primary rule, canonical keep rule | 170 | 2588 |
-| looser | primary population, looser rule | 182 | 2692 |
-| stricter | primary population, stricter rule | 60 | 1333 |
-| alt_keep_rule | primary population, primary rule, alternative duplicate keep rule (most records first) | 170 | 2628 |
-| plus_unresolved_irradiation | primary population plus records with unresolved irradiation labels (this release's labels), primary rule | 179 | 2704 |
-| plus_additively_manufactured | primary population plus additively manufactured SA508 Gr.3, primary rule | 175 | 2654 |
-| piping_secondary | SA508 Gr.1A piping steel only, primary rule | 15 | 181 |
+Membership is frozen at CP2: explicit files `cohort_membership.csv` and `cohort_manifest.csv`, checked on every run against `data/FROZEN_COHORTS_CP2.csv`. Later work packages read these cohorts; they do not regenerate them with other thresholds.
+
+| cohort | role | definition | curves | records |
+| --- | --- | --- | --- | --- |
+| primary | primary analysis | primary population, primary rule, canonical keep rule | 170 | 2588 |
+| looser | inclusion-rule sensitivity | primary population, looser rule | 182 | 2692 |
+| stricter | inclusion-rule sensitivity | primary population, stricter rule | 60 | 1333 |
+| alt_keep_rule | duplicate keep-rule sensitivity | primary population, primary rule, alternative duplicate keep rule (most records first) | 170 | 2628 |
+| plus_unresolved_irradiation | population sensitivity | primary population plus records with unresolved irradiation labels (this release's labels), primary rule | 179 | 2704 |
+| plus_additively_manufactured | population sensitivity (secondary material) | primary population plus additively manufactured SA508 Gr.3, primary rule | 175 | 2654 |
+| piping_secondary | secondary group | SA508 Gr.1A piping steel only, primary rule | 15 | 181 |
 
 ## 7. Accounting of special cases
 
 - Duplicated (WP1 E8, D-019): 69 series, 910 records removed as republications. Curves that exist under only one of the two keep rules: 19; primary-cohort curves replaced when the alternative keep rule is used: ['1-6.1', '1-6.2', '14-62', '14-64', '17-84', '44-193', '44-194', '55-255', '55-259'] -> ['19-90.1', '21-99.1', '21-99.2', '26-117', '26-120', '43-191', '43-192', '52-217', '52-219'].
 - Out of scope (WP1): E1 austenitic stainless 713 records; E2 15Cr2MoV-A 38 records.
-- Ambiguous or contradicted labels (population steps above): specimen type not supported 0 records; condition label contradicted by source 46; irradiation status unresolved 138.
+- Ambiguous or contradicted labels (population steps above): specimen type not supported 0 records; condition label contradicted by source 48; irradiation status unresolved 138.
 - Piping (secondary): 212 records; additively manufactured (secondary): 66 records.
+- Curves excluded because the source contradicts their condition labels (P2, D-031). Measurements and labels are unchanged; the exact reason is kept per record and per curve:
+
+| curve_id | n_points | irradiated | treatment | test_condition_statement | condition_label_contradicted_by_source |
+| --- | --- | --- | --- | --- | --- |
+| 1-3.1 | 14 | False | Shock Wave Hardening (Bottom-Surface) |  | Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, i.e. the labels are shifted by one series. |
+| 1-3.2 | 1 | False | Shock Wave Hardening (Top-Surface) |  | Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, i.e. the labels are shifted by one series. |
+| 1-4 | 10 | False | Shock Wave Hardening (Top-Surface) |  | Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, i.e. the labels are shifted by one series. |
+| 1-5 | 10 | False |  |  | Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, i.e. the labels are shifted by one series. |
+| 1-6.3 | 2 | True |  | Reconstituted specimen | Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); the dataset gives 3e19 n/cm2. These two reconstituted records carry the series-7 label (irradiated, 3e19 n/cm2) inside unirradiated HSST Plate 02 series 6. Their energies do not fit an irradiated curve (series 7 has only 11 J at -7 C): 6.9 J at -74.8 C lies within the unirradiated data (7.4 J at -70.5 C) and 41.3 J at -59.8 C is above even the unirradiated original specimens at -60 C (8.9-22.3 J), so the irradiation label itself is also doubtful. |
+| 1-7.1 | 8 | True |  |  | Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); the dataset gives 3e19 n/cm2. |
+| 1-7.2 | 3 | True |  | Reconstituted specimen | Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); the dataset gives 3e19 n/cm2. |
+
 - Mixed dataset series split into more than one curve: 9 series (246 records):
 
 | ref_id | dataset_series | records | curves | split_by | pieces |
@@ -177,30 +195,29 @@ Special conditions inside the primary cohort (each forms its own curves; none is
 
 Primary-population curves rejected by the primary rule:
 
-| curve_id | material_family | product_form | geometry | irradiated | n_points | n_T_transition_band | n_T_upper_band | energy_ratio_min_to_upper | fails_primary |
+| curve_id | material_family | product_form | geometry | irradiated | n_points | n_T_transition_band | n_T_upper_band | energy_ratio_min_to_screening_upper | fails_primary |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1-6.3 | A533B | plate | 55x10x10 a=2 | True | 2 | 0 | 1 | 0.29 | points 2 (needs >= 6); transition-band temperatures 0 (needs >= 2); upper band 1 points at 1 temperatures (needs >= 2 points at >= 2); lowest energy / upper reference 0.29 (needs <= 0.20) |
 | 11-47 | A508 | forging | 55x10x10 a=2 | False | 14 | 1 | 3 | 0.02 | transition-band temperatures 1 (needs >= 2) |
-| 15-66.2 | A508 | simulated HAZ | 55x10x10 a=? | False | 10 | 5 | 4 | 0.31 | lowest energy / upper reference 0.31 (needs <= 0.20) |
-| 15-68 | A508 | simulated HAZ | 55x10x10 a=? | False | 7 | 4 | 2 | 0.29 | lowest energy / upper reference 0.29 (needs <= 0.20) |
-| 15-69 | A508 | simulated HAZ | 55x10x10 a=? | False | 7 | 4 | 2 | 0.36 | lowest energy / upper reference 0.36 (needs <= 0.20) |
-| 15-76.1 | A508 | simulated HAZ | 55x10x10 a=? | False | 8 | 3 | 4 | 0.26 | lowest energy / upper reference 0.26 (needs <= 0.20) |
-| 15-76.2 | A508 | simulated HAZ | 55x10x10 a=? | False | 2 | 0 | 1 | 0.73 | points 2 (needs >= 6); transition-band temperatures 0 (needs >= 2); upper band 1 points at 1 temperatures (needs >= 2 points at >= 2); lowest energy / upper reference 0.73 (needs <= 0.20) |
-| 18-86.1 | A508 | forging | 55x10x6 a=2 | False | 4 | 1 | 2 | 0.73 | points 4 (needs >= 6); transition-band temperatures 1 (needs >= 2); lowest energy / upper reference 0.73 (needs <= 0.20) |
-| 18-86.2 | A508 | weld region (zone not stated) | 55x10x6 a=2 | False | 4 | 1 | 2 | 0.81 | points 4 (needs >= 6); transition-band temperatures 1 (needs >= 2); lowest energy / upper reference 0.81 (needs <= 0.20) |
-| 21-100.2 | A508 | forging | 55x10x10 a=2 | False | 6 | 3 | 2 | 0.21 | lowest energy / upper reference 0.21 (needs <= 0.20) |
-| 39-182.1 | A508 | forging | 55x10x10 a=? | False | 1 | 0 | 0 | 1 | points 1 (needs >= 6); transition-band temperatures 0 (needs >= 2); upper band 0 points at 0 temperatures (needs >= 2 points at >= 2); lowest energy / upper reference 1.00 (needs <= 0.20) |
-| 49-205 | A533B | plate | 55x10x10 a=? | False | 9 | 3 | 3 | 0.23 | lowest energy / upper reference 0.23 (needs <= 0.20) |
+| 15-66.2 | A508 | simulated HAZ | 55x10x10 a=? | False | 10 | 5 | 4 | 0.31 | lowest energy / screening upper reference 0.31 (needs <= 0.20) |
+| 15-68 | A508 | simulated HAZ | 55x10x10 a=? | False | 7 | 4 | 2 | 0.29 | lowest energy / screening upper reference 0.29 (needs <= 0.20) |
+| 15-69 | A508 | simulated HAZ | 55x10x10 a=? | False | 7 | 4 | 2 | 0.36 | lowest energy / screening upper reference 0.36 (needs <= 0.20) |
+| 15-76.1 | A508 | simulated HAZ | 55x10x10 a=? | False | 8 | 3 | 4 | 0.26 | lowest energy / screening upper reference 0.26 (needs <= 0.20) |
+| 15-76.2 | A508 | simulated HAZ | 55x10x10 a=? | False | 2 | 0 | 1 | 0.73 | points 2 (needs >= 6); transition-band temperatures 0 (needs >= 2); upper band 1 points at 1 temperatures (needs >= 2 points at >= 2); lowest energy / screening upper reference 0.73 (needs <= 0.20) |
+| 18-86.1 | A508 | forging | 55x10x6 a=2 | False | 4 | 1 | 2 | 0.73 | points 4 (needs >= 6); transition-band temperatures 1 (needs >= 2); lowest energy / screening upper reference 0.73 (needs <= 0.20) |
+| 18-86.2 | A508 | weld region (zone not stated) | 55x10x6 a=2 | False | 4 | 1 | 2 | 0.81 | points 4 (needs >= 6); transition-band temperatures 1 (needs >= 2); lowest energy / screening upper reference 0.81 (needs <= 0.20) |
+| 21-100.2 | A508 | forging | 55x10x10 a=2 | False | 6 | 3 | 2 | 0.21 | lowest energy / screening upper reference 0.21 (needs <= 0.20) |
+| 39-182.1 | A508 | forging | 55x10x10 a=? | False | 1 | 0 | 0 | 1 | points 1 (needs >= 6); transition-band temperatures 0 (needs >= 2); upper band 0 points at 0 temperatures (needs >= 2 points at >= 2); lowest energy / screening upper reference 1.00 (needs <= 0.20) |
+| 49-205 | A533B | plate | 55x10x10 a=? | False | 9 | 3 | 3 | 0.23 | lowest energy / screening upper reference 0.23 (needs <= 0.20) |
 | 50-211 | A533B | plate | 55x10x10 a=? | True | 5 | 2 | 2 | 0.15 | points 5 (needs >= 6) |
 | 50-212 | A533B | plate | 55x10x10 a=? | True | 10 | 1 | 4 | 0.09 | transition-band temperatures 1 (needs >= 2) |
 | 53-236 | A533B | HAZ | 20x1.5x1.5 a=0.33 | False | 10 | 1 | 7 | 0.05 | transition-band temperatures 1 (needs >= 2) |
 | 53-243 | A533B | HAZ | 20x1.5x1.5 a=0.33 | True | 8 | 1 | 4 | 0.13 | transition-band temperatures 1 (needs >= 2) |
-| 56-261 | A533B | plate | 55x10x10 a=? | False | 7 | 3 | 3 | 0.29 | lowest energy / upper reference 0.29 (needs <= 0.20) |
-| 56-262 | A533B | plate | 55x10x10 a=? | False | 7 | 3 | 2 | 0.31 | lowest energy / upper reference 0.31 (needs <= 0.20) |
+| 56-261 | A533B | plate | 55x10x10 a=? | False | 7 | 3 | 3 | 0.29 | lowest energy / screening upper reference 0.29 (needs <= 0.20) |
+| 56-262 | A533B | plate | 55x10x10 a=? | False | 7 | 3 | 2 | 0.31 | lowest energy / screening upper reference 0.31 (needs <= 0.20) |
 | 104-none.2 | A533B | plate | 55x10x10 a=? | True | 6 | 1 | 4 | 0.06 | transition-band temperatures 1 (needs >= 2) |
 | 104-none.4 | A533B | plate | 55x10x10 a=? | True | 3 | 0 | 2 | 0.11 | points 3 (needs >= 6); transition-band temperatures 0 (needs >= 2) |
 | 104-none.5 | A533B | plate | 55x10x10 a=? | True | 4 | 0 | 2 | 0.05 | points 4 (needs >= 6); transition-band temperatures 0 (needs >= 2) |
-| 109-291 | A508 | forging | 27x3x4 a=1 | True | 14 | 8 | 5 | 0.21 | lowest energy / upper reference 0.21 (needs <= 0.20) |
+| 109-291 | A508 | forging | 27x3x4 a=1 | True | 14 | 8 | 5 | 0.21 | lowest energy / screening upper reference 0.21 (needs <= 0.20) |
 
 ## 8. Fluence treatment (D-036)
 
@@ -219,7 +236,7 @@ Every reported irradiation condition (population column: primary or the excludin
 
 | ref_id | irradiation_label_check | fluence_n_per_cm2 | irradiation_temp_c | irradiation_time_h | records | dataset_series | curves | populations |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | releases agree | 3e+19 |  |  | 13 | 6, 7 | 1-6.3, 1-7.1, 1-7.2 | P2, primary |
+| 1 | releases agree | 3e+19 |  |  | 13 | 6, 7 | 1-6.3, 1-7.1, 1-7.2 | P2 |
 | 2 | releases agree | 1.3e+19 | 288 |  | 23 | 8, 10 | 2-8, 2-10 | primary |
 | 3 | releases agree | 1.6e+19 | 288 | 672 | 64 | 13, 15, 17, 19 | 3-13, 3-15, 3-17, 3-19 | primary |
 | 7 | unresolved |  |  |  | 36 | 27, 28, 29, 30 | 7-27, 7-28, 7-29, 7-30 | P3 |

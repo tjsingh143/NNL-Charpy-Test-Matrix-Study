@@ -44,6 +44,7 @@ marked retained or excluded with a reason. No measurement value is altered. Ever
 | `raw/release_2024.206_eny5v-www93/` | The same three files for the version-sensitivity dataset |
 | `LICENSE-CC-BY-4.0.txt` | License text |
 | `CHECKSUMS.sha256` | SHA-256 of every file above |
+| `FROZEN_COHORTS_CP2.csv` | Curve and record counts and a SHA-256 membership fingerprint for each WP2 cohort of both releases, frozen at checkpoint CP2; `src/wp2_curves.py` stops if regenerated cohorts differ (DECISIONS.md D-039). Not data; not generated |
 | `processed/primary/` | WP1 output (`charpy_records_with_status.csv`, `charpy_clean.csv`) and WP2 output (`charpy_records_with_curves.csv`: curve, population and cohort of every record) for the primary dataset (generated) |
 | `processed/sensitivity_eny5v-www93/` | The same files for the version-sensitivity dataset (generated) |
 

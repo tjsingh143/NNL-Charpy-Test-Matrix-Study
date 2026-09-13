@@ -305,7 +305,7 @@ unit_a,unit_b,ref_a,ref_b,curve_a,curve_b,n_a,n_b,matched,fraction_of_smaller,cl
 1|6|A533 Type B Class 1|55.0|10.0|10.0|False|nan|None|None,"58|265|A533 Type B, class not stated|55.0|10.0|10.0|False|nan|None|None",1,58,6.0,265.0,95,25,5,0.2,coincidental,,
 1|6|A533 Type B Class 1|55.0|10.0|10.0|False|nan|None|None,"59|266|A533 Type B, class not stated|55.0|10.0|10.0|False|nan|None|None",1,59,6.0,266.0,95,20,5,0.25,coincidental,,
 1|6|A533 Type B Class 1|55.0|10.0|10.0|False|nan|None|None,"60|280|A533 Type B, class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None",1,60,6.0,280.0,95,30,4,0.13333333333333333,coincidental,,
-1|6|A533 Type B Class 1|55.0|10.0|10.0|False|nan|None|Reconstituted specimen,"21|99|A533 Type B, class not stated|55.0|10.0|10.0|False|nan|None|Reconstituted specimen",1,21,6.0,99.0,10,12,8,0.8,duplicate (constant axis offset),-3.0,1.01
+1|6|A533 Type B Class 1|55.0|10.0|10.0|False|nan|None|Reconstituted specimen,"21|99|A533 Type B, class not stated|55.0|10.0|10.0|False|nan|None|Reconstituted specimen",1,21,6.0,99.0,10,12,8,0.8,duplicate (constant axis offset),-3.0,1.0
 "20|94|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None","26|118|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None",20,26,94.0,118.0,10,10,10,1.0,duplicate,,
 "20|94|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None","27|125|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None",20,27,94.0,125.0,10,10,10,1.0,duplicate,,
 "20|94|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None","33|150|A508, grade/class not stated|55.0|10.0|10.0|False|nan|Heat Treatment|None",20,33,94.0,150.0,10,10,10,1.0,duplicate,,

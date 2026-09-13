@@ -1,0 +1,8 @@
+cohort,role,definition,curves,records,membership_sha256
+primary,primary analysis,"primary population, primary rule, canonical keep rule",161,2454,3797adddaf7a2a7f4119d50fb1926b073690b1e23f68a468e3f7c204c431287a
+looser,inclusion-rule sensitivity,"primary population, looser rule",172,2544,3eb1e05a338516420c8a6c6efb5951827075e68e30a5b54ad3b4748ab94ccdd6
+stricter,inclusion-rule sensitivity,"primary population, stricter rule",54,1235,d756a3d190ab325a22b44fec381fe26911db6c1b0c6a43c340291a020cba402b
+alt_keep_rule,duplicate keep-rule sensitivity,"primary population, primary rule, alternative duplicate keep rule (most records first)",161,2494,222d92cc0e7e63abba26b5546f49a7b550b6214a729dd4890c9ff25d47cce6bc
+plus_unresolved_irradiation,population sensitivity,"primary population plus records with unresolved irradiation labels (this release's labels), primary rule",170,2570,bb055181ecff7718e9a7c2a0bc05a7c69f991ec4df2ee2342c8267bf56969095
+plus_additively_manufactured,population sensitivity (secondary material),"primary population plus additively manufactured SA508 Gr.3, primary rule",166,2520,2e4649c0c01d85cc1d2b7b7e323f62097253473b81bbca1be927340414bacc50
+piping_secondary,secondary group,"SA508 Gr.1A piping steel only, primary rule",15,181,6d0640370110c83460f05e792b7c78998f543dbcd4b9debdb1b94e43a9a5c305

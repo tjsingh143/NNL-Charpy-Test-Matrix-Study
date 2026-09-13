@@ -1,5 +1,5 @@
 ref_id,irradiation_label_check,fluence_n_per_cm2,irradiation_temp_c,irradiation_time_h,records,dataset_series,curves,populations
-1,releases agree,3e+19,,,13,"6, 7","1-6.3, 1-7.1, 1-7.2","P2, primary"
+1,releases agree,3e+19,,,13,"6, 7","1-6.3, 1-7.1, 1-7.2",P2
 2,releases agree,1.3e+19,288.0,,23,"8, 10","2-8, 2-10",primary
 3,releases agree,1.6e+19,288.0,672.0,64,"13, 15, 17, 19","3-13, 3-15, 3-17, 3-19",primary
 16,releases agree,1.48e+19,290.0,,13,80,16-80,primary

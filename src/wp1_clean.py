@@ -8,7 +8,8 @@ Outputs (run = 'primary' for the 2025.30 release, 'sensitivity_<record>' for the
   data/processed/<run>/charpy_records_with_status.csv, charpy_clean.csv
   outputs/wp1[_sensitivity_<record>]/reconciliation_table.md (+ .csv), exclusion_reasons_all_applicable.csv,
       value_changes_log.csv, unit_checks.md, flags_summary.md, duplicate_curve_pairs.csv,
-      duplicate_curve_removals.csv, duplicate_keep_rule_comparison.csv, duplicate_sensitivity.csv, wp1_summary.md
+      duplicate_curve_removals.csv, duplicate_curve_removals_alt_keep_rule.csv, duplicate_offset_evidence.csv,
+      duplicate_keep_rule_comparison.csv, duplicate_sensitivity.csv, wp1_summary.md
 
 Run:  .venv/bin/python src/wp1_clean.py                          (primary dataset)
       .venv/bin/python src/wp1_clean.py --dataset eny5v-www93    (version-sensitivity dataset)
@@ -23,8 +24,8 @@ import pandas as pd
 
 from common import (DATASETS, OUTPUTS, PRIMARY_DATASET, PROCESSED, load_charpy_data, load_references,
                     md_table, write_text)
-from curated_metadata import (COLUMN_BY_RAW, IRRADIATION_LABEL_CHECKS, MATERIAL_MAP, REFERENCE_NOTES, SIMULATED_HAZ_CODES,
-                              SOURCE_CONTRADICTED_LABELS, SPEC_PRODUCT_FORM, SPECIMEN_TYPE_CHECKS, TEXT_VALUE_MAPS)
+from curated_metadata import (COLUMN_BY_RAW, IRRADIATION_LABEL_CHECKS, MATERIAL_MAP, OFFSET_DUPLICATE_PROVENANCE, REFERENCE_NOTES,
+                              SIMULATED_HAZ_CODES, SOURCE_CONTRADICTED_LABELS, SPEC_PRODUCT_FORM, SPECIMEN_TYPE_CHECKS, TEXT_VALUE_MAPS)
 
 # Thresholds (each justified in DECISIONS.md)
 ABSOLUTE_ZERO_C = -273.15
@@ -217,8 +218,13 @@ def source_check_fields(df: pd.DataFrame) -> pd.DataFrame:
         raise KeyError(f"Specimen-type concern without a source-check entry: refs {sorted(df.loc[concern & stype.isna(), 'ref_id'].unique())}")
     df["specimen_type_check"] = np.where(~concern, "no concern raised", "source-checked: " + stype.fillna(""))
     df.loc[concern & stype.eq("unresolved"), "specimen_type_check"] = "unresolved"
-    key = list(zip(df["ref_id"], df["curve_id_dataset"]))
-    df["flag_condition_label_contradicted_by_source"] = [SOURCE_CONTRADICTED_LABELS.get((r, c), "") for r, c in key]
+    def contradicted(ref, curve, irradiated):
+        entry = SOURCE_CONTRADICTED_LABELS.get((ref, curve))
+        if entry is None or (entry["records"] == "irradiated" and not irradiated):
+            return ""
+        return entry["reason"]
+    df["flag_condition_label_contradicted_by_source"] = [contradicted(r, c, i) for r, c, i in
+                                                         zip(df["ref_id"], df["curve_id_dataset"], df["irradiated"])]
     return df
 
 
@@ -359,12 +365,66 @@ def pair_offset(pairs: pd.DataFrame, u: str, v: str):
     return None
 
 
+def offset_matches(ua, ub, offset_c: float, scale: float) -> int:
+    """One-to-one matches of ua, shifted by offset_c and scaled by scale, with ub, within the offset test's tolerances (1 °C, 1 %)."""
+    return greedy_match(ua["t"] + offset_c, ua["e"] * scale, ub["t"], ub["e"], OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION)
+
+
+def meets_offset_criterion(matched: int, ua, ub) -> bool:
+    """The predeclared quantitative criterion (D-019): at least 5 matched points and at least 70 % of the smaller copy."""
+    return matched >= OFFSET_MIN_MATCHED and matched / min(ua["n"], ub["n"]) >= DUP_MIN_FRACTION
+
+
+def best_transform(unit_pairs: list) -> tuple:
+    """ONE constant (temperature offset, energy scale) applied to the first copy of every pair, chosen from point overlap alone (never
+    from any fit): most matched points in total, then the smallest |offset|, then the scale nearest 1.
+    Returns (offset_C, scale, matched points per pair)."""
+    best = None
+    for d in OFFSET_SHIFTS_C:
+        for sc in OFFSET_E_SCALES:
+            counts = [offset_matches(ua, ub, float(d), sc) for ua, ub in unit_pairs]
+            key = (-sum(counts), abs(float(d)), abs(sc - 1.0))
+            if best is None or key < best[0]:
+                best = (key, float(d), sc, counts)
+    return best[1], best[2], best[3]
+
+
+def offset_compatible(ua, ub) -> bool:
+    """Condition 1 of the offset rule (CP2): material, geometry and condition labels agree. Unlike the plain test, no disputed label is
+    waived: an unresolved irradiation label or a material label contradicted by composition rules the offset test out."""
+    return (ua["family"] is not None and ua["family"] == ub["family"]
+            and (ua["class_stated"] is None or ub["class_stated"] is None or ua["class_stated"] == ub["class_stated"])
+            and ua["dims"] == ub["dims"] and not (ua["notch"] and ub["notch"] and ua["notch"] != ub["notch"])
+            and ua["irr_key"] is not None and ua["irr_key"] == ub["irr_key"] and ua["condition"] == ub["condition"])
+
+
 def offset_aligned_pairs(units: dict, cand) -> dict:
-    """Pairs whose points coincide one-to-one within 1 °C and 1 % of the larger maximum energy after a single constant temperature
-    offset (|offset| <= 6 °C) and energy scale (0.98-1.02) is applied to one copy: the signature of the same plotted data digitized
-    twice with differently calibrated axes. Returns {(a, b): (matched, offset_C, scale)}."""
+    """Duplicates by constant axis offset: the same plotted data digitized twice with differently calibrated axes (D-019). Not a generic
+    search (CP2): a pair of comparison units is linked only if (1) their labels are compatible, (2) their dataset series are listed in
+    OFFSET_DUPLICATE_PROVENANCE with documented evidence of a common experiment, (3) ONE constant transform, shared by every compatible
+    unit pair of those two series, (4) makes the pair meet the predeclared criterion. (5) The caller writes the kept/removed audit.
+    Returns {(a, b): (matched, offset_C, scale)}, the transform applied to unit a (the copy from the first listed series)."""
     found = {}
+    for series_x, series_y in OFFSET_DUPLICATE_PROVENANCE:
+        linked = [(a, b) if units[a]["series"] == series_x else (b, a) for a, b in cand
+                  if {units[a]["series"], units[b]["series"]} == {series_x, series_y} and offset_compatible(units[a], units[b])]
+        if not linked:
+            continue
+        d, sc, counts = best_transform([(units[x], units[y]) for x, y in linked])
+        for (x, y), m in zip(linked, counts):
+            if meets_offset_criterion(m, units[x], units[y]):
+                found[(x, y)] = (m, d, sc)
+    return found
+
+
+def offset_screen(units: dict, cand, plain_duplicates: set) -> dict:
+    """Review only; never removes anything. Every candidate pair not already linked by the plain test that would meet the offset
+    criterion under its own best transform, so a pair without documented provenance is shown to a person instead of being linked.
+    Returns {(a, b): (matched, offset_C, scale)}."""
+    hits = {}
     for a, b in cand:
+        if frozenset((a, b)) in plain_duplicates:
+            continue
         ua, ub = units[a], units[b]
         n_small = min(ua["n"], ub["n"])
         if n_small < OFFSET_MIN_MATCHED:
@@ -376,11 +436,10 @@ def offset_aligned_pairs(units: dict, cand) -> dict:
         near = ((np.abs(small["t"][:, None] - large["t"][None, :]) <= win_t) & (np.abs(small["e"][:, None] - large["e"][None, :]) <= win_e)).any(axis=1)
         if near.sum() < max(OFFSET_MIN_MATCHED, DUP_MIN_FRACTION * n_small):
             continue
-        best = max((greedy_match(ua["t"] + d, ua["e"] * sc, ub["t"], ub["e"], OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION), float(d), sc)
-                   for d in OFFSET_SHIFTS_C for sc in OFFSET_E_SCALES)
-        if best[0] >= OFFSET_MIN_MATCHED and best[0] / n_small >= DUP_MIN_FRACTION:
-            found[(a, b)] = best
-    return found
+        d, sc, (m,) = best_transform([(ua, ub)])
+        if meets_offset_criterion(m, ua, ub):
+            hits[(a, b)] = (m, d, sc)
+    return hits
 
 
 def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_OF_MAX, min_frac=DUP_MIN_FRACTION, pairs_cache=None,
@@ -392,14 +451,18 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
         t, e = sub["test_temp_c"].to_numpy(float), sub["energy_j"].to_numpy(float)
         unresolved = bool(sub["irradiation_label_check"].eq("unresolved").any())
         irr = bool(sub["irradiated_resolved"].iloc[0])
+        curve, class_stated = sub["curve_id_dataset"].iloc[0], sub["material_class_stated"].iloc[0]
         units[key] = dict(idx=list(idx), n=len(idx), ref=int(sub["ref_id"].iloc[0]), year=int(sub["ref_year"].iloc[0]),
                           first_row=int(sub["source_row"].min()),
                           family=None if bool(sub["flag_label_says_base_metal_but_weld_metal_composition"].any()) else sub["material_family"].iloc[0],
+                          class_stated=None if pd.isna(class_stated) else str(class_stated),
                           irr_key=None if unresolved else (irr, str(sub["fluence_n_per_cm2"].iloc[0]) if irr else "none"),
                           irradiated_label=bool(sub["irradiated"].iloc[0]), irradiation_check=sub["irradiation_label_check"].iloc[0],
                           dims=tuple(str(sub[c].iloc[0]) for c in ["length_mm", "width_mm", "thickness_mm"]),
-                          curve=sub["curve_id_dataset"].iloc[0], t=t, e=e, tab_share=tabulated_share(t, e),
-                          problems=unresolved_label_problems(sub))
+                          notch=frozenset(sub["notch_depth_mm"].dropna().round(6)),
+                          condition=(str(sub["treatment"].iloc[0]), str(sub["test_condition_statement"].iloc[0])),
+                          curve=curve, series=(int(sub["ref_id"].iloc[0]), None if pd.isna(curve) else int(curve)),
+                          t=t, e=e, tab_share=tabulated_share(t, e), problems=unresolved_label_problems(sub))
         units[key]["tabulated"] = units[key]["tab_share"] >= TABULATED_MIN_SHARE
     pairs = []
     cand = pairs_cache if pairs_cache is not None else list(candidate_pairs(units))
@@ -414,18 +477,20 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
                                               "partial overlap" if frac >= PARTIAL_OVERLAP_MIN_FRACTION else "coincidental")))
     pairs = pd.DataFrame(pairs, columns=["unit_a", "unit_b", "ref_a", "ref_b", "curve_a", "curve_b", "n_a", "n_b",
                                          "matched", "fraction_of_smaller", "classification"])
-    # Second test on pairs the plain test did not call duplicates: same data under a constant axis offset.
+    # Second test on pairs the plain test did not call duplicates: same data under a constant axis offset (documented provenance only).
     offsets = offset_cache if offset_cache is not None else offset_aligned_pairs(units, cand)
     pairs["offset_C"], pairs["energy_scale"] = np.nan, np.nan
-    plain_dups = set(zip(pairs.loc[pairs["classification"] == "duplicate", "unit_a"], pairs.loc[pairs["classification"] == "duplicate", "unit_b"]))
+    dup = pairs["classification"] == "duplicate"
+    plain_dups = {frozenset(p) for p in zip(pairs.loc[dup, "unit_a"], pairs.loc[dup, "unit_b"])}
     for (a, b), (m, d, sc) in offsets.items():
-        if (a, b) in plain_dups:
+        if frozenset((a, b)) in plain_dups:
             continue
         ua, ub = units[a], units[b]
         row = dict(unit_a=a, unit_b=b, ref_a=ua["ref"], ref_b=ub["ref"], curve_a=ua["curve"], curve_b=ub["curve"], n_a=ua["n"], n_b=ub["n"],
                    matched=m, fraction_of_smaller=m / min(ua["n"], ub["n"]), classification="duplicate (constant axis offset)",
                    offset_C=d, energy_scale=sc)
-        hit = (pairs["unit_a"] == a) & (pairs["unit_b"] == b)
+        # The plain test may have stored the same pair in the other order; the offset row replaces it (offset_C refers to unit_a).
+        hit = ((pairs["unit_a"] == a) & (pairs["unit_b"] == b)) | ((pairs["unit_a"] == b) & (pairs["unit_b"] == a))
         if hit.any():
             pairs.loc[hit, list(row)] = list(row.values())
         else:
@@ -469,20 +534,37 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
     return units, unit_of, pairs, removals, cand
 
 
-def offset_evidence(units: dict, offsets: dict) -> pd.DataFrame:
-    """For each pair linked by the constant-offset test: matches without the offset (plain and tight tolerances), with the offset, and a
-    chance baseline (the same copy shifted by +/-20 and +/-30 °C, matched at the plain tolerances)."""
+def offset_evidence(units: dict, cand, offsets: dict, pairs: pd.DataFrame) -> pd.DataFrame:
+    """Audit of the constant-offset test (D-019, CP2): every pair it linked, and every pair the review-only screen finds (listed, never
+    removed). Matches without the offset (plain and tight tolerances), with the offset, and a chance baseline (the same copy shifted by
+    +/-20 and +/-30 °C, matched at the plain tolerances)."""
+    dup = pairs["classification"] == "duplicate"
+    screen = offset_screen(units, cand, {frozenset(p) for p in zip(pairs.loc[dup, "unit_a"], pairs.loc[dup, "unit_b"])})
+    linked = {frozenset(k) for k in offsets}
+    entries = [(k, v, True) for k, v in offsets.items()] + [(k, v, False) for k, v in screen.items() if frozenset(k) not in linked]
     rows = []
-    for (a, b), (m, d, sc) in offsets.items():
+    for (a, b), (m, d, sc), is_linked in entries:
         ua, ub = units[a], units[b]
         match = lambda shift, scale, tol_t, k_e: greedy_match(ua["t"] + shift, ua["e"] * scale, ub["t"], ub["e"], tol_t, k_e)
-        rows.append(dict(ref_a=ua["ref"], curve_a=ua["curve"], n_a=ua["n"], ref_b=ub["ref"], curve_b=ub["curve"], n_b=ub["n"],
+        prov = OFFSET_DUPLICATE_PROVENANCE.get((ua["series"], ub["series"])) or OFFSET_DUPLICATE_PROVENANCE.get((ub["series"], ua["series"]))
+        compatible = offset_compatible(ua, ub)
+        outcome = ("linked: duplicate (constant axis offset)" if is_linked else
+                   "review only, not linked: " + "; ".join(r for ok, r in [(prov is not None, "provenance not documented"),
+                                                                            (compatible, "labels not compatible")] if not ok))
+        rows.append(dict(unit_a=a, unit_b=b, ref_a=ua["ref"], curve_a=ua["curve"], n_a=ua["n"], ref_b=ub["ref"], curve_b=ub["curve"], n_b=ub["n"],
+                         outcome=outcome, provenance_documented=prov is not None, labels_compatible=compatible,
+                         transform=("one transform shared by all compatible unit pairs of the documented series pair" if is_linked
+                                    else "this pair's own best transform (screen)"),
+                         offset_C=d, energy_scale=sc, matched_tight_tolerance_with_offset=m, fraction_of_smaller_matched=m / min(ua["n"], ub["n"]),
                          matched_plain_tolerance_no_offset=match(0.0, 1.0, DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX),
                          matched_tight_tolerance_no_offset=match(0.0, 1.0, OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION),
-                         matched_tight_tolerance_with_offset=m, offset_C=d, energy_scale=sc,
                          chance_baseline_plain_tolerance_shift_20_30C="; ".join(
-                             str(match(shift, 1.0, DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX)) for shift in (-30.0, -20.0, 20.0, 30.0))))
-    return pd.DataFrame(rows)
+                             str(match(shift, 1.0, DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX)) for shift in (-30.0, -20.0, 20.0, 30.0)),
+                         provenance_evidence=prov["evidence"] if prov else "", provenance_not_verified=prov["not_verified"] if prov else ""))
+    return pd.DataFrame(rows, columns=["unit_a", "unit_b", "ref_a", "curve_a", "n_a", "ref_b", "curve_b", "n_b", "outcome", "provenance_documented",
+                                       "labels_compatible", "transform", "offset_C", "energy_scale", "matched_tight_tolerance_with_offset",
+                                       "fraction_of_smaller_matched", "matched_plain_tolerance_no_offset", "matched_tight_tolerance_no_offset",
+                                       "chance_baseline_plain_tolerance_shift_20_30C", "provenance_evidence", "provenance_not_verified"])
 
 
 def duplicate_sensitivity(df: pd.DataFrame, cand, offsets) -> pd.DataFrame:
@@ -556,7 +638,8 @@ def apply_exclusions(df: pd.DataFrame, out_dir):
     units, unit_of, pairs, removals, cand = find_duplicates(df.loc[ret])
     offsets = {(r.unit_a, r.unit_b): (r.matched, r.offset_C, r.energy_scale)
                for r in pairs[pairs["classification"] == "duplicate (constant axis offset)"].itertuples(index=False)}
-    offset_evidence(units, offsets).to_csv(out_dir / "duplicate_offset_evidence.csv", index=False)
+    offset_audit = offset_evidence(units, cand, offsets, pairs)
+    offset_audit.to_csv(out_dir / "duplicate_offset_evidence.csv", index=False)
     df["duplicate_comparison_unit"] = ""
     df.loc[ret, "duplicate_comparison_unit"] = unit_of
     for r in removals.itertuples(index=False):
@@ -802,6 +885,7 @@ def run(dataset_key: str):
 
     dup_hist = pd.cut(pairs["fraction_of_smaller"], [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, .9999, 1.0001],
                       right=True).value_counts().sort_index()
+    offset_audit = pd.read_csv(out_dir / "duplicate_offset_evidence.csv")
     summary = [f"# WP1 summary ({dataset_key})", "", f"Dataset: {ds['label']}", "",
                f"- Records in: {len(df)}; retained: {int((df['status'] == 'retained').sum())}; excluded: {int((df['status'] == 'excluded').sum())}.",
                f"- Retained references: {df.loc[df['status'] == 'retained', 'ref_id'].nunique()}; "
@@ -813,11 +897,17 @@ def run(dataset_key: str):
                f"- Candidate pairs with >= {DUP_MIN_MATCHED} matched points: {len(pairs)}; duplicates by plain point matching: {int((pairs['classification'] == 'duplicate').sum())}; "
                f"duplicates by constant-axis-offset matching: {int((pairs['classification'] == 'duplicate (constant axis offset)').sum())}; "
                f"partial overlaps (flagged only): {int((pairs['classification'] == 'partial overlap').sum())}.",
-               f"- Constant-offset test: one copy shifted by a constant {OFFSET_SHIFTS_C.min():g} to {OFFSET_SHIFTS_C.max():g} °C and scaled by "
-               f"{min(OFFSET_E_SCALES)}-{max(OFFSET_E_SCALES)} in energy, then matched within {OFFSET_TOL_T_C:g} °C and {OFFSET_TOL_E_FRACTION:.0%}; "
-               f"duplicate if >= {OFFSET_MIN_MATCHED} points and >= {DUP_MIN_FRACTION:.0%} of the smaller copy match. Pairs found: "
+               f"- Constant-offset test (not a generic search, D-019): applied only to dataset series whose common experimental origin is "
+               f"documented in curated_metadata.OFFSET_DUPLICATE_PROVENANCE, to copies whose material, geometry, irradiation and condition "
+               f"labels agree. ONE constant transform (temperature shift {OFFSET_SHIFTS_C.min():g} to {OFFSET_SHIFTS_C.max():g} °C, energy scale "
+               f"{min(OFFSET_E_SCALES)}-{max(OFFSET_E_SCALES)}), chosen by point overlap alone, is shared by all linked copies of the two series; "
+               f"points then match within {OFFSET_TOL_T_C:g} °C and {OFFSET_TOL_E_FRACTION:.0%}; duplicate if >= {OFFSET_MIN_MATCHED} points and "
+               f">= {DUP_MIN_FRACTION:.0%} of the smaller copy match. Pairs linked: "
                + ("; ".join(f"ref {r.ref_a} curve {r.curve_a:g} ({r.n_a}) with ref {r.ref_b} curve {r.curve_b:g} ({r.n_b}): {r.matched} matched at offset {r.offset_C:+g} °C, scale {r.energy_scale:g}"
                             for r in pairs[pairs['classification'] == 'duplicate (constant axis offset)'].itertuples()) or "none") + ".",
+               f"- Review-only screen (never removes records): the same search run on every candidate pair finds "
+               f"{int((~offset_audit['outcome'].str.startswith('linked')).sum())} further pair(s) meeting the criterion "
+               f"(listed in duplicate_offset_evidence.csv for a person to examine).",
                f"- Series removed: {len(removals)} ({int(removals['removed_records'].sum())} records) from references "
                f"{sorted(removals['removed_ref'].unique().tolist())}.",
                f"- Which criterion of the canonical hierarchy decided each removal: "

@@ -17,9 +17,10 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | Work package | State |
 |---|---|
 | WP0 Acquisition and data dictionary | done (CP1 approved; regenerated for the 2025.30 primary release) |
-| WP1 Cleaning and normalization | done (CP1 approved; regenerated with the canonical duplicate hierarchy) |
-| WP2 Curve grouping and inclusion criteria | done — **at checkpoint CP2, awaiting review** |
-| WP3–WP7 | not started |
+| WP1 Cleaning and normalization | done (CP1 approved; corrections surfaced in WP2 approved at CP2) |
+| WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
+| WP3 Transition curve fitting | next permitted work package — not started |
+| WP4–WP7 | not started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
 
@@ -47,6 +48,8 @@ Which release is primary, and why, is decision D-001 (approved at CP1); see also
 
 Creates `.venv/` with the pinned packages if it does not exist, verifies the raw-data checksums, and regenerates everything in
 `outputs/` and `data/processed/` from `data/raw/` (WP0, WP1 for both dataset releases, WP2 including `outputs/wp2/example_curves.png`).
+The run ends by checking that every WP2 cohort still has the membership frozen at checkpoint CP2 (`data/FROZEN_COHORTS_CP2.csv`) and
+stops if it does not.
 
 ## Repository layout
 
@@ -56,7 +59,7 @@ Creates `.venv/` with the pinned packages if it does not exist, verifies the raw
 | `DECISIONS.md` | Every judgement call, with alternatives and consequences |
 | `PROGRESS.md` | Last checkpoint, decisions in force, next permitted work, open issues |
 | `CLAUDE.md` | Persistent working rules for AI-assisted sessions on this repository |
-| `data/` | Vendored raw data, license, checksums, processed data (see `data/README.md`) |
+| `data/` | Vendored raw data, license, checksums, processed data, CP2-frozen cohort fingerprints (see `data/README.md`) |
 | `src/common.py` | Paths, checksum verification, spreadsheet loader |
 | `src/curated_metadata.py` | All hand-curated inputs: column meanings, name maps, reference-level evidence |
 | `src/wp0_data_dictionary.py` | WP0: checksums, workbook audit, data dictionary, version comparison |
@@ -64,6 +67,6 @@ Creates `.venv/` with the pinned packages if it does not exist, verifies the raw
 | `outputs/wp0/` | Data dictionary and WP0 reports |
 | `outputs/wp1/` | Reconciliation table and WP1 reports (primary dataset, 2025.30) |
 | `outputs/wp1_sensitivity_eny5v-www93/` | The same WP1 reports for the version-sensitivity dataset (2024.206) |
-| `src/wp2_curves.py` | WP2: curve grouping, sampling descriptors (no fitting), inclusion rules, cohorts |
-| `outputs/wp2/` | Curve inventory, population accounting, rule outcomes, cohorts, version comparison, example figure (primary dataset) |
+| `src/wp2_curves.py` | WP2: curve grouping, sampling descriptors (no fitting), pre-fit screening rules, cohorts, frozen-cohort check |
+| `outputs/wp2/` | Curve inventory, population accounting, rule outcomes, cohort membership and manifest, version comparison, example figure (primary dataset) |
 | `outputs/wp2_sensitivity_eny5v-www93/` | The same WP2 reports for the version-sensitivity dataset |
