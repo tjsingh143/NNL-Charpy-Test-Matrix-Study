@@ -26,20 +26,22 @@ OUTPUTS = ROOT / "outputs"
 
 # Two published releases of the dataset exist (DECISIONS.md D-001).
 DATASETS = {
-    "eny5v-www93": {
-        "label": "Materials Cloud record eny5v-www93 (DOI 10.24435/materialscloud:gh-za, issued 2024-12-19)",
-        "xlsx": RAW / "Charpy_Impact_Test_Dataset.xlsx",
-        "record_json": RAW / "materialscloud_record_eny5v-www93.json",
-    },
     "q4x6v-dyt25": {
-        "label": "Materials Cloud record q4x6v-dyt25 (DOI 10.24435/materialscloud:p6-5y, issued 2025-02-26)",
-        "xlsx": RAW / "alternate_record_q4x6v-dyt25" / "Charpy_Impact_Test_Dataset.xlsx",
-        "record_json": RAW / "alternate_record_q4x6v-dyt25" / "materialscloud_record_q4x6v-dyt25.json",
+        "label": "Materials Cloud 2025.30, record q4x6v-dyt25 (DOI 10.24435/materialscloud:p6-5y, issued 2025-02-26)",
+        "xlsx": RAW / "release_2025.30_q4x6v-dyt25" / "Charpy_Impact_Test_Dataset.xlsx",
+        "record_json": RAW / "release_2025.30_q4x6v-dyt25" / "materialscloud_record_q4x6v-dyt25.json",
+    },
+    "eny5v-www93": {
+        "label": "Materials Cloud 2024.206, record eny5v-www93 (DOI 10.24435/materialscloud:gh-za, issued 2024-12-19)",
+        "xlsx": RAW / "release_2024.206_eny5v-www93" / "Charpy_Impact_Test_Dataset.xlsx",
+        "record_json": RAW / "release_2024.206_eny5v-www93" / "materialscloud_record_eny5v-www93.json",
     },
 }
-# The record named in PROJECT_BRIEF.md. Provisional until confirmed at CP1 (D-001).
-PRIMARY_DATASET = "eny5v-www93"
-COMPARISON_DATASET = "q4x6v-dyt25"
+# CP1-approved amendment (D-001): the 2025.30 release cited by the descriptor paper is the primary dataset;
+# the 2024.206 release named in the original brief is the version-sensitivity dataset.
+PRIMARY_DATASET = "q4x6v-dyt25"
+SENSITIVITY_DATASET = "eny5v-www93"
+OLDER_RELEASE, NEWER_RELEASE = "eny5v-www93", "q4x6v-dyt25"
 
 DATA_SHEET = "Charpy Data"
 
@@ -61,7 +63,7 @@ def verify_checksums() -> list[dict]:
         actual = file_digest(DATA / rel, "sha256")
         results.append({"file": rel, "check": "SHA-256 vs data/CHECKSUMS.sha256",
                         "expected": expected, "actual": actual, "ok": actual == expected})
-    for key, ds in DATASETS.items():
+    for key, ds in sorted(DATASETS.items()):
         entries = json.loads(ds["record_json"].read_text())["files"]["entries"]
         for name, entry in entries.items():
             path = ds["xlsx"].parent / name

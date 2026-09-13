@@ -1,4 +1,6 @@
-keep_rule,records_removed,uncorroborated_points_kept,uncorroborated_points_removed
-"A (chosen): most records, then earliest publication",752,40,3
-"B: earliest publication, then most records",783,11,32
-"C: most corroborated records, then earliest publication",770,22,21
+keep_rule,series_removed,records_removed,uncorroborated_points_kept,uncorroborated_points_removed,series_kept_with_unresolved_label_problems,series_removed_here_but_kept_by_chosen_rule,series_kept_here_but_removed_by_chosen_rule
+canonical hierarchy (chosen),66,783,11,32,0,0,0
+"most records, then fewer labeling problems (sensitivity alternative)",66,752,40,3,0,7,7
+"most records, then earliest publication (CP1 rule)",66,752,40,3,1,8,8
+"earliest publication, then most records",66,783,11,32,1,1,1
+"most corroborated records, then earliest publication",66,770,22,21,1,3,3

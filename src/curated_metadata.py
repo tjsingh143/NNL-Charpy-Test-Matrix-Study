@@ -32,7 +32,7 @@ def _element(raw, symbol, coldesc_name, extra=""):
 COLUMNS = [
     dict(raw="Reference", clean="ref_id", coldesc="Reference", unit="",
          meaning="Integer identifier of the source publication. Joins to the References sheet (citation and link).",
-         notes="The descriptor paper and the later release report 109 publications; the number of IDs in this release is computed in WP0."),
+         notes="The 2025.30 release (primary) lists 109 publications and the 2024.206 release 106; counts are computed in WP0."),
     dict(raw="Material ", clean="material_raw", coldesc="Material", unit="",
          meaning="Material designation as written by the dataset authors: a steel specification or grade shorthand "
                  "(e.g. SA508, A533B-1, 20MnMoNi55); 'A533B - WM' denotes weld metal.",
@@ -40,7 +40,8 @@ COLUMNS = [
                "There is no product-form column (plate/forging/weld); see D-013."),
     dict(raw="Material Group", clean="material_group", coldesc="Material Group", unit="",
          meaning="Dataset authors' two-way grouping: 'Reactor pressure vessel steel' or 'Nuclear Structural Material'.",
-         notes="In this release 'Nuclear Structural Material' coincides exactly with the SS316 family. "
+         notes="'Nuclear Structural Material' holds the SS316 family and, in the 2025.30 release only, the ferritic WWER-440 steel 15Cr2MoV-A "
+               "(WP0 notable facts), so the group label is not a ferritic/austenitic indicator. "
                "The group label 'Reactor pressure vessel steel' also covers SA508 Grade 1A piping steel (refs 22, 23, 30, 32, 40)."),
     _element("C, wt.%", "C", "C (wt.%)"),
     _element("Si, wt.%", "Si", "Si (wt.%)"),
@@ -103,8 +104,8 @@ COLUMNS = [
          notes="Which grain (prior-austenite or ferrite) and which measurement method are not recorded."),
     dict(raw="Irradiated Specimen", clean="irradiated", coldesc="Irradiated Specimen", unit="",
          meaning="Whether the material had been neutron-irradiated before the Charpy test ('Yes'/'No').",
-         notes="The later release changes this field for several references, mostly without adding fluence "
-               "(counts in the dataset version comparison). Irradiation status is therefore uncertain for those references (D-021)."),
+         notes="The 2025.30 release changes this field for refs 7, 8, 9, 13 and 53 relative to 2024.206, mostly without adding fluence "
+               "(counts in the dataset version comparison). Source checks resolve ref 13 only; the others remain unresolved (D-021)."),
     dict(raw="Irradiation Dose (n/cm^2)", clean="fluence_n_per_cm2", coldesc="Irradiation Dose (n/cm^2)", unit="n/cm²",
          meaning="Neutron fluence: the number of neutrons that passed through each square centimetre of material during irradiation.",
          notes="Called 'dose' in the workbook, but n/cm² is the unit of fluence. The neutron-energy threshold (ASTM E900 uses E > 1 MeV) "
@@ -169,10 +170,11 @@ COLUMNS = [
          meaning="Dataset-wide identifier of the group of records the dataset authors treated as one fitted transition curve.",
          notes="Undocumented beyond 'Number of the fitted curve'. Each ID is one contiguous block within one reference and material, "
                "but some IDs mix geometries, irradiation states or treatments (flagged in WP1, D-028)."),
-    # Present only in the later release (q4x6v-dyt25):
+    # Present only in the 2025.30 release (q4x6v-dyt25):
     dict(raw="Specimen Type", clean="specimen_type_dataset", coldesc=None, unit="",
-         meaning="Later release only: 'Pre-Cracked' for every record of a few references (listed in the version comparison); otherwise blank.",
-         notes="Not described in that release's Column Descriptions sheet. Record-level meaning is doubtful (D-020)."),
+         meaning="2025.30 release only: 'Pre-Cracked' for every record of refs 1, 8, 9, 13, 19, 20, 23; otherwise blank.",
+         notes="Not described in the Column Descriptions sheet. A paper-level note: source checks show these energy curves are ordinary "
+               "Charpy V-notch tests and the precracked specimens belonged to separate fracture-toughness tests (D-020)."),
 ]
 
 COLUMN_BY_RAW = {c["raw"]: c for c in COLUMNS}
@@ -198,8 +200,8 @@ MATERIAL_MAP = {
     "SA508":      dict(material_std="A508, grade/class not stated", family="A508", class_stated=None, prefix="SA", weld_metal_label=False, scope="in"),
     "A302B":      dict(material_std="A302 Grade B", family="A302B", class_stated=None, prefix="A", weld_metal_label=False, scope="in"),
     "20MnMoNi55": dict(material_std="20MnMoNi55 (DIN 1.6310)", family="20MnMoNi55", class_stated=None, prefix="", weld_metal_label=False, scope="in"),
-    # Later release only. Ferritic WWER-440 vessel steel, but not in the brief's named family: user decision needed at CP1.
-    "15Cr2MoV-A": dict(material_std="15Cr2MoV-A (WWER-440 vessel steel)", family="15Cr2MoV-A", class_stated=None, prefix="", weld_metal_label=False, scope="pending"),
+    # 2025.30 release only. Ferritic WWER-440 vessel steel outside the brief's named family: out of scope (CP1 decision 4, D-012).
+    "15Cr2MoV-A": dict(material_std="15Cr2MoV-A (WWER-440 vessel steel)", family="15Cr2MoV-A", class_stated=None, prefix="", weld_metal_label=False, scope="out_ferritic"),
     # Austenitic stainless steels: out of scope (brief section 4, D-014). Variants kept distinct in material_std.
     "SS316":      dict(material_std="SS316", family="SS316 (austenitic stainless)", class_stated=None, prefix="", weld_metal_label=False, scope="out"),
     "SS316L":     dict(material_std="SS316L", family="SS316 (austenitic stainless)", class_stated=None, prefix="", weld_metal_label=False, scope="out"),
@@ -255,8 +257,10 @@ SIMULATED_HAZ_CODES = ["CGCG", "FGCG", "ICCG", "SCCG", "FGFG", "ICIC", "SCSC"]
 # Only in-scope references with something to record are listed.
 # ---------------------------------------------------------------------------
 REFERENCE_NOTES = {
-    1: dict(precracked_concern=True, specimen_note="EPRI NP-1661 abstract: report covers both Charpy V-notch and precracked Charpy data, reconstituted "
-                          "specimens and a shock-hardened surrogate material. Later release labels all of its records 'Pre-Cracked'."),
+    1: dict(precracked_concern=True, specimen_note="EPRI NP-1661 covers both Charpy V-notch and precracked Charpy data, reconstituted "
+                          "specimens and a shock-hardened surrogate material. The 2025.30 release labels all of its records 'Pre-Cracked'.",
+            material_note="NP-1661 reports several SA533B-1 heats (heat D; shock-hardened heat IbH; HSST Plate 02 = IbA), but every record "
+                          "carries the same composition, so composition cannot distinguish them."),
     2: dict(specimen_note="Some records say 'Standard Reference Material'; whether this is a surveillance correlation-monitor plate or a "
                           "machine-verification specimen is not stated."),
     3: dict(material_note="Title: 'Four Lab-Melt Plates' (laboratory heats)."),
@@ -280,7 +284,7 @@ REFERENCE_NOTES = {
     19: dict(grade_title="SA508 Gr.4N"),
     20: dict(grade_title="SA508 Gr.4N",
              specimen_note="Abstract: Charpy tests to ASTM E23 and fracture toughness to ASTM E1921, i.e. the precracked specimens "
-                           "were for the separate fracture-toughness tests. Later release labels records 'Pre-Cracked'."),
+                           "were for the separate fracture-toughness tests. The 2025.30 release labels records 'Pre-Cracked'."),
     21: dict(specimen_note="Title: 'Preparation of reconstituted Charpy V-notch impact specimens'."),
     22: dict(grade_title="SA508 Gr.1A", material_note="SA508 Grade 1A is a carbon steel used for piping, not a vessel steel."),
     23: dict(grade_title="SA508 Gr.1A", material_note="Title: 'for main steam line piping' (piping steel, not a vessel steel)."),
@@ -305,7 +309,9 @@ REFERENCE_NOTES = {
     39: dict(grade_title="SA508Gr.3"),
     40: dict(grade_title="SA508 Gr.1A", material_note="Title: 'for main steam line piping' (piping steel, not a vessel steel)."),
     41: dict(material_note="Title: 'room-temperature pre-deformation' (pre-strained material)."),
-    44: dict(precracked_concern=True, specimen_note="Title: 'using precracked Charpy specimens'. Records are not identified as precracked; specimen type unverified."),
+    43: dict(material_note="'A533B' records are the JSPS steel, an A533B-type plate deliberately embrittled by raised S and P (SCK-CEN BLG-1016)."),
+    44: dict(precracked_concern=True, specimen_note="Title: 'using precracked Charpy specimens'. Records are not identified as precracked; see SPECIMEN_TYPE_CHECKS.",
+             material_note="'A533B' records are the JSPS steel, an A533B-type plate deliberately embrittled by raised S and P (SCK-CEN BLG-1016)."),
     47: dict(forming_evidence="forging", material_note="Title: '20MnMoNi55 forging'."),
     50: dict(weld_haz_unidentified=True, product_form_note="Title: '12-in. thick A533-B steel plates and weld metal'. Records do not identify weld metal."),
     51: dict(specimen_note="Loading-rate study: 0.5 and 0.001 m/s tests identified in the condition statement."),
@@ -315,8 +321,78 @@ REFERENCE_NOTES = {
     57: dict(grade_title="A533 Grade B Class 1"),
     58: dict(specimen_note="Title covers specimen size and notch geometry effects, but only one full-size curve (notch not reported) is in the data."),
     60: dict(weld_haz_unidentified=True, product_form_note="Title: 'HAZ of RPVS clad with duplex stainless steel'. Records do not identify HAZ."),
-    # Later release (q4x6v-dyt25) only:
+    # 2025.30 release (q4x6v-dyt25) only:
     107: dict(material_note="Title: 'un-irradiated low alloy RPV ferritic steel'; sub-size correlation study."),
     108: dict(material_note="Title: 'long-term thermal aged WWER 440 RPV steel'."),
     109: dict(material_note="Title: 'PWR RPV model steels' (laboratory heats)."),
 }
+
+
+# ---------------------------------------------------------------------------
+# (d) Source checks made for CP1 decisions 1 and 2 (DECISIONS.md D-020, D-021, D-031).
+#     Only references whose specimen type or condition labels were questioned are listed.
+#     Short citations are expanded in DECISIONS.md: [NP-1661] full report (OSTI 6609271); [BLG-1016] Lucon (2005),
+#     SCK-CEN open report; [Lee2014] full text; [Lee2011] and [Kim2012] abstracts.
+# ---------------------------------------------------------------------------
+# Specimen type of the absorbed-energy records ('ordinary CVN' = standard Charpy V-notch impact test).
+# resolution: 'ordinary CVN' | 'pre-cracked' | 'unresolved'
+SPECIMEN_TYPE_CHECKS = {
+    1: dict(resolution="ordinary CVN",
+            basis="[NP-1661]: every absorbed-energy (J) versus temperature figure for SA533B-1 is a Charpy V-notch figure (Figs 2-5, 3-14, "
+                  "3-15, 3-17); precracked Charpy results appear only as fracture toughness or normalized energy."),
+    8: dict(resolution="ordinary CVN",
+            basis="Records cite ASTM E23 (Charpy impact standard); curve 33 is point-for-point identical to a curve of ref 29. Full text not read."),
+    9: dict(resolution="ordinary CVN",
+            basis="Records cite ASTM E23; curves 34 and 36 are point-for-point identical to curves of refs 37 and 15 (2025.30 curation note "
+                  "for ref 15: 'No Pre-cracked Specimen'). Full text not read."),
+    13: dict(resolution="ordinary CVN",
+             basis="[Lee2014] section 2: Charpy impact tests on standard V-notch specimens (10x10x55 mm) to ASTM E23-07a; precracked "
+                   "specimens were tested in quasi-static 3-point bending for the master-curve T0 (ASTM E1921-09c), not for absorbed energy."),
+    19: dict(resolution="ordinary CVN",
+             basis="Curves point-for-point identical to curves of refs 17, 27, 28 (2025.30 curation note for ref 17: 'No Pre-cracked "
+                   "Specimen'); companion journal paper (ref 20) tested Charpy to ASTM E23 and fracture toughness to ASTM E1921 [Lee2011]."),
+    20: dict(resolution="ordinary CVN",
+             basis="[Lee2011] abstract: Charpy impact tests to ASTM E23, fracture toughness to ASTM E1921; curves identical to refs 17, 27, 28."),
+    23: dict(resolution="ordinary CVN",
+             basis="Records cite ASTM E23. Not checked against the source: SA508 Gr.1A piping steel is outside the primary population (CP1 decision 3)."),
+    43: dict(resolution="ordinary CVN",
+             basis="[BLG-1016] Tables 1-4: compositions identical to SCK-CEN's 20MnMoNi55 and JSPS steels, whose Charpy V-notch "
+                   "properties (USE 181 J, T41J -76 C; USE 72 J, T41J 34 C) are consistent with these curves."),
+    44: dict(resolution="ordinary CVN",
+             basis="Same materials and same points as ref 43 (see ref 43); the precracked specimens of the title were used for the "
+                   "paper's ductile crack-resistance tests."),
+}
+
+# Irradiation status where the two releases disagree (D-021). resolution: 'irradiated' | 'not irradiated' | 'unresolved'
+IRRADIATION_LABEL_CHECKS = {
+    7: dict(resolution="unresolved",
+            basis="2024.206: not irradiated; 2025.30: irradiated, no fluence. 2025.30 curation note: 'checking references to add "
+                  "irradiation conditions'. Full text not accessible."),
+    8: dict(resolution="unresolved",
+            basis="2024.206: not irradiated; 2025.30: irradiated, no fluence (curation note: 'checking references to add irradiation "
+                  "conditions'). Curve 33 is point-for-point identical to an unirradiated curve of ref 29. Full text not accessible."),
+    9: dict(resolution="unresolved",
+            basis="2024.206: not irradiated; 2025.30: irradiated at 6e19 n/cm2. Curves 34 and 36 are point-for-point identical to "
+                  "unirradiated curves of refs 37 and 15. Full text not accessible."),
+    13: dict(resolution="not irradiated",
+             basis="[Lee2014] full text: tempering and PWHT study of an unirradiated model alloy; 'irradiation' appears only in the title "
+                   "of a cited reference. The 2024.206 label is supported; the 2025.30 label is not."),
+    53: dict(resolution="unresolved",
+             basis="The releases move the irradiated label between full-size HAZ curves (223, 224) and 1.5-mm base/weld curves (242, 245). "
+                   "[Kim2012] abstract reports irradiated base-metal specimens (8e19 n/cm2 at 563 K), consistent with 2024.206 but not "
+                   "2025.30; which specimens were irradiated is not in the abstract and the full text was not accessible."),
+}
+
+# Condition labels on specific dataset series that the source contradicts (D-031). Key: (ref_id, dataset curve ID).
+_NP1661_SHOCK = ("Treatment label contradicted by [NP-1661] Table 3-1: tanh fits give USE about 136, 108 and 41 J and T0 about 13, 21 "
+                 "and 7 C for the non-shocked, bottom-layer and top-layer materials; dataset curves 3, 4 and 5 (labelled bottom-surface "
+                 "shock hardened, top-surface shock hardened, and untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 C, "
+                 "i.e. the labels are shifted by one series.")
+SOURCE_CONTRADICTED_LABELS = {
+    (1, 3): _NP1661_SHOCK,
+    (1, 4): _NP1661_SHOCK,
+    (1, 5): _NP1661_SHOCK,
+    (1, 7): "Fluence contradicted by [NP-1661] Fig. 3-17: the irradiated HSST Plate 02 specimens received 2.5e18 n/cm2 (E > 1 MeV); "
+            "the dataset gives 3e19 n/cm2.",
+}
+

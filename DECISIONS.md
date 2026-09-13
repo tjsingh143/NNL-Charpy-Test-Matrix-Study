@@ -4,15 +4,15 @@ One entry per decision that could reasonably have gone another way (PROJECT_BRIE
 Each entry states what was decided, the alternatives, why, and what would change under the alternative.
 Where a number is quoted, the file that regenerates it is named.
 
-**Status legend:** `DECIDED` = in force. `PROVISIONAL (CP1)` = in force for now, explicitly put to the author at
-checkpoint CP1 for confirmation. `OPEN` = not yet decided.
+**Status legend:** `DECIDED` = in force. `APPROVED (CP1)` = decided by the author at checkpoint CP1 (the entry keeps the
+pre-CP1 reasoning as history). `PROVISIONAL (CP2)` = in force for now, put to the author at checkpoint CP2. `OPEN` = not yet decided.
 
 **Sources cited below**
 - [descriptor] Lee I., Merickel J.W., Sreenivasulu Y.K., Xu F., Tang Y., Rittenhouse J.E., Vakanski A., Song R. (2025).
   *Comprehensive Toughness Dataset of Nuclear Reactor Structural Materials using Charpy V-Notch Impact Testing.* Sci. Data 12:543.
   doi:10.1038/s41597-025-04823-1
-- [record-A] Materials Cloud Archive record eny5v-www93, doi:10.24435/materialscloud:gh-za (issued 2024-12-19)
-- [record-B] Materials Cloud Archive record q4x6v-dyt25, doi:10.24435/materialscloud:p6-5y (issued 2025-02-26)
+- [record-A] Materials Cloud Archive 2024.206, record eny5v-www93, doi:10.24435/materialscloud:gh-za (issued 2024-12-19); version-sensitivity dataset
+- [record-B] Materials Cloud Archive 2025.30, record q4x6v-dyt25, doi:10.24435/materialscloud:p6-5y (issued 2025-02-26); primary dataset
 - [E23-82] ASTM E23-82, *Standard Methods for Notched Bar Impact Testing of Metallic Materials* (public copy via law.resource.org)
 - [ISO148-1] ISO 148-1:2016, *Metallic materials — Charpy pendulum impact test — Part 1: Test method* (§3.2 definitions, from the published sample pages)
 - [E900] ASTM E900, *Standard Guide for Predicting Radiation-Induced Transition Temperature Shift in Reactor Vessel Materials* (fluence defined for E > 1 MeV)
@@ -23,20 +23,40 @@ checkpoint CP1 for confirmation. `OPEN` = not yet decided.
 - [NP-1661] Server W.L. et al. (1981), EPRI NP-1661 abstract (OSTI 6609271): covers Charpy V-notch and precracked Charpy data, reconstituted specimens, shock-hardened surrogate
 - [Lee2011] Lee K.-H. et al. (2011), Mater. Sci. Eng. A 529:156–163, abstract: Charpy impact tests to ASTM E23, fracture toughness to ASTM E1921
 - [Drevon2017] Drevon D., Fursa S.R., Malcolm A.L. (2017). *Intercoder reliability and validity of WebPlotDigitizer in extracting graphed data.* Behav. Modif. 41(2):323–339
+- [NP-1661] Server W.L., Wullaert R.A., Odette G.R., Oldfield W. (1981). *Analysis of Radiation Embrittlement Reference Toughness Curves*, EPRI NP-1661, full report (OSTI 6609271): Figs 2-5, 3-14, 3-15, 3-17; Table 3-1
+- [BLG-1016] Lucon E. (2005). *The Use of Single-Specimen Techniques for Measuring Upper Shelf Toughness Properties under Impact Loading Rates*, SCK•CEN open report BLG-1016, Tables 1–4 (OSTI ETDEWeb 20902511)
+- [Lee2014] Lee K.-H., Jhung M.J., Kim M.-C., Lee B.-S. (2014). Nucl. Eng. Technol. 46(3):413–422, full text, §2 (ref 13)
+- [Kim2012] Kim B.J., Mitsui H., Kasada R., Kimura A. (2012). J. Nucl. Sci. Technol. 49(6):618–631, abstract (ref 53)
+- [E185-82] ASTM E185-82, *Standard Practice for Conducting Surveillance Tests for Light-Water Cooled Nuclear Power Reactor Vessels*, copy incorporated by reference in 10 CFR 50 (Internet Archive item gov.law.astm.e185.1982): §4.16–4.18, §6.3, §9.2.2
+- [Jendrich2003] Jendrich U., Tricot N. (2003). *Neutron fluence at the reactor pressure vessel wall – a comparison of French and German procedures and strategies in PWRs*, IRSN report DES/546 (EUROSAFE 2002), §1.3–1.4 (OSTI ETDEWeb 20375315)
 
 ---
 
 ## D-001 — Which release of the dataset is the project dataset
-**Status:** PROVISIONAL (CP1)
+**Status:** APPROVED (CP1) — amends PROJECT_BRIEF.md §3 (amendment A1 recorded in the brief)
 
-**Context.** Two releases of the same dataset exist on Materials Cloud, under different parent records:
+**CP1 decision (author, 2026-09-12).** The primary dataset is [record-B] (Materials Cloud 2025.30; 4,961 records, 56 columns,
+109 publications), the release described and cited by the descriptor paper. [record-A] (Materials Cloud 2024.206; 4,775 records),
+which the original brief named, is the version-sensitivity dataset: WP1 and later stages are run on it too, to test whether the
+choice of release changes important conclusions. Corrections in record-B are not assumed correct because they are newer: its
+irradiation relabels and other suspicious changes remain data-quality flags (D-020, D-021). Implemented by `PRIMARY_DATASET` and
+`SENSITIVITY_DATASET` in `src/common.py`; the raw files moved to `data/raw/release_2025.30_q4x6v-dyt25/` and
+`data/raw/release_2024.206_eny5v-www93/` (checksums unchanged).
+
+**Effect of the switch (regenerated).** WP1 retains 3,325 records from record-B and 3,177 from record-A (`outputs/wp1*/reconciliation_table.md`).
+The difference is exactly refs 107 and 109 (148 records); ref 108 (15Cr2MoV-A, 38 records) leaves at E2. Both releases now give the same
+duplicate removals because unresolved irradiation labels no longer block duplicate matching (D-019, D-021).
+
+**History — pre-CP1 provisional decision (superseded).** Use record-A, as the brief then specified, and run record-B for comparison.
+
+**Context (pre-CP1).** Two releases of the same dataset exist on Materials Cloud, under different parent records:
 [record-A] (named in PROJECT_BRIEF.md; 4,775 records, 55 columns, 106 references) and [record-B] (4,961 records,
 56 columns, 109 references, an extra `Specimen Type` column and a `Notes` curation sheet). The descriptor paper describes
 and cites record-B, and the authors' GitHub repository holds a byte-identical copy of record-B's workbook (git blob SHA
 533d056d…, checked at acquisition on 2026-09-12). The brief's own numbers mix the two (4,775 records from A; 109 publications from B).
 Row-level comparison: `outputs/wp0/dataset_version_comparison.md`.
 
-**Decision.** Use record-A, as the brief specifies. Vendor record-B beside it for comparison only, and run the WP1 pipeline
+**Pre-CP1 decision (superseded).** Use record-A, as the brief specifies. Vendor record-B beside it for comparison only, and run the WP1 pipeline
 on both so the consequence of switching is known. Ask the author at CP1.
 
 **Alternatives.** (1) Switch to record-B now (what the paper describes). (2) Hybrid: record-A plus corrections copied from B.
@@ -49,9 +69,9 @@ A hybrid would create a third, unpublished version. Evidence gathered for the CP
 - Some of B's metadata corrections look wrong: four curves B relabels as irradiated (refs 8, 9, 9, 13; two with no fluence)
   match unirradiated curves from other publications point for point (`outputs/wp1*/duplicate_curve_removals.csv`; see D-021).
 
-**If the alternative were chosen.** WP1 on record-B retains 3,409 records instead of 3,208 (`outputs/wp1_alt_q4x6v-dyt25/`),
-adds KLST-type miniature specimens and 15Cr2MoV-A (pending scope), and imports B's irradiation relabels. Switching is one
-setting (`PRIMARY_DATASET` in `src/common.py`).
+**Pre-CP1 estimate of the switch (under the CP1 duplicate rule).** WP1 on record-B retained 3,409 records instead of 3,208,
+added KLST-type miniature specimens and 15Cr2MoV-A (then pending scope), and imported B's irradiation relabels. These figures are
+superseded by the regenerated numbers above.
 
 ---
 
@@ -89,7 +109,8 @@ formula is a constant of the form `=(a*10^b)` whose stored value equals its eval
 ## D-005 — Vendoring and checksums
 **Status:** DECIDED
 
-**Decision.** Store both workbooks, their `files_description.md` and archive record JSON snapshots in `data/raw/`, the CC BY 4.0
+**Decision.** Store both workbooks, their `files_description.md` and archive record JSON snapshots in `data/raw/` (one folder per release,
+named by Materials Cloud ID and record since CP1: `release_2025.30_q4x6v-dyt25/`, `release_2024.206_eny5v-www93/`), the CC BY 4.0
 legal text in `data/`, and SHA-256 values in `data/CHECKSUMS.sha256`. Every run verifies SHA-256, and verifies each workbook's
 MD5 against the value published in its archive record (`outputs/wp0/checksum_verification.md`).
 **Alternatives.** Download at run time; record MD5 only.
@@ -143,10 +164,11 @@ specimens that omit it). Leading/trailing whitespace is trimmed from text (logge
 
 **Decision.** No conversion applied. The descriptor states all values were already converted to one unit per column; WP1 verifies this
 (`outputs/wp1/unit_checks.md`). Fluence stays in n/cm² (the unit of the dataset and of most RPV surveillance literature; ASTM E900 uses n/m²).
-**Evidence.** No test temperature below −196.9 °C or above 377.6 °C for ferritic steels (no kelvin or °F pattern); irradiation temperatures
-carry conversion fingerprints (149 °C = 300 °F, 288 °C = 550 °F, 269.85 °C = 543.00 K); every dataset curve's highest energy lies within
-0.92–1.45× its USE (an unconverted ft·lbf curve would sit near 0.74× or 1.36×); all fluences 6.2×10¹⁷–1×10²⁰ (n/m² would be 10⁴× larger);
-no inch-like dimensions; composition sums 100.000–100.019 wt.%.
+**Evidence (regenerated for the 2025.30 primary release).** No test temperature below −200 °C or above 377.6 °C for in-scope ferritic steels (no kelvin or °F pattern;
+the −200 °C values are whole-number temperatures in the newly added refs 107 and 109); irradiation temperatures
+carry conversion fingerprints (149 °C = 300 °F, 288 °C = 550 °F, 269.85 °C = 543.00 K); every retained dataset curve's highest energy lies within
+0.92–1.45× its USE (an unconverted ft·lbf curve would sit near 0.74× or 1.36×); all fluences 6.2×10¹⁷–1.11×10²⁰ (n/m² would be 10⁴× larger);
+no inch-like dimensions; composition sums 99.994–100.019 wt.%.
 **Alternatives.** Convert fluence to n/m²; re-derive units from each source paper.
 **Why.** Verification found no inconsistency; converting what is already consistent adds a step without benefit.
 **Limitation.** The energy check detects a unit error *within* a curve; a source whose energies and USE were both left in ft·lbf would pass. Only the source papers can rule that out.
@@ -161,7 +183,7 @@ no inch-like dimensions; composition sums 100.000–100.019 wt.%.
 **If the alternative were chosen.** Fluence would look comparable across sources when it may not be. Consequence for WP2: fluence binning must be coarse or per-source, and this uncertainty stated.
 
 ## D-012 — Material name harmonization: what was merged and what was kept separate
-**Status:** DECIDED (15Cr2MoV-A scope is PROVISIONAL (CP1), record-B only)
+**Status:** DECIDED; 15Cr2MoV-A scope APPROVED (CP1): out of scope
 
 Mapping: `src/curated_metadata.py::MATERIAL_MAP`; applied counts: `outputs/wp1/value_changes_log.csv`. The verbatim label is kept in `material_raw`.
 
@@ -174,7 +196,7 @@ Mapping: `src/curated_metadata.py::MATERIAL_MAP`; applied counts: `outputs/wp1/v
 | `A508`, `SA508` | A508, grade/class not stated | SA vs A: same specification. Grade (1A, 3, 4N…) is absent from the label; titles give it at reference level only (`ref_grade_title`). |
 | `A302B` | A302 Grade B | Own family; A302B and A533B are different specifications. |
 | `20MnMoNi55` | own family | German grade (DIN 1.6310); not merged with A508 or A533B even though related. |
-| `15Cr2MoV-A` (record-B only) | own family, **scope pending** | Ferritic WWER-440 vessel steel, but not in the brief's named family; excluded provisionally in the record-B run (step E2). |
+| `15Cr2MoV-A` (record-B only) | own family, **out of scope (CP1 decision 4)** | Ferritic WWER-440 vessel steel, not in the brief's named family; excluded at step E2 (38 records, ref 108), preserved in `charpy_records_with_status.csv`. The 2025.30 release puts it in Material Group 'Nuclear Structural Material' with SS316. |
 | `SS316`, `SS316L`, `SS316LN`, `SS316H` | one family for scope exclusion; variants kept in `material_std` | All austenitic (D-014). |
 
 **Alternatives.** Merge A533B classes; merge SA508 grades into one material; merge 20MnMoNi55 with A508 Grade 3.
@@ -226,7 +248,9 @@ Keep records with missing notch depth, angle or radius (flagged `flag_notch_dime
 **Decision.** Exclude only values that are impossible: absorbed energy < 0 J; temperature below absolute zero (−273.15 °C); length, width or thickness ≤ 0;
 notch depth ≥ width (no ligament); negative fluence. Flag, but keep, values that are merely implausible:
 energy exactly 0 J; energy > 1.5 × the curve's dataset USE; energy per ligament area > 1000 J/cm²; test temperature outside −200 to 400 °C.
-**Result.** After E1–E5 no record is impossible. Flags on retained records: two zero-energy records (refs 32, 43); nothing else (`flags_summary.md`).
+**Result.** After E1–E5 no record is impossible. Flags on retained records (2025.30 primary): one zero-energy record (ref 32; the ref 43 zero left at E8 with its series); nothing else (`flags_summary.md`).
+Refs 107 and 109 (2025.30 only) report tests at exactly −200 °C, on the boundary of the review window and therefore not flagged; they are
+whole-number (tabulated or rounded) temperatures 4 °C below the liquid-nitrogen boiling point, each with 1.0 J absorbed energy (0.6 % of its curve's dataset USE for the full-size curve of ref 107; 11–13 % for two KLST curves of ref 109).
 **Why these lines.** Impossible values need no threshold choice. For "energy far above any plausible upper shelf" (brief WP1) there is no universal
 maximum, because capacity depends on the machine and upper-shelf energy on the material and specimen size; so the two screens compare energy with the
 record's own curve (1.5× USE) and with a size-normalized bound roughly twice the highest value among retained records (537 J/cm², a full-size SA508 specimen).
@@ -243,7 +267,49 @@ Zero energy is kept because a lower-shelf point digitized on a graph's axis read
 **Why.** For digitized values carrying 12+ decimals, identical rows are copy errors, not replicates. For whole-number tabular values, replicates are possible; none occur in scope, so the question does not arise.
 
 ## D-019 — Exclusion E8: the same tests reported more than once
-**Status:** DECIDED (method); results for author review at CP1
+**Status:** APPROVED (CP1) — deduplication approved; the choice of which copy to keep was replaced by the canonical-source hierarchy below
+
+**CP1 decision (author).** Deduplicate republished tests for the primary analysis, because counting a republication as a new
+experiment would overstate confidence. "Keep the copy with most points" is not acceptable as the sole rule (extra points can be
+contamination, e.g. ref 19 curve 90 below). Establish a transparent hierarchy before any fitting; never average separate digitizations;
+keep an audit mapping every removed copy to its kept copy; carry at least one reasonable alternative rule forward as a sensitivity case;
+do not tune the rule on downstream results.
+
+**Canonical-source hierarchy (implemented in `src/wp1_clean.py::KEEP_RULES`, chosen before any fitting).** Among copies linked as
+duplicates, the copy kept is the first by:
+- (a) *directly tabulated values over graph digitizations.* A copy counts as tabulated when ≥ 90 % of its records have temperature and
+  energy at table resolution (≤ 1 decimal place in °C and J, or a whole number of °F / ft·lbf before conversion). **No copy in any duplicate
+  group qualifies** (every copy is a digitization; shares in `duplicate_curve_removals.csv`), so (a) never decides here.
+- (b) *original experimental source over a later republication,* operationalized as the earlier publication year (the first report of the tests).
+- (c) *clearer provenance, fewer unresolved labeling problems:* the number of distinct unresolved problems on the copy (irradiation status
+  unresolved between releases; specimen type unresolved; title reports weld/HAZ not identified in records; material label contradicts
+  composition; dataset curve ID mixes conditions; condition label contradicted by the source). Problems resolved by a source check do not count.
+- (d) *deterministic tie-breaker independent of the data values:* lower reference ID, then earlier spreadsheet row.
+
+**Duplicate matching when irradiation labels are disputed (bug exposed by the switch to record-B).** Candidates were required to share
+irradiation status and fluence. Record-B relabels four republished unirradiated series as irradiated, which hid them from matching
+and would have counted the same tests twice (once as irradiated). A label that is unresolved between the releases (D-021) can no longer rule a
+match out; settled labels (both releases agree, or source-checked) are still compared. The four cross-label duplicates (ref 8 curve 33,
+ref 9 curves 34 and 36, ref 13 curve 59; 53 records) are removed in favour of their unirradiated copies; the audit records both labels.
+
+**Result (regenerated; identical for both releases).** 66 series, 783 records removed at E8. Deciding criterion: (b) 61 series (736 records),
+(c) 1 series (15 records: ref 9 curve 34 vs ref 37 curve 161, same year), (d) 4 series (32 records: three figure copies within ref 53, and
+refs 42/45 of the same year). Audit: `outputs/wp1/duplicate_curve_removals.csv` (kept copy, matched points, points in the removed copy
+with no match in the kept copy, deciding criterion, labeling problems and irradiation labels of both copies).
+Consequences worth knowing: ref 19 curve 90 (whose two extra points belong to another alloy's upper shelf) is replaced by the 2007
+original (ref 17); ref 43 (2021) curves 191 and 192 are replaced by the 2008 originals in ref 44, losing 11 and 14 points of ref 43 that
+appear in no other copy (possibly additional tests, possibly contamination: curve 191's extra points lie above the 181 J upper shelf
+[BLG-1016] reports for that steel).
+
+**Alternative rule carried forward (sensitivity).** "Most records, then fewer labeling problems, then earliest publication, lower
+reference ID, earlier row" — the CP1 completeness rule, made label-aware so it never keeps a disputed copy over an identical clean one.
+It keeps 7 different series (refs 19, 26 ×2, 43 ×2, 52 ×2 instead of 17, 14 ×2, 44 ×2, 55 ×2), removes 752 records and retains 3,356
+(chosen: 3,325). Record-level column `status_under_alt_keep_rule`; audit `duplicate_curve_removals_alt_keep_rule.csv`;
+all rules compared in `duplicate_keep_rule_comparison.csv`.
+
+**History — pre-CP1 method and evidence (detection unchanged; keep rule superseded).**
+
+**Context.**
 
 **Context.** Several research groups republished the same Charpy curves in conference and journal papers (e.g. the KAERI SA508 Gr.4N series,
 refs 10, 13, 14, 17, 19, 20, 26, 27, 28, 33, 37, 38; refs 52 and 55; 42 and 45; 43 and 44; 46 and 48; 22, 23 and 40), and the dataset digitized each figure separately.
@@ -254,14 +320,14 @@ None of the 752 removed points is bit-identical to its kept counterpart: matched
 - *Candidates:* two units with the same material family, same length/width/thickness, same irradiation status and fluence.
 - *Point match:* one-to-one pairing with |ΔT| ≤ 3 °C and |ΔE| ≤ 2 % of the larger unit's maximum energy (a fraction of the plot's energy axis, because digitization error scales with the axis, not with the value; a fixed 1 J tolerance falsely matched sub-1 J miniature curves).
 - *Duplicate:* ≥ 3 matched points and ≥ 70 % of the smaller unit matched. 50–70 % is flagged as partial overlap, not removed.
-- *Which copy is kept:* the unit with most records, then earliest publication, then lowest reference ID. Every removed unit matches its kept unit directly.
+- *Which copy is kept (pre-CP1, superseded):* the unit with most records, then earliest publication, then lowest reference ID. Every removed unit matches its kept unit directly.
 
 **Evidence the threshold is not arbitrary.** The distribution of matched fractions has an empty 0.6–0.7 bin separating chance overlaps (0.1–0.6) from re-publications (0.7–1.0)
-(`outputs/wp1/wp1_summary.md`). Across 36 parameter combinations (ΔT 2/3/5 °C × ΔE 1/2/3 % × fraction 0.6/0.7/0.8/0.9) removals range from 676 to 909
-records (median 752): every setting with ΔT ≤ 3 °C removes 676–794, while ΔT = 5 °C removes 790–909 because the looser window admits more chance matches (`duplicate_sensitivity.csv`). All 66 removals were audited against metadata: composition differences are nominal-vs-measured
+(`outputs/wp1/wp1_summary.md`). Across 36 parameter combinations (ΔT 2/3/5 °C × ΔE 1/2/3 % × fraction 0.6/0.7/0.8/0.9) removals range from 694 to 975
+records (median 783; regenerated after CP1): every setting with ΔT ≤ 3 °C removes 694–828, while ΔT = 5 °C removes 819–975 because the looser window admits more chance matches (`duplicate_sensitivity.csv`). All 66 removals were audited against metadata: composition differences are nominal-vs-measured
 values of the same alloys; USE/DBTT of copies differ by a median of 0.5 J and 2 °C.
 
-**Keep-rule comparison** (`duplicate_keep_rule_comparison.csv`): most-records-first removes 752 records and keeps 40 points found in no other copy; earliest-publication-first
+**Keep-rule comparison at CP1** (`duplicate_keep_rule_comparison.csv`, now regenerated with the hierarchy): most-records-first removes 752 records and keeps 40 points found in no other copy; earliest-publication-first
 removes 783 and discards 32 such points; most-corroborated-first removes 770. "Uncorroborated" points are either extra real data or errors, and cannot be told apart
 without the papers. Example of an error: in dataset curve 90 (ref 19, kept) two points at 25 °C/210.85 J and 100.3 °C/233.6 J belong to a different alloy's
 upper shelf on the same figure. Chosen rule removes only records that are demonstrably copies; every uncorroborated kept point carries
@@ -273,23 +339,61 @@ upper shelf on the same figure. Chosen rule removes only records that are demons
 **If the alternative were chosen.** Keeping copies: +752 records, the SA508 Gr.4N alloys counted up to seven times, scatter understated. Point-level removal: similar totals, plus orphan fragments for WP2 to handle.
 
 ## D-020 — "Pre-Cracked" label in record-B
-**Status:** PROVISIONAL (CP1)
+**Status:** APPROVED (CP1) — rule set by the author; source checks completed
 
-**Decision.** Do not exclude. Flag records that record-B labels "Pre-Cracked" (`flag_precracked_label_in_later_release`) and, separately, references whose own text reports precracked specimens (`flag_source_reports_precracked_specimens`: ref 1; ref 44, whose records all left at E8).
+**CP1 decision (author).** Do not exclude whole publications because of a dataset-level "Pre-Cracked" note. In the primary analysis keep
+records that can be supported as ordinary Charpy V-notch impact measurements; exclude records that can be supported as precracked
+fracture-toughness measurements; if a record or series is still genuinely ambiguous after checking the source, flag it and exclude it from
+the primary analysis rather than guessing, preserving it for sensitivity analysis.
+
+**Source checks (evidence per reference in `src/curated_metadata.py::SPECIMEN_TYPE_CHECKS`; record field `specimen_type_check`).**
+- Ref 1: [NP-1661] full report — every absorbed-energy (J) versus temperature figure for SA533B-1 is a Charpy V-notch figure (Figs 2-5, 3-14,
+  3-15, 3-17); precracked Charpy results appear only as fracture toughness or normalized energy. Ordinary CVN.
+- Ref 13: [Lee2014] full text — Charpy tests on standard V-notch specimens to ASTM E23-07a; precracked specimens were tested in quasi-static
+  bending for the master-curve T0 (ASTM E1921-09c). Ordinary CVN.
+- Refs 19, 20: [Lee2011] abstract (CVN to ASTM E23, fracture toughness to ASTM E1921); every curve is identical to curves of refs 17, 27, 28,
+  which record-B's own curation notes call "No Pre-cracked Specimen". Ordinary CVN.
+- Refs 43, 44: [BLG-1016] Tables 1–4 — the compositions are identical to SCK•CEN's 20MnMoNi55 and JSPS steels, whose Charpy V-notch
+  properties (USE 181 J, T41J −76 °C; USE 72 J, T41J 34 °C) match these curves; ref 44's precracked specimens were for its crack-resistance tests. Ordinary CVN.
+- Refs 8, 9: records cite ASTM E23 and parts of both are point-for-point identical to V-notch curves elsewhere; full texts not accessible.
+  Supported as ordinary CVN (both are excluded from the primary population anyway, for unresolved irradiation labels, D-021).
+- Ref 23: records cite ASTM E23; not source-checked because SA508 Gr.1A piping is outside the primary population (D-027).
+
+**Outcome.** No record is supported as a precracked fracture-toughness measurement and no record remains ambiguous on specimen type,
+so this rule removes nothing (the WP2 population accounting shows the zero explicitly). If a later check finds a precracked series,
+setting its resolution to `pre-cracked` or `unresolved` in `SPECIMEN_TYPE_CHECKS` routes it out of the primary population.
+
+**History — pre-CP1 provisional decision.** Do not exclude. Flag records that record-B labels "Pre-Cracked" (`flag_precracked_label_in_later_release`) and, separately, references whose own text reports precracked specimens (`flag_source_reports_precracked_specimens`: ref 1; ref 44, whose records all left at E8).
 **Evidence.** B labels every record of refs 1, 8, 9, 13, 19, 20, 23. These records are 55×10×10 mm V-notch specimens with ASTM E23 cited where a standard is given, lower shelves of 2–4 J and upper shelves of 180–360 J, typical of standard Charpy tests. [Lee2011] states Charpy tests to ASTM E23 and fracture toughness to ASTM E1921 — the precracked specimens were for the separate toughness tests. Precracked fracture-toughness tests do not normally produce absorbed-energy transition curves. Ref 44's title says "precracked Charpy specimens", yet all its curves duplicate curves of ref 43 (an instrumented Charpy V-notch study). But [NP-1661] (ref 1) does cover both Charpy V-notch and precracked Charpy data, so ref 1 remains genuinely uncertain.
-**Alternatives.** Exclude all labelled records (−366 retained records); exclude ref 1 only.
-**If the alternative were chosen.** Loss of up to 366 retained records including ref 1's irradiated and reconstituted SA533B-1 data; this should be a WP2 sensitivity case rather than a WP1 deletion.
+**Alternatives (pre-CP1).** Exclude all labelled records (−366 retained records at CP1); exclude ref 1 only.
+**If the alternative were chosen.** Loss of hundreds of ordinary Charpy V-notch records, including ref 1's irradiated and reconstituted SA533B-1 data, on the strength of a paper-level note.
 
 ## D-021 — Irradiation status that differs between releases
-**Status:** PROVISIONAL (CP1)
+**Status:** DECIDED (CP1 decision 1: disagreements remain data-quality flags; newer is not assumed correct)
 
-**Decision.** Use record-A's irradiation status; flag the 200 retained records where record-B differs (`flag_irradiation_status_differs_between_releases`; refs 7, 8, 9, 13, 53).
+**Decision (after CP1).** Keep record-B's label in the data, flag every disagreement, and check the source. The field
+`irradiated_resolved` holds the label both releases agree on, or the source-supported value where a check resolves the disagreement,
+otherwise record-B's label; `irradiation_label_check` says which (`src/curated_metadata.py::IRRADIATION_LABEL_CHECKS`).
+- Ref 13 — **resolved: not irradiated.** [Lee2014] full text is a tempering/PWHT study of an unirradiated model alloy; "irradiation" occurs only in a
+  cited title. Record-A is right and record-B wrong for all 57 records (47 retained after E8).
+- Refs 7, 8, 9, 53 — **unresolved** (full texts not accessible). Record-B's curation notes say irradiation conditions were added after
+  "checking references", the same route that produced the demonstrably wrong ref 13 label; ref 8 curve 33 and ref 9 curves 34 and 36 are
+  point-for-point identical to unirradiated curves in other papers; for ref 53, [Kim2012]'s abstract reports irradiated base-metal
+  specimens, which record-A has (curve 242) and record-B does not. These point towards record-A but do not settle every series.
+- Unresolved labels cannot rule out a duplicate match (D-019); the four republished series are removed at E8.
+- After E8, 138 retained records carry an unresolved label (refs 7, 8, 9, 53; 11 dataset series). Their treatment in the analysis
+  populations is a WP2 decision (D-035).
+
+**History — pre-CP1 provisional decision (superseded).** Use record-A's irradiation status; flag the 200 retained records where record-B differs (`flag_irradiation_status_differs_between_releases`; refs 7, 8, 9, 13, 53).
 **Evidence.** B changes 226 records from "No" to "Yes" and 12 from "Yes" to "No"; 78 of the new "Yes" records gain a fluence and the rest have none (`dataset_version_comparison.md`). Four curves B marks irradiated (refs 8, 9, 9, 13) match unirradiated curves in other publications point for point (10/10, 13/13, 15/15, 15/15) within digitization error. Neutron irradiation hardens these steels and shifts the transition curve, so an irradiated curve should not reproduce an unirradiated one point for point: those relabels are very likely wrong. The ref 53 changes could not be checked this way.
-**Alternatives.** Adopt B's values; exclude all disputed records.
-**If the alternative were chosen.** Adopting B would split duplicate pairs (699 instead of 752 removals) and put unirradiated data into irradiated curves; excluding disputed records would remove 200 retained records.
+**Alternatives.** Adopt B's values without checking; adopt A's values everywhere; exclude all disputed records.
+**If the alternative were chosen.** Adopting B unchecked would have kept four republished unirradiated series (53 records) as extra "irradiated" curves and mislabelled ref 13; adopting A everywhere would override the primary release without evidence for refs 7, 8, 9, 53; excluding all disputed records would also discard ref 13's 47 verified records.
 
 ## D-022 — The dataset's USE, DBTT and curve-ID columns
-**Status:** DECIDED
+**Status:** APPROVED (CP1 decision 7)
+
+**CP1 decision (author).** `curve_id_dataset` is provenance, not scientific ground truth. Where one ID mixes geometries, irradiation
+conditions, material conditions, heats or anything else that should not be fitted together, split it by the WP2 grouping definition (D-033).
 **Decision.** Keep as reference-only fields (`_dataset` suffix). They are not used as ground truth; WP3 fits its own curves. The curve ID may be used as a starting point for WP2 grouping, subject to the WP2 rules.
 **Why.** The method and DBTT criterion are undocumented; DBTT cannot be a 41 J temperature for miniature specimens whose USE is below 41 J; copies of identical data carry different values (up to 32 J and 14 °C apart), which suggests per-copy fitting by the dataset authors; ten curve IDs mix geometry, irradiation, treatment, condition or orientation (D-028).
 **Alternatives.** Use them as published transition temperatures for comparison in WP4.
@@ -321,14 +425,20 @@ upper shelf on the same figure. Chosen rule removes only records that are demons
 **Why.** The brief asks which fields are too sparse to use; usability depends on the question, so bands describe coverage and do not decide use. Conditional completeness (e.g. fluence for irradiated records) is reported separately in `notable_facts.md`.
 
 ## D-027 — SA508 Grade 1A piping steel
-**Status:** PROVISIONAL (CP1)
+**Status:** APPROVED (CP1 decision 3)
+
+**CP1 decision (author).** SA508 Grade 1A main-steam-line piping data are not part of the main RPV population. Keep them, flagged, but
+exclude them from the primary RPV analysis; they may be used later as a secondary or sensitivity group. Implemented as a WP2 population
+step (D-034): refs 22, 23, 30, 32, 40, identified by grade in the citation title.
+
+**History — pre-CP1 provisional decision (superseded).**
 **Decision.** Keep refs 22, 23, 30, 32, 40 (SA508 Grade 1A, carbon steel for main-steam-line piping; 212 retained records) in scope as members of the SA508 specification family, identified through `ref_grade_title`.
 **Why.** They meet the brief's literal family definition and are ferritic with a transition, but they are not vessel steels. Deciding scope by grade is the author's call.
 **If the alternative were chosen.** −212 retained records, all full-size unirradiated curves.
 
 ## D-028 — Dataset curve IDs with internal inconsistencies
-**Status:** DECIDED
-**Decision.** Flag, do not correct (`flag_dataset_curve_id_mixes`). Examples: curve 271 combines 20×2.5×2.5 mm unirradiated and 23.6×3.33×3.33 mm irradiated specimens (it also causes the only energy/USE ratio above 1.25); curve 6 includes 2 irradiated and 12 reconstituted records among 107; curves 66 and 76 pool two simulated-HAZ sub-zones each.
+**Status:** DECIDED (WP1 flags); split in WP2 per CP1 decision 7 (D-033)
+**Decision.** Flag, do not correct (`flag_dataset_curve_id_mixes`); WP2 splits mixed IDs by its own grouping variables. Examples: curve 271 combines 20×2.5×2.5 mm unirradiated and 23.6×3.33×3.33 mm irradiated specimens (it also causes the only energy/USE ratio above 1.25); curve 6 includes 2 irradiated and 12 reconstituted records among 107; curves 66 and 76 pool two simulated-HAZ sub-zones each.
 **Why.** Correcting requires deciding what the curve should be, which is WP2's curve definition.
 
 ## D-029 — Material label that contradicts composition
@@ -337,5 +447,29 @@ upper shelf on the same figure. Chosen rule removes only records that are demons
 **Why.** The evidence strongly suggests weld metal, but relabelling is an inference; WP2 can decide with the flag visible.
 
 ## D-030 — Git repository
-**Status:** OPEN
-The project folder is not a git repository. Version control was not initialized without the author's approval; asked at CP1.
+**Status:** APPROVED (CP1 decision 6)
+**Decision.** Git initialized after CP1. Commit `9bc28fc` on `main` is the CP1 state exactly as presented (verified to regenerate
+byte-identically before committing). Later work is committed at meaningful boundaries on a branch named for the work package
+(`wp2`), so `main` holds only checkpoint-approved states; merge after approval. No remote, no push, unless the author asks.
+Repository-local author identity (`git config user.name/user.email`); global settings untouched.
+**Alternatives.** Commit directly to `main`; no version control.
+**Why.** A branch per unapproved work package keeps the approved state recoverable and makes each checkpoint's changes reviewable as one diff.
+
+## D-031 — Condition labels that the source contradicts
+**Status:** DECIDED
+**Context.** Checking ref 1 for D-020 showed two labeling errors present in both releases (`SOURCE_CONTRADICTED_LABELS`):
+- *Shock-hardening treatment labels shifted by one series.* [NP-1661] Table 3-1 gives tanh fits for heat IbH: non-shocked USE ≈ 136 J,
+  T0 ≈ 13 °C; bottom layer USE ≈ 108 J, T0 ≈ 21 °C; top layer USE ≈ 41 J, T0 ≈ 7 °C. Dataset curves 3, 4, 5 (labelled bottom-surface
+  hardened, top-surface hardened, untreated) carry dataset USE 132, 102, 40 J and DBTT 16, 20, 8 °C: curve 3 is the non-shocked material,
+  curve 4 the bottom layer, curve 5 the most-hardened top layer.
+- *Fluence.* Curve 7 (irradiated HSST Plate 02, original and reconstituted specimens) has 3×10¹⁹ n/cm² in the dataset; NP-1661 Fig. 3-17
+  gives 2.5×10¹⁸ n/cm² (E > 1 MeV).
+NP-1661 also covers several heats (D, IbH, HSST Plate 02 = IbA) while every ref 1 record carries one composition, so for this reference
+composition cannot identify the heat.
+**Decision.** Flag (`flag_condition_label_contradicted_by_source`, 46 retained records, curves 3, 4, 5, 7); do not relabel. Relabeling
+would create values that neither release publishes. These series are outside the primary population (D-034); they count as an
+unresolved labeling problem in the duplicate hierarchy.
+**Alternatives.** Relabel from the source; keep the dataset labels.
+**If the alternative were chosen.** Relabeling: 4 more curves in the primary population (one unirradiated, two shock-hardened, one
+irradiated), at the cost of project-made labels. Keeping dataset labels: an "untreated" SA533B-1 curve that is really the most-hardened
+surrogate would enter the primary analysis, and a 12× fluence error would enter the inventory.

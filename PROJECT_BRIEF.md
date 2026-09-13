@@ -2,6 +2,11 @@
 
 **Read this whole file before writing any code.**
 
+> **Approved amendments.** Where an amendment below conflicts with the original text, the amendment governs. The original text
+> is kept unchanged for the record. Other checkpoint decisions that work *within* this brief are logged in `DECISIONS.md`.
+>
+> - **A1 (approved by the author at CP1, 2026-09-12; `DECISIONS.md` D-001): primary dataset.** See the amendment note in Section 3.
+
 This is a requirements document, not an implementation guide. It specifies *what* must be
 produced and *what questions must be answered*. All implementation choices (libraries,
 structure, algorithms, fitting strategy) are yours to make and to justify. Where this brief
@@ -78,6 +83,13 @@ properties," stop and flag it.
 ---
 
 ## 3. Data
+
+> **Amendment A1 (CP1-approved, `DECISIONS.md` D-001).** The **primary dataset** is Materials Cloud **2025.30**, record `q4x6v-dyt25`,
+> DOI 10.24435/materialscloud:p6-5y (issued 2025-02-26): 4,961 records, 56 columns, 109 publications, the release described and
+> cited by the descriptor paper. The release originally named below — Materials Cloud **2024.206**, record `eny5v-www93`,
+> DOI 10.24435/materialscloud:gh-za (4,775 records) — is the **version-sensitivity dataset**: later stages must test whether the
+> choice of release changes important conclusions. Corrections in the newer release are not assumed correct; its irradiation
+> relabels and other suspicious changes remain data-quality flags. The original requirement text follows unchanged.
 
 **Source:** Materials Cloud Archive, record `eny5v-www93`
 https://archive.materialscloud.org/records/eny5v-www93

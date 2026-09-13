@@ -16,22 +16,28 @@ This is a test-programme *design* question. It is not an attempt to predict full
 
 | Work package | State |
 |---|---|
-| WP0 Acquisition and data dictionary | done |
-| WP1 Cleaning and normalization | done — **at checkpoint CP1, awaiting review** |
-| WP2–WP7 | not started |
+| WP0 Acquisition and data dictionary | done (CP1 approved; regenerated for the 2025.30 primary release) |
+| WP1 Cleaning and normalization | done (CP1 approved; regenerated with the canonical duplicate hierarchy) |
+| WP2 Curve grouping and inclusion criteria | in progress |
+| WP3–WP7 | not started |
+
+Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
 
 A plain-language summary of the findings will be added when the analysis is complete.
 
 ## Data attribution (required)
 
 Lee, I., Merickel, J. W., Kasala Sreenivasulu, Y., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., & Song, R.
-*Dataset of Charpy V-notch impact test records of nuclear structural materials.* Materials Cloud Archive, record eny5v-www93,
-DOI [10.24435/materialscloud:gh-za](https://doi.org/10.24435/materialscloud:gh-za) (2024). License: CC BY 4.0.
+*Dataset of Charpy V-notch impact test records of nuclear structural materials.* Materials Cloud Archive 2025.30, record q4x6v-dyt25,
+DOI [10.24435/materialscloud:p6-5y](https://doi.org/10.24435/materialscloud:p6-5y) (2025). License: CC BY 4.0. **Primary dataset.**
+
+The earlier release, Materials Cloud Archive 2024.206, record eny5v-www93, DOI
+[10.24435/materialscloud:gh-za](https://doi.org/10.24435/materialscloud:gh-za) (2024), CC BY 4.0, is used as the version-sensitivity dataset.
 
 Descriptor paper: Lee, I. et al. (2025). Comprehensive Toughness Dataset of Nuclear Reactor Structural Materials using Charpy
 V-Notch Impact Testing. *Scientific Data* 12, 543. [doi:10.1038/s41597-025-04823-1](https://doi.org/10.1038/s41597-025-04823-1)
 
-A later release of the dataset (DOI 10.24435/materialscloud:p6-5y) is vendored for comparison; see `data/README.md` and `DECISIONS.md` (D-001).
+Which release is primary, and why, is decision D-001 (approved at CP1); see also `data/README.md`.
 
 ## Reproduce
 
@@ -46,13 +52,15 @@ Creates `.venv/` with the pinned packages if it does not exist, verifies the raw
 
 | Path | Contents |
 |---|---|
-| `PROJECT_BRIEF.md` | Requirements |
+| `PROJECT_BRIEF.md` | Requirements (with approved amendments listed at the top) |
 | `DECISIONS.md` | Every judgement call, with alternatives and consequences |
+| `PROGRESS.md` | Last checkpoint, decisions in force, next permitted work, open issues |
+| `CLAUDE.md` | Persistent working rules for AI-assisted sessions on this repository |
 | `data/` | Vendored raw data, license, checksums, processed data (see `data/README.md`) |
 | `src/common.py` | Paths, checksum verification, spreadsheet loader |
 | `src/curated_metadata.py` | All hand-curated inputs: column meanings, name maps, reference-level evidence |
 | `src/wp0_data_dictionary.py` | WP0: checksums, workbook audit, data dictionary, version comparison |
 | `src/wp1_clean.py` | WP1: cleaning, flags, exclusions, duplicate detection, reconciliation |
 | `outputs/wp0/` | Data dictionary and WP0 reports |
-| `outputs/wp1/` | Reconciliation table and WP1 reports (project dataset) |
-| `outputs/wp1_alt_q4x6v-dyt25/` | The same WP1 reports for the later release |
+| `outputs/wp1/` | Reconciliation table and WP1 reports (primary dataset, 2025.30) |
+| `outputs/wp1_sensitivity_eny5v-www93/` | The same WP1 reports for the version-sensitivity dataset (2024.206) |

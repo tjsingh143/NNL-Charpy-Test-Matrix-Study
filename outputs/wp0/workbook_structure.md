@@ -1,31 +1,32 @@
 # Workbook structure
 
-File: `data/raw/Charpy_Impact_Test_Dataset.xlsx` (Materials Cloud record eny5v-www93 (DOI 10.24435/materialscloud:gh-za, issued 2024-12-19))
+File: `raw/release_2025.30_q4x6v-dyt25/Charpy_Impact_Test_Dataset.xlsx` (Materials Cloud 2025.30, record q4x6v-dyt25 (DOI 10.24435/materialscloud:p6-5y, issued 2025-02-26))
 
 ## Sheets
 
 | name | state | dimensions | max_row | max_column | hidden_rows | hidden_columns | merged_ranges |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Charpy Data | visible | A1:BC4777 | 4777 | 55 | 0 | 0 | 7 |
-| References | visible | A1:C107 | 107 | 3 | 0 | 0 | 0 |
+| Charpy Data | visible | A1:BD4963 | 4963 | 56 | 0 | 0 | 7 |
+| References | visible | A1:C110 | 110 | 3 | 0 | 0 | 0 |
 | Column Descriptions | visible | A1:B55 | 55 | 2 | 0 | 0 | 0 |
+| Notes | visible | A1:B26 | 26 | 2 | 0 | 0 | 0 |
 
 ## Data sheet layout
 
 - Row 1: merged group headings; row 2: column names; records start at row 3.
 - Column names with leading/trailing spaces: ['Material ', 'Test Temperature (C) ', 'Test Condition Statement ']
-- Column groups: (no heading): 1 columns; Material Information: 2 columns; Material Composition (wt.%): 24 columns; Manufacturing and Treatment Information: 9 columns; Irradiation Conditions: 4 columns; Specimen Dimensions: 7 columns; Charpy Impact Test Conditions: 4 columns; Charpy Impact Test Properties: 4 columns
+- Column groups: (no heading): 1 columns; Material Information: 2 columns; Material Composition (wt.%): 24 columns; Manufacturing and Treatment Information: 10 columns; Irradiation Conditions: 4 columns; Specimen Dimensions: 7 columns; Charpy Impact Test Conditions: 4 columns; Charpy Impact Test Properties: 4 columns
 
 ## Formula cells
 
-- 439 formula cells, in columns ['Irradiation Dose (n/cm^2)'].
+- 557 formula cells, in columns ['Irradiation Dose (n/cm^2)'].
 - Every formula is a constant of the form =(a*10^b) whose stored result equals its evaluation: True (0 problems).
-- Distinct formulas: {'=(1.3*10^18)': 75, '=(1*10^19)': 72, '=(1.6*10^19)': 64, '=(8*10^19)': 28, '=(1.3*10^19)': 26, '=(2.7*10^19)': 26, '=(2.8*10^19)': 20, '=(3.4*10^19)': 19, '=(10*10^19)': 15, '=(3*10^19)': 13, '=(1.48*10^19)': 13, '=(2.7*10^18)': 12, '=(1.75*10^19)': 11, '=(3.1*10^19)': 10, '=(2.3*10^18)': 10, '=(2.52*10^19)': 9, '=(6.2*10^17)': 6, '=(3.9*10^18)': 6, '=(2.34*10^19)': 4}
+- Distinct formulas: {'=(1.3*10^18)': 75, '=(1*10^19)': 72, '=(1.6*10^19)': 64, '=1.11*10^20': 52, '=(8*10^19)': 50, '=(6*10^19)': 44, '=(1.3*10^19)': 26, '=(2.7*10^19)': 26, '=(2.8*10^19)': 20, '=(3.4*10^19)': 19, '=(10*10^19)': 15, '=(3*10^19)': 13, '=(1.48*10^19)': 13, '=(2.7*10^18)': 12, '=(1.75*10^19)': 11, '=(3.1*10^19)': 10, '=(2.3*10^18)': 10, '=(2.52*10^19)': 9, '=(6.2*10^17)': 6, '=(3.9*10^18)': 6, '=(2.34*10^19)': 4}
 
 ## Reader cross-check (D-003)
 
-- openpyxl normal vs read-only mode: 4777 vs 4777 rows, 0 differing cells.
-- pandas.read_excel on the fluence column: dtype `object`, Python types {'str': 4336, 'int': 439}, 4336 empty cells returned as the text '' instead of missing. The pipeline therefore reads cells with openpyxl and assigns types explicitly.
+- openpyxl normal vs read-only mode: 4963 vs 4963 rows, 0 differing cells.
+- pandas.read_excel on the fluence column: dtype `object`, Python types {'str': 4404, 'int': 557}, 4404 empty cells returned as the text '' instead of missing. The pipeline therefore reads cells with openpyxl and assigns types explicitly.
 
 ## Column Descriptions sheet vs data headers
 
@@ -61,32 +62,32 @@ The sheet has no header row and lists descriptions in a different order from the
 | 26 | `'As (wt.%)'` | Weight percentage of the element in the material | As, wt% |
 | 27 | `'Sb (wt.%)'` | Weight percentage of the element in the material | Sb, wt.% |
 | 28 | `'Manufacturer'` | Manufacturer of the specimen | Manufacturer |
-| 29 | `'Treatment'` | Treatment methods used for the material, such as ageing, austenitization, etc. | Treatment |
-| 30 | `'Post Treatment Temperature (C)'` | Temperature applied after the treatment | Post Treatment Temperature (ºC) |
-| 31 | `'Post Treatment Time (h)'` | Time duration of the post treatment process | Post Treatment Time (h) |
-| 32 | `'Microstructure'` | Microstructure of the material | Cooling |
-| 33 | `'Morphology '` | Morphology of the microstructure | Cooling Rate (ºC/min) |
-| 34 | `'Grain size (um)'` | Grain size of the material | Miocrostructure |
-| 35 | `'Irradiated Specimen'` | Whether the material is irradiated or not | Morphology |
-| 36 | `'Irradiation Dose (n/cm^2)'` | Irradiation dose applied to the charpy specimen  | Grain size (um) |
-| 37 | `'Irradiation Temperature (C)'` | Irradiation temperature during the irradiation process | Irradiated Specimen |
-| 38 | `'Irradiation Time (hours)'` | Irradiation time of the irradiation process | Irradiation Dose (n/cm^2) |
-| 39 | `'Length (mm)'` | Gauge length of the specimen | Irradiation Temperature (ºC) |
-| 40 | `'Width (mm)'` | Width of the specimen | Irradiation Time (hours) |
-| 41 | `'Thickness (mm)'` | Thickness of the specimen | Length (mm) |
-| 42 | `'Notch Depth (mm)'` | The depth of the notch cut into the specimen for fracture testing | Width (mm) |
-| 43 | `'Notch Angle (deg)'` | The angle at the apex of the notch in the test specimen | Thickness (mm) |
-| 44 | `'Notch Root Radius (mm)'` | The radius of the curved portion at the base of the notch | Notch Depth (mm) |
-| 45 | `'Notch Shape'` | The geometry of the notch  | Notch Angle (deg) |
-| 46 | `'Test standard'` | The testing protocol or specification followed during the experiment, defined by an established standard organization  | Notch Root Radius (mm) |
-| 47 | `'Test Temperature (C)'` | Charpy test environment temperature | Notch Shape |
-| 48 | `'Orientation'` | Orientation of the specimen relative to the material's grain structure or rolling direction  | Test Standard |
-| 49 | `'Cooling'` | Cooling method for the specimen preparation | Test Temperature (C)  |
-| 50 | `'Cooling Rate (K/min)'` | The rate at which the temperature of the material decreases during the cooling process | Orientation |
-| 51 | `'Test Condition Statement '` | Additional details about the testing environment | Test Condition Statement  |
-| 52 | `'Impact energy (J)'` | The amount of energy absorbed by the material during an impact test. | Impact energy (J) |
-| 53 | `'USE (J)'` | Upper Shelf Energy (USE), the maximum energy absorbed during the Charpy impact test | USE (J) |
-| 54 | `'DBTT (C)'` | Ductile-to-Brittle Transition Temperature (DBTT), the temperature at which the material transitions from ductile to brittle behavior | DBTT (ºC) |
-| 55 | `'DBTT Fitted Curve'` | Number of the fitted curve applied to the data for modeling or analysis | DBTT Fitted Curve |
+| 29 | `'Treatment'` | Treatment methods used for the material, such as ageing, austenitization, etc. | Specimen Type |
+| 30 | `'Post Treatment Temperature (C)'` | Temperature applied after the treatment | Treatment |
+| 31 | `'Post Treatment Time (h)'` | Time duration of the post treatment process | Post Treatment Temperature (ºC) |
+| 32 | `'Microstructure'` | Microstructure of the material | Post Treatment Time (h) |
+| 33 | `'Morphology '` | Morphology of the microstructure | Cooling |
+| 34 | `'Grain size (um)'` | Grain size of the material | Cooling Rate (ºC/min) |
+| 35 | `'Irradiated Specimen'` | Whether the material is irradiated or not | Miocrostructure |
+| 36 | `'Irradiation Dose (n/cm^2)'` | Irradiation dose applied to the charpy specimen  | Morphology |
+| 37 | `'Irradiation Temperature (C)'` | Irradiation temperature during the irradiation process | Grain size (um) |
+| 38 | `'Irradiation Time (hours)'` | Irradiation time of the irradiation process | Irradiated Specimen |
+| 39 | `'Length (mm)'` | Gauge length of the specimen | Irradiation Dose (n/cm^2) |
+| 40 | `'Width (mm)'` | Width of the specimen | Irradiation Temperature (ºC) |
+| 41 | `'Thickness (mm)'` | Thickness of the specimen | Irradiation Time (hours) |
+| 42 | `'Notch Depth (mm)'` | The depth of the notch cut into the specimen for fracture testing | Length (mm) |
+| 43 | `'Notch Angle (deg)'` | The angle at the apex of the notch in the test specimen | Width (mm) |
+| 44 | `'Notch Root Radius (mm)'` | The radius of the curved portion at the base of the notch | Thickness (mm) |
+| 45 | `'Notch Shape'` | The geometry of the notch  | Notch Depth (mm) |
+| 46 | `'Test standard'` | The testing protocol or specification followed during the experiment, defined by an established standard organization  | Notch Angle (deg) |
+| 47 | `'Test Temperature (C)'` | Charpy test environment temperature | Notch Root Radius (mm) |
+| 48 | `'Orientation'` | Orientation of the specimen relative to the material's grain structure or rolling direction  | Notch Shape |
+| 49 | `'Cooling'` | Cooling method for the specimen preparation | Test Standard |
+| 50 | `'Cooling Rate (K/min)'` | The rate at which the temperature of the material decreases during the cooling process | Test Temperature (C)  |
+| 51 | `'Test Condition Statement '` | Additional details about the testing environment | Orientation |
+| 52 | `'Impact energy (J)'` | The amount of energy absorbed by the material during an impact test. | Test Condition Statement  |
+| 53 | `'USE (J)'` | Upper Shelf Energy (USE), the maximum energy absorbed during the Charpy impact test | Impact energy (J) |
+| 54 | `'DBTT (C)'` | Ductile-to-Brittle Transition Temperature (DBTT), the temperature at which the material transitions from ductile to brittle behavior | USE (J) |
+| 55 | `'DBTT Fitted Curve'` | Number of the fitted curve applied to the data for modeling or analysis | DBTT (ºC) |
 
 - Curated description names not found in the sheet: none
