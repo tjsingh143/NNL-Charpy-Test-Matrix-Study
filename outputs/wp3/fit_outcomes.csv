@@ -1,0 +1,8 @@
+outcome,curves,fit_quality_group,share
+optimizer failure,0,optimizer failure,0.0
+non-physical,71,non-physical,0.4176470588235294
+boundary-limited,3,boundary-limited,0.01764705882352941
+weakly identified,47,weakly identified,0.27647058823529413
+"usable fit, index temperature unavailable",13,usable fit,0.07647058823529412
+"usable fit, index temperature calculated",36,usable fit,0.21176470588235294
+TOTAL,170,,1.0

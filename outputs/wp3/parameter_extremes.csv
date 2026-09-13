@@ -1,0 +1,11 @@
+parameter,which,curve_id,value,outcome,outcome_reason,material_family,product_form,irradiated,geometry,n_points,T_min_c,T_max_c
+use_j,minimum,53-241,0.9792134775138336,non-physical,nonphysical_lse_at_zero,A533B weld metal,weld metal,False,20x1.5x1.5 a=0.33,11,-159.91211018711,39.7301455301455
+use_j,maximum,12-54,426.34633556825065,weakly identified,weak_upper_shelf,A508,forging,False,55x10x10 a=2,13,-69.929762949956,79.7629499561018
+t0_c,minimum,109-287,-157.4639479688952,"usable fit, index temperature unavailable",not calculated: no defensible criterion for this geometry,A508,forging,True,27x3x4 a=1,13,-200.0,200.0
+t0_c,maximum,55-257,202.26696085195093,"usable fit, index temperature unavailable",not calculated: no defensible criterion for this geometry,A533B,plate,True,23.6x5x5 a=0.76,12,-49.7959183673469,377.551020408163
+c_c,minimum,53-230,1.0,boundary-limited,boundary_c_min,A533B,plate,False,20x3.33x3.33 a=0.51,20,-196.002537128712,19.924504950495
+c_c,maximum,109-293,196.79612508657576,weakly identified,"weak_upper_shelf, weak_lower_shelf",A508,forging,True,27x3x4 a=1,13,-160.0,350.0
+index_temperature_c,minimum,17-83,-165.01867456789407,weakly identified,weak_lower_shelf,A508,forging,False,55x10x10 a=?,10,-196.300448430493,99.6636771300447
+index_temperature_c,maximum,55-255,213.64026863695855,weakly identified,weak_lower_shelf,A533B,plate,True,55x10x10 a=2,10,23.7467018469656,343.139841688654
+lse_j,minimum,53-241,2.761362000214998e-39,non-physical,nonphysical_lse_at_zero,A533B weld metal,weld metal,False,20x1.5x1.5 a=0.33,11,-159.91211018711,39.7301455301455
+lse_j,maximum,12-49,81.30800980679535,boundary-limited,boundary_c_min,A508,forging,False,55x10x10 a=2,14,-79.0652385589094,79.1626095423563

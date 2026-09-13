@@ -931,6 +931,18 @@ are not used to choose, because a fixed shelf mechanically cannot trigger the lo
 **Open for CP3.** Keep `fitted` for all geometries, or approve a geometry-specific choice (LSE fixed at 2.7 J for full-size, fitted for
 miniatures); the latter would be recorded as a change made after the synthetic results and before approval.
 
+**What the published curves then showed (method not changed; brought to CP3 as a methodological weakness).** With a fitted lower shelf,
+71 of the 170 primary curves (56 full-size, 15 miniature) rest at the 0 J bound — "non-physical" — against about 10 % of synthetic fits;
+105 carry the weak-lower-shelf flag (`outputs/wp3/fit_flags.csv`). This is not a software fault: those curves leave an alternating residual
+pattern (full-size: +0.1 % of USE on the fitted lower shelf, −2.8 % in the lower transition, +1.7 % in the middle, −1.5 % in the upper
+transition) and a wider fitted transition (median C 51 °C against 41 °C), the signature of a measured transition that rises sharply from a
+low shelf and approaches the upper shelf slowly, which a symmetric tanh can imitate only by widening C and lowering LSE
+(`residual_pattern_by_lower_shelf_outcome.csv`; compare the abstract of [WallinBaer2023]). The pre-declared refit with LSE fixed at 2.7 J
+(full-size) or 0.1 J (miniature) moved full-size T41J by a median 0.29 °C (90th percentile 1.89 °C, largest 15.4 °C) and T0 by a median
+0.73 °C (90th percentile 5.3 °C; the largest, 253 °C, is curve 49-206, whose upper shelf is never reached)
+(`lse_sensitivity_published_summary.csv`). So the lower-shelf choice barely moves the index temperature of the published curves but does
+decide how many of them are classed non-physical. The choice is the author's at CP3; it must not be made on those counts.
+
 **History — pre-registered text (unchanged below).**
 **Evidence from the literature.** [Marini2020] fits LSE = 0 (three parameters) for a 16MND5 forging. [SokolovNanstad1995] (ORNL, NRC HSSI
 programme) fixed the lower shelf at 2.7 J for every full-size fit and 0.1 J for every sub-size fit (p. 7). [Switzner2023] fits all four
@@ -987,6 +999,10 @@ the tested temperatures (an extrapolated index is unsupported by data).
 **Full-size curves whose notch dimensions are not reported** (74 curves, 993 records): every record is labelled V-notch and 180 cite ASTM E23;
 WP1/WP2 classify them as full-size (D-016, D-037). They receive T41J and keep `notch_reported = False`; the CP3 tables count them separately.
 **Alternative.** Withhold T41J for them (−74 curves with an index). **Consequence if their notch were non-standard:** a biased T41J for those curves.
+**Result** (`outputs/wp3/index_availability_by_geometry.csv`): T41J calculated for 132 of 134 full-size primary curves (74 of 74 without,
+58 of 60 with a reported notch); not calculated for 2 (41 J at or below the fitted LSE, 1; crossing below the lowest test temperature, 1).
+Of the 132, 36 come from fits with no flag. For 15 of the 132, 41 J lies on the flat lower part of the fitted curve (below 11.9 % of the
+rise), 9 of them in fits with no flag (`index_position_on_fitted_rise.csv`); their T41J is poorly anchored even when every flag passes.
 
 ## D-045 — Index temperature for non-standard geometries
 **Status:** PROPOSED (CP3); PRE-REGISTERED
@@ -1008,7 +1024,8 @@ condition-specific constants; they are WP5 size corrections, not index criteria.
 supported by any of these sources.
 **Alternatives.** 41 J × a normalization factor; a relative criterion such as 50 % of USE ([E185-82] §10.2.4 lists it as an optional
 full-size index). **Consequence.** 36 miniature curves have T0 (a model parameter with the same definition at every size) but no index
-temperature; comparing them with full-size index temperatures is WP5's job, with its uncertainty.
+temperature; comparing them with full-size index temperatures is WP5's job, with its uncertainty. **Result:** index temperature not
+calculated for all 36 miniature curves (9 geometries); 13 of them are fits with no flag.
 
 ## D-046 — Failure categories and the mutually exclusive outcome
 **Status:** PROPOSED (CP3); PRE-REGISTERED
@@ -1076,6 +1093,11 @@ D-022) play no part in fitting, initialization, bounds, flags or method choice. 
 per primary curve with our fitted USE, T41J (full-size) and T0, reports how often the dataset DBTT is closer to our T41J or to our T0, and
 counts dataset USE values below 41 J (where a 41 J DBTT cannot exist). Disagreements are reported and, where a source defines its DBTT (e.g.
 [Kumar1994]: the tanh midpoint), the definitional difference is named. The method is not adjusted to reproduce the dataset values.
+**Result** (`outputs/wp3/dataset_value_comparison_summary.csv`). The dataset's DBTT is not a 41 J temperature: for 128 of the 132 full-size
+curves with both values it lies closer to our T0 than to our T41J; the median |T0 − DBTT| is 2.9–3.3 °C, while our T41J is a median 26–31 °C
+colder than the dataset DBTT. For 35 of the 36 miniature curves the dataset USE itself is below 41 J. The dataset USE agrees with our fitted
+USE within 10 % for 94 % (flagged fits) to 97 % (unflagged fits) of full-size curves. Consistent with a mid-transition (tanh midpoint)
+definition such as [Kumar1994]'s; the dataset authors' actual procedure remains undocumented (D-022).
 
 ## D-050 — Looser and stricter cohorts
 **Status:** PROPOSED (CP3); declared before any published curve was fitted
@@ -1084,6 +1106,10 @@ is fitted once with the locked method, and outcome counts are tabulated for all 
 diagnostic: the cohorts did not inform the fitter, and no WP4–WP6 conclusion is drawn from them in WP3. The membership check against
 `data/FROZEN_COHORTS_CP2.csv` runs before any fit. Other frozen cohorts (alternative keep rule, unresolved irradiation, additively
 manufactured, piping) and the 2024.206 release are not fitted in WP3.
+**Result** (`cohort_sensitivity_outcomes.csv`; optimizer failure / non-physical / boundary-limited / weakly identified / usable without index
+/ usable with index): looser 0 / 71 / 4 / 57 / 13 / 37 (182); primary 0 / 71 / 3 / 47 / 13 / 36 (170); stricter 0 / 23 / 1 / 8 / 9 / 19 (60).
+The stricter screen removes most weakly identified curves but not the lower shelf at 0 J (38 % of stricter curves against 42 % of
+primary), consistent with a model-shape cause rather than a sampling cause.
 
 ## D-051 — How the WP3 method evolved (chronological, including changes after results existed)
 **Status:** record
@@ -1103,6 +1129,14 @@ manufactured, piping) and the 2024.206 release are not fitted in WP3.
       replicate and so misrepresented unreliability; it now overlays 40 replicate fits and states the 90th-percentile errors.
    e. Software bugs fixed (no reported number affected): a column-name collision in `scenario_metrics` stopped the figure step; the
       example figure first regenerated synthetic data from rounded temperatures.
-4. *Published data*: fitted only after the commit that locks the method (named in the CP3 summary). Any later change is listed here with what
-   it changed and whether it was a software bug or a methodological change.
+4. *Published data*: first fitted after commit `0d5e548`, which locked the method. Nothing that determines a fit, flag or outcome changed
+   afterwards; every run reproduced the same outcome counts (0 / 71 / 3 / 47 / 13 / 36). Changes made after the published fits existed:
+   a. Software bug (reporting): the audit column `index_fraction_of_rise`, promised by D-047, had been added to the synthetic output only;
+      it was added to the published-data output.
+   b. Reporting: medians of empty groups (miniature curves have no T41J) raised warnings; guarded, values unchanged.
+   c. Added to characterize an observed weakness, not to change the method: `residual_pattern_by_lower_shelf_outcome.csv` and
+      `index_position_on_fitted_rise.csv` (D-042, D-044).
+   d. Teaching figure: a boundary-limited panel was added to `fits_published_examples.png` beside the pre-declared non-physical one, and the
+      captions were reformatted (LSE at its bound printed as 0 J).
+   e. Methodological weakness found and **not** tuned around: the lower shelf rests at 0 J for 71 curves (D-042); left for the author at CP3.
 

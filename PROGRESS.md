@@ -3,9 +3,9 @@
 ## Checkpoint state
 - WP0 (acquisition and data dictionary) complete — CP1 approved.
 - WP1 (cleaning and normalization) complete — CP1 approved. The WP1 corrections surfaced during WP2 were approved at CP2 (D-019, D-029, D-031).
-- WP2 (curve grouping and inclusion criteria) complete — CP2 approved (author, 2026-09-13). Approved for merge into `main` with an explicit
-  merge commit (see `git log`); branch `wp2` is kept.
-- **WP3 (transition curve fitting) is the next permitted work package. WP3 has NOT started.** It begins only when the author authorizes it.
+- WP2 (curve grouping and inclusion criteria) complete — CP2 approved (author, 2026-09-13). Merged into `main`; branch `wp2` is kept.
+- **WP3 (transition curve fitting) complete — CP3 awaiting approval.** Work is on branch `wp3` (not merged into `main`).
+- **WP4 (per-curve uncertainty) NOT started.** It begins only after CP3 approval and the author's authorization.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -35,18 +35,33 @@
 - Pre-cracked concerns: all questioned energy curves are ordinary Charpy V-notch data (D-020). 15Cr2MoV-A out of scope (D-012).
   Dataset curve IDs are provenance; mixed series are split (D-022, D-028).
 
-## Next permitted work package
-- WP3 — transition curve fitting (PROJECT_BRIEF.md §5), stopping at CP3. Not started.
+## WP3 results (awaiting CP3; all regenerate with `./run_all.sh`; summary `outputs/wp3/wp3_summary.md`)
+- Method (D-040 to D-048): E(T) = LSE + (USE − LSE)/2 [1 + tanh((T − T0)/C)], bounded least squares (SciPy `least_squares`, trf, six fixed
+  starts), LSE fitted (pre-registered rule, D-042), USE = fitted asymptote with support diagnostics (D-043), T41J analytic for full-size
+  specimens only (D-044), no index for miniature specimens (D-045), outcome categories and identifiability flags (D-046, D-047).
+- Synthetic validation (SYNTHETIC; 657 scenarios, 128,216 fits, seed 20260913): pre-registered lower-shelf rule, error versus specimen
+  count, pattern, parameter values, test windows, non-flat shelves; flags validated by "fits carrying only this flag" (D-047, D-048).
+- Primary cohort, 170 curves, mutually exclusive outcomes: optimizer failure 0; non-physical 71 (all: fitted LSE at 0 J); boundary-limited 3;
+  weakly identified 47; usable fit without index 13 (miniature); usable fit with T41J 36. T41J calculated for 132 of 134 full-size curves.
+- Method evolution, including every change after results existed: D-051. Method locked at commit `0d5e548` before any published curve was fitted.
 
-## Open decisions WP3 must resolve (listed only; none resolved)
-- Lower shelf fixed or fitted, and at what value.
-- Parameterization and parameter bounds of the tanh model.
-- Exact definition and extraction of the index temperature.
-- Criterion energy for each specimen geometry (full-size, sub-size, miniature) and its basis.
-- How the upper-shelf energy is estimated (the WP2 screening upper reference is not USE).
-- Treatment of curves with non-flat or poorly sampled upper shelves (e.g. ref 104, where energy falls above about 250 °C; still-rising top ends such as 54-247).
-- Fitter validation design using synthetic curves with known truth (sampling densities, noise levels, where it stops working).
-- Definition and handling of failed, non-physical and ill-conditioned fits, and how they are reported for each cohort.
+## Decisions awaiting the author at CP3
+- D-042: keep the fitted lower shelf (pre-registered outcome) or approve LSE fixed at 2.7 J for full-size curves. Evidence both ways: synthetic
+  full-size T41J error lower with a fixed shelf; the rule's unintended 2 : 1 weighting; 71 published curves with LSE at 0 J (a symmetric-tanh
+  shape limitation), while the fixed-shelf refit moves T41J by a median 0.3 °C.
+- D-043, D-046, D-047: the upper-shelf trend test moved out of the outcome after the synthetic validation.
+- D-044: T41J for the 74 full-size curves whose notch dimensions are not reported.
+- D-045: no index temperature for miniature specimens.
+- D-049: the dataset's DBTT behaves like a mid-transition temperature (T0), not a 41 J temperature.
+
+## Next permitted work package
+- None until CP3 is approved. WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) is next once authorized. Not started.
+
+## Open questions WP4 inherits from WP3 (listed only)
+- Which fit outcomes and flags make a curve eligible for a WP4 confidence interval (non-physical and weakly identified fits included or not).
+- The resampling scheme, and whether the lower-shelf choice (D-042) is re-examined inside it.
+- How to treat T41J values that lie on the flat lower part of the fitted curve (15 of 132 full-size curves).
+- Whether miniature curves get intervals on T0 and USE only (no index temperature, D-045).
 
 ## Unresolved data issues carried forward
 - Refs 7, 8, 9, 53: irradiation status unresolved without full texts (excluded from the primary population, D-035).

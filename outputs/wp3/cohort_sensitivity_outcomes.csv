@@ -1,0 +1,22 @@
+outcome,curves,fit_quality_group,share,cohort
+optimizer failure,0,optimizer failure,0.0,looser
+non-physical,71,non-physical,0.3901098901098901,looser
+boundary-limited,4,boundary-limited,0.02197802197802198,looser
+weakly identified,57,weakly identified,0.3131868131868132,looser
+"usable fit, index temperature unavailable",13,usable fit,0.07142857142857142,looser
+"usable fit, index temperature calculated",37,usable fit,0.2032967032967033,looser
+TOTAL,182,,1.0,looser
+optimizer failure,0,optimizer failure,0.0,primary
+non-physical,71,non-physical,0.4176470588235294,primary
+boundary-limited,3,boundary-limited,0.01764705882352941,primary
+weakly identified,47,weakly identified,0.27647058823529413,primary
+"usable fit, index temperature unavailable",13,usable fit,0.07647058823529412,primary
+"usable fit, index temperature calculated",36,usable fit,0.21176470588235294,primary
+TOTAL,170,,1.0,primary
+optimizer failure,0,optimizer failure,0.0,stricter
+non-physical,23,non-physical,0.38333333333333336,stricter
+boundary-limited,1,boundary-limited,0.016666666666666666,stricter
+weakly identified,8,weakly identified,0.13333333333333333,stricter
+"usable fit, index temperature unavailable",9,usable fit,0.15,stricter
+"usable fit, index temperature calculated",19,usable fit,0.31666666666666665,stricter
+TOTAL,60,,1.0,stricter

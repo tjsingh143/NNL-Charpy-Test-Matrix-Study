@@ -89,6 +89,7 @@ def fit_all(curves: pd.DataFrame, rec: pd.DataFrame) -> pd.DataFrame:
                          reconstituted=bool(c.reconstituted), lse_strategy=LSE_STRATEGY,
                          prefit_n_T_lower_band=F.prefit_lower_band_temperatures(t, e),
                          criterion_j=np.nan if criterion is None else criterion, index_temperature_c=t41, index_status=index_status,
+                         index_fraction_of_rise=F.index_fraction_of_rise(fit, criterion),
                          outcome=cls["outcome"], outcome_reason=cls["outcome_reason"],
                          **{k: v for k, v in cls.items() if k.startswith("flag_")},
                          **{k: v for k, v in fit.items() if k not in ("n_points",)},
@@ -116,7 +117,7 @@ FLAG_LABELS = {
     "flag_boundary_lse_max": "boundary: LSE at highest energy",
     "flag_weak_transition": "weak: < 2 test temperatures inside T0 ± C",
     "flag_weak_upper_shelf": "weak: upper shelf not supported (< 2 specimens at >= 95 % of rise)",
-    "flag_nonflat_upper_shelf": "weak: upper-shelf residual trend (p < 0.05)",
+    "flag_nonflat_upper_shelf": "model adequacy (not an outcome): upper-shelf residual trend (p < 0.05)",
     "flag_weak_lower_shelf": "weak: lower shelf not supported (< 2 specimens at <= 5 % of rise; LSE fitted)",
     "flag_numerically_singular": "ill-conditioned: Jacobian rank-deficient",
     "flag_index_unavailable": "index temperature not calculated (any reason)",
@@ -213,6 +214,11 @@ def parameter_summary(fits: pd.DataFrame) -> tuple:
 # ---------------------------------------------------------------------------
 # 4. Comparison with the dataset's own USE and DBTT (after fitting; diagnostic only, D-049)
 # ---------------------------------------------------------------------------
+def _q(v: pd.Series, q: float = 0.5) -> float:
+    v = v.dropna()
+    return float(v.quantile(q)) if len(v) else np.nan
+
+
 def dataset_comparison(fits: pd.DataFrame, rec: pd.DataFrame) -> tuple:
     """The dataset's USE and DBTT have no documented definition (D-022). They are compared with our estimates only after the method
     was locked and all fits made; nothing here feeds back into the fit."""
@@ -238,14 +244,15 @@ def dataset_comparison(fits: pd.DataFrame, rec: pd.DataFrame) -> tuple:
     for (cat, usable), h in p.groupby(["geometry_category", p["outcome"].isin(F.OUTCOMES[4:])]):
         r = dict(geometry_category=cat, fit_usable=bool(usable), curves=len(h), with_dataset_use=int(h["dataset_use_j"].notna().sum()),
                  with_dataset_dbtt=int(h["dataset_dbtt_c"].notna().sum()),
-                 use_ratio_median=h["use_ratio_ours_to_dataset"].median(),
-                 use_ratio_p10=h["use_ratio_ours_to_dataset"].quantile(0.1), use_ratio_p90=h["use_ratio_ours_to_dataset"].quantile(0.9),
+                 use_ratio_median=_q(h["use_ratio_ours_to_dataset"]),
+                 use_ratio_p10=_q(h["use_ratio_ours_to_dataset"], 0.1), use_ratio_p90=_q(h["use_ratio_ours_to_dataset"], 0.9),
                  share_use_within_10pct=float((h["use_ratio_ours_to_dataset"].sub(1).abs() <= 0.10).mean()),
-                 t41_minus_dbtt_median_c=h["t41_minus_dataset_dbtt_c"].median(),
-                 t41_minus_dbtt_median_abs_c=h["t41_minus_dataset_dbtt_c"].abs().median(),
-                 share_t41_within_10c=float((h["t41_minus_dataset_dbtt_c"].abs() <= 10).sum() / max(h["t41_minus_dataset_dbtt_c"].notna().sum(), 1)),
-                 t0_minus_dbtt_median_c=h["t0_minus_dataset_dbtt_c"].median(),
-                 t0_minus_dbtt_median_abs_c=h["t0_minus_dataset_dbtt_c"].abs().median(),
+                 t41_minus_dbtt_median_c=_q(h["t41_minus_dataset_dbtt_c"]),
+                 t41_minus_dbtt_median_abs_c=_q(h["t41_minus_dataset_dbtt_c"].abs()),
+                 share_t41_within_10c=(float((h["t41_minus_dataset_dbtt_c"].abs() <= 10).sum() / h["t41_minus_dataset_dbtt_c"].notna().sum())
+                                      if h["t41_minus_dataset_dbtt_c"].notna().any() else np.nan),
+                 t0_minus_dbtt_median_c=_q(h["t0_minus_dataset_dbtt_c"]),
+                 t0_minus_dbtt_median_abs_c=_q(h["t0_minus_dataset_dbtt_c"].abs()),
                  share_t0_within_10c=float((h["t0_minus_dataset_dbtt_c"].abs() <= 10).sum() / max(h["t0_minus_dataset_dbtt_c"].notna().sum(), 1)),
                  dbtt_closer_to_t41j=int((h["dataset_dbtt_closer_to"] == "T41J").sum()),
                  dbtt_closer_to_t0=int((h["dataset_dbtt_closer_to"] == "T0").sum()),
@@ -291,6 +298,11 @@ def select_examples(fits: pd.DataFrame) -> list:
         if len(bad):
             out.append((outcome, bad.sort_values(["n_points", "curve_id"], ascending=[False, True]).iloc[0]))
             break
+    # Added after the published fits existed (D-051), for teaching only: also show a boundary-limited fit when the panel above is not one.
+    shown = {title for title, _ in out}
+    lim = p[p["outcome"] == F.OUTCOMES[2]]
+    if "boundary-limited" not in shown and len(lim):
+        out.append(("boundary-limited", lim.sort_values(["n_points", "curve_id"], ascending=[False, True]).iloc[0]))
     return out
 
 
@@ -323,12 +335,14 @@ def example_figure(fits: pd.DataFrame, rec: pd.DataFrame) -> list:
         ax.set_ylabel("Absorbed energy (J)", fontsize=8.5, color=INK)
         ax.set_title(f"{title}\ncurve {r['curve_id']}: {r['material_family']} {r['product_form']}, {r['geometry']}, {r['n_points']} points",
                      fontsize=8.5, color=INK)
-        lines = [f"outcome: {r['outcome']}" + (f" ({r['outcome_reason']})" if r["outcome_reason"] else "")]
+        reason = r["outcome_reason"] if isinstance(r["outcome_reason"], str) and r["outcome_reason"] else ""
+        lines = [f"outcome: {r['outcome']}" + (f" ({reason})" if reason else "")]
         if r["optimizer_success"]:
-            lines.append(f"LSE {r['lse_j']:.3g} J ({r['lse_mode']}), USE {r['use_j']:.3g} J ({r['use_support']}), "
-                         f"T0 {r['t0_c']:.0f} °C, C {r['c_c']:.0f} °C")
-            lines.append(f"test temperatures inside T0 ± C: {r['n_T_transition_fit']}; index: {r['index_status']}")
-        ax.text(0.0, -0.24, "\n".join(textwrap.fill(x, 62) for x in lines), transform=ax.transAxes, fontsize=6.8, va="top", color=INK2)
+            lse_txt = "0 J (at the 0 J bound)" if r["flag_nonphysical_lse_at_zero"] else f"{r['lse_j']:.3g} J"
+            lines += [f"LSE {lse_txt}, fitted; USE {r['use_j']:.3g} J ({r['use_support']})",
+                      f"T0 {r['t0_c']:.0f} °C; C {r['c_c']:.0f} °C; test temperatures inside T0 ± C: {r['n_T_transition_fit']}",
+                      f"index: {r['index_status']}"]
+        ax.text(0.0, -0.2, "\n".join(textwrap.fill(x, 72) for x in lines), transform=ax.transAxes, fontsize=6.8, va="top", color=INK2)
     handles, labels = {}, {}
     for ax in axes[0]:
         for h, l in zip(*ax.get_legend_handles_labels()):
@@ -336,7 +350,8 @@ def example_figure(fits: pd.DataFrame, rec: pd.DataFrame) -> list:
     fig.legend(list(handles.values()), list(handles.keys()), loc="upper center", ncol=4, fontsize=7.5, frameon=False,
                bbox_to_anchor=(0.5, 0.955))
     fig.suptitle("WP3 transition-curve fits to published Charpy V-notch data (examples)", fontsize=10, color=INK)
-    fig.tight_layout(rect=(0, 0.06, 1, 0.9))
+    fig.tight_layout(rect=(0, 0.02, 1, 0.9))
+    fig.subplots_adjust(bottom=0.3)
     fig.savefig(OUT / "fits_published_examples.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
     return [(title, r["curve_id"]) for title, r in examples]
@@ -374,6 +389,49 @@ def sampling_figure(fits: pd.DataFrame) -> None:
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(OUT / "fits_outcome_by_sampling.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# 4b. Characterizing the lower-shelf weakness (added after the published fits existed; describes, changes nothing; D-051)
+# ---------------------------------------------------------------------------
+def residual_pattern(primary: pd.DataFrame, rec: pd.DataFrame) -> pd.DataFrame:
+    """Mean residual (measured - fitted, as % of fitted USE) in four regions of the fitted curve, by geometry and by whether the fitted
+    LSE rests at 0 J. A symmetric tanh that cannot follow the measured shape leaves systematic residuals of opposite sign."""
+    by_id = rec.set_index("record_id")
+    regions = {"x <= -1.5 (fitted lower shelf)": lambda x: x <= -1.5,
+               "-1.5 < x <= -0.5 (lower transition)": lambda x: (x > -1.5) & (x <= -0.5),
+               "-0.5 < x < 0.5 (middle)": lambda x: (x > -0.5) & (x < 0.5),
+               "0.5 <= x < 1.5 (upper transition)": lambda x: (x >= 0.5) & (x < 1.5)}
+    rows = []
+    for r in primary[primary["optimizer_success"]].itertuples(index=False):
+        s = by_id.loc[r.record_ids.split()]
+        t, e = s["test_temp_c"].to_numpy(float), s["energy_j"].to_numpy(float)
+        x = (t - r.t0_c) / r.c_c
+        res = 100.0 * (e - F.tanh_energy(t, r.lse_j, r.use_j, r.t0_c, r.c_c)) / r.use_j
+        row = dict(curve_id=r.curve_id, geometry_category=r.geometry_category, lse_at_zero=bool(r.flag_nonphysical_lse_at_zero), c_c=r.c_c)
+        for name, in_region in regions.items():
+            m = in_region(x)
+            row[name] = res[m].mean() if m.any() else np.nan
+        rows.append(row)
+    d = pd.DataFrame(rows)
+    g = d.groupby(["geometry_category", "lse_at_zero"])
+    out = g.size().rename("curves").to_frame()
+    for name in regions:
+        out[f"mean residual, {name}, % of USE"] = g[name].mean()
+        out[f"curves with points, {name}"] = g[name].count()
+    out["median C (°C)"] = g["c_c"].median()
+    return out.reset_index()
+
+
+def index_position(primary: pd.DataFrame) -> pd.DataFrame:
+    """Where 41 J lies on the fitted rise for full-size curves with a calculated index (audit column of D-047)."""
+    f = primary[(primary["geometry_category"] == "full-size") & (primary["index_status"] == "calculated")]
+    bins = pd.cut(f["index_fraction_of_rise"], [-np.inf, 0.119, 0.881, np.inf],
+                  labels=["below 11.9 % (flat lower part of the fit)", "11.9-88.1 % (inside T0 ± C)", "above 88.1 % (flat upper part)"])
+    t = pd.crosstab(bins, f["outcome"]).reindex(columns=F.OUTCOMES, fill_value=0)
+    t = t.loc[:, t.sum() > 0]
+    t.insert(0, "curves", t.sum(axis=1))
+    return t.reset_index().rename(columns={"index_fraction_of_rise": "41 J position on the fitted rise"})
 
 
 # ---------------------------------------------------------------------------
@@ -419,7 +477,7 @@ def method_configuration() -> str:
          "| item | setting | decision |", "| --- | --- | --- |",
          "| model | E(T) = LSE + (USE - LSE)/2 [1 + tanh((T - T0)/C)]; solver parameters (LSE, USE - LSE, T0, C) | D-040 |",
          f"| lower shelf | `{LSE_STRATEGY}` (LSE a free parameter, >= 0 J) | D-042 |",
-         "| upper shelf | fitted asymptote LSE + (USE - LSE); support: >= 2 specimens where the fit is >= 95.3 % of the rise (x >= 1.5); residual trend test p < 0.05 | D-043 |",
+         "| upper shelf | fitted asymptote LSE + (USE - LSE); supported if >= 2 specimens where the fit is >= 95.3 % of the rise (x >= 1.5); residual trend test (p < 0.05) reported as a model-adequacy flag outside the outcome | D-043 |",
          f"| index temperature, full-size 55x10x10 mm | T at {F.FULL_SIZE_CRITERION_J:g} J, analytic; only if LSE < 41 J < USE and inside the tested range | D-044 |",
          "| index temperature, miniature / E23 sub-size | not calculated (no defensible criterion) | D-045 |",
          f"| optimizer | scipy.optimize.least_squares, method trf, analytic Jacobian, scaled parameters, ftol = xtol = gtol = {F.TOLERANCE:g}, max_nfev = {F.MAX_NFEV} per start | D-041 |",
@@ -430,7 +488,8 @@ def method_configuration() -> str:
          f"| weak shelves | < {F.MIN_SHELF_POINTS} specimens with x >= {F.X_SHELF:g} (upper) or x <= -{F.X_SHELF:g} (lower, fitted LSE only) | D-047 |",
          "| numerically singular | Jacobian rank < number of parameters (NumPy default tolerance) | D-047 |",
          "| outcome precedence | " + " > ".join(F.OUTCOMES) + " | D-046 |",
-         f"| synthetic validation | seed {V.SEED}; {V.REPLICATES} replicates per scenario with scatter; scatter levels (sigma_T °C, cv) {V.NOISE} | D-048 |",
+         f"| synthetic validation | seed {V.SEED}; {V.REPLICATES} replicates per scenario with scatter; scatter levels (sigma_T, cv): "
+         + "; ".join(f"{k} ({a:g} °C, {b:g})" for k, (a, b) in V.NOISE.items()) + " | D-048 |",
          f"| reference scales (summaries only) | {V.REF_TEMPERATURE_C:g} °C for T41J and T0; {100 * V.REF_USE_REL:g} % for USE; {100 * V.REF_C_REL:g} % for C | D-048 |"]
     return "\n".join(L)
 
@@ -478,8 +537,18 @@ def synthetic_sections() -> list:
                             "T41J P90 |err| °C": audit["t41_analytic_p90_abs"].round(1)})
     fail_all = limits[~limits["all_fits_within_reference_p90"]]
     protected = fail_all[fail_all["usable_fits_within_reference_p90"]]
-    unprotected = fail_all[~fail_all["usable_fits_within_reference_p90"]]
-    rule_text = (OUT / "synthetic_lse_strategy_rule.md").read_text().split("**Rule outcome:")[1].split("\n")[0]
+    refused = fail_all[~fail_all["usable_fits_within_reference_p90"] & (fail_all["share_usable"] < 0.05)]
+    unprotected = fail_all[~fail_all["usable_fits_within_reference_p90"] & (fail_all["share_usable"] >= 0.05)]
+
+    def listing(frame):
+        t = frame.assign(scenario=frame["design"] + " [" + frame["noise"] + "]")
+        num = lambda v: v.map(lambda x: "–" if pd.isna(x) else f"{x:.1f}")
+        pct = lambda v: v.map(lambda x: "–" if pd.isna(x) else f"{100 * x:.0f} %")
+        return md_table(pd.DataFrame({"scenario (block B/C/D designs, [scatter])": t["scenario"], "usable": t["share_usable"].map(_pct),
+                                      "T41J P90 all / usable °C": num(t["all_t41_analytic_p90_abs"]) + " / " + num(t["usable_t41_p90_abs"]),
+                                      "T0 P90 all / usable °C": num(t["all_t0_p90_abs"]) + " / " + num(t["usable_t0_p90_abs"]),
+                                      "USE P90 all / usable": pct(t["all_use_rel_p90_abs"]) + " / " + pct(t["usable_use_rel_p90_abs"])}))
+    rule_text = (OUT / "synthetic_lse_strategy_rule.md").read_text().split("**Rule outcome:")[1].split("\n")[0].replace("**", "")
     shelf_t = shelf.drop(columns=["data_type"]).copy()
     for c in ["share_trend_test_applicable", "share_trend_flagged", "share_trend_flagged_when_applicable", "share_usable",
               "use_error_rel_median", "use_error_rel_p90_abs"]:
@@ -503,14 +572,17 @@ def synthetic_sections() -> list:
          md_table(only_t), "", "Audit diagnostics (recorded, not used to classify):", "", md_table(audit_t), "",
          "### 2.7 Upper shelves that are not flat (Block E, added after Blocks A-D; D-047, D-051)", "", md_table(shelf_t), "",
          "### 2.8 Where the fitter stops being trustworthy", "",
-         f"Of {len(limits)} scenarios with scatter in Blocks A-D, {len(limits) - len(fail_all)} recover T41J, T0 and USE within the reference "
-         f"scales for 90 % of all fits. In {len(protected)} more, the fits that pass the flags do; in {len(unprotected)} they do not "
-         "(listed in `synthetic_trust_limits.csv`, `usable_fits_within_reference_p90 = False`).", ""]
+         f"Of {len(limits)} scenarios with scatter in Blocks A-D: in {len(limits) - len(fail_all)}, 90 % of all fits recover T41J, T0 and USE "
+         f"within the reference scales (10 °C, 10 °C, 10 %). In {len(protected)} more, only the fits that pass the flags do. In {len(refused)}, "
+         f"fewer than 5 % of fits pass the flags: the method declines to report, which is the intended behaviour. In {len(unprotected)}, "
+         "5 % or more of fits pass the flags yet the passing fits still miss at least one reference scale; these are where the fitter "
+         "stops being trustworthy even with its diagnostics:", "", listing(unprotected.sort_values(["block", "design", "noise"])), "",
+         "Scenarios in which the method declines (fewer than 5 % of fits pass):", "", listing(refused.sort_values(["block", "design", "noise"])), ""]
     return L
 
 
 def summary_markdown(primary, outcomes, flags, availability, by_group, params, extremes, comparison_summary, cohorts, examples,
-                     sensitivity_summary) -> str:
+                     sensitivity_summary, residuals, positions) -> str:
     L = ["# WP3 summary: transition-curve fitting (q4x6v-dyt25)", "",
          "Analysis of published Charpy V-notch test data (Materials Cloud 2025.30). Section 2 is SYNTHETIC fitter validation; every other "
          "section concerns the published measurements of the CP2-frozen cohorts. Decisions: DECISIONS.md D-040 to D-051.", "",
@@ -523,7 +595,10 @@ def summary_markdown(primary, outcomes, flags, availability, by_group, params, e
           "Mutually exclusive outcomes (first applicable category, D-046):", "", md_table(outcomes.assign(share=outcomes["share"].map(_pct))), "",
           "Diagnostic flags (a curve can carry several):", "", md_table(flags), "",
           "Index temperature by geometry (D-044, D-045):", "", md_table(availability), "",
+          "Where 41 J lies on the fitted rise (full-size curves with a calculated index; audit only, D-047):", "", md_table(positions), "",
           "## 4. Where fits fail or are weak, against the WP2 sampling descriptors", "", md_table(by_group), "",
+          "Residual pattern behind the lower shelf at 0 J (measured minus fitted, % of fitted USE; added after the fits existed, D-051):", "",
+          md_table(residuals.round(2)), "",
           "## 5. Fitted parameters (usable fits)", "", md_table(params.round(3)), "", "Extremes (all primary fits):", "", md_table(extremes.round(3)), "",
           "## 6. Lower-shelf sensitivity on the published curves (declared in D-042 before fitting)", "",
           "Refit with LSE fixed at 2.7 J (full-size) or 0.1 J (miniature); differences only, outcome counts are not compared.", "",
@@ -568,6 +643,10 @@ def main():
     sensitivity, sensitivity_summary = lse_sensitivity(primary.merge(curves[["curve_id", "record_ids"]], on="curve_id"), rec)
     sensitivity.to_csv(OUT / "lse_sensitivity_published.csv", index=False)
     sensitivity_summary.to_csv(OUT / "lse_sensitivity_published_summary.csv", index=False)
+    residuals = residual_pattern(primary.merge(curves[["curve_id", "record_ids"]], on="curve_id"), rec)
+    residuals.to_csv(OUT / "residual_pattern_by_lower_shelf_outcome.csv", index=False)
+    positions = index_position(primary)
+    positions.to_csv(OUT / "index_position_on_fitted_rise.csv", index=False)
     comparison, comparison_summary = dataset_comparison(fits, rec)
     comparison.to_csv(OUT / "dataset_value_comparison.csv", index=False)
     comparison_summary.to_csv(OUT / "dataset_value_comparison_summary.csv", index=False)
@@ -576,7 +655,7 @@ def main():
     examples = example_figure(fits, rec)
     sampling_figure(fits)
     write_text(OUT / "wp3_summary.md", summary_markdown(primary, outcomes, flags, availability, by_group, params, extremes,
-                                                       comparison_summary, cohorts, examples, sensitivity_summary))
+                                                       comparison_summary, cohorts, examples, sensitivity_summary, residuals, positions))
     print(f"WP3 fits: {len(fits)} curves fitted; primary cohort {len(primary)} curves -> {OUT}")
     print(outcomes.to_string(index=False))
 
