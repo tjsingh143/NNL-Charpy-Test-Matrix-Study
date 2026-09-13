@@ -4,3 +4,5 @@ numpy==2.0.2
 pandas==2.2.3
 openpyxl==3.1.5
 matplotlib==3.9.4
+# WP3 (transition-curve fitting): bounded nonlinear least squares. 1.13.1 is the last SciPy release for Python 3.9 (DECISIONS.md D-041).
+scipy==1.13.1

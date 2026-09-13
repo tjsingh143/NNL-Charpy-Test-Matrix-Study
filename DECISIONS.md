@@ -810,3 +810,201 @@ The 2024.206 column is the version-sensitivity case. For refs 1–106 both relea
 **Alternatives.** Carry only the primary cohort; combine several changes per cohort.
 **Why.** The brief requires quantifying how the inclusion rule changes the headline result. One change per cohort keeps each effect
 attributable.
+
+---
+
+# WP3 — Transition curve fitting
+
+All numbers regenerate with `src/wp3_validation.py` (synthetic curves only) and `src/wp3_fit_curves.py` (published data) into
+`outputs/wp3/`. Both call the same fitter, `src/wp3_fitter.py`. Synthetic results live only in files named `synthetic_*` and carry a
+`data_type` column saying SYNTHETIC. **Status legend for this section:** `PROPOSED (CP3)` = decided in WP3, awaiting the author at CP3.
+`PRE-REGISTERED` = written and committed before the results it governs existed (the commit is named in D-051).
+
+**Sources cited in WP3** (what was actually read is stated; nothing below is cited from memory)
+- [Marini2020] Marini B. (2020). *Empirical estimation of uncertainties of Charpy impact testing transition temperatures for an RPV steel.*
+  EPJ Nuclear Sci. Technol. 6:57, doi:10.1051/epjn/2020019 (full text, open-access copy HAL hal-02999694): Eq. 1, §1, §3.1–3.2, Tables 2–7.
+- [Switzner2023] Switzner N.T., Anderson J., Ahmed L.A., Rosenfeld M., Veloo P. (2023). *Algorithms to Estimate the Ductile to Brittle
+  Transition Temperature, Upper Shelf Energy, and Their Uncertainties for Steel Using Charpy V-Notch Shear Area and Absorbed Energy Data.*
+  Metals 13(5):877, doi:10.3390/met13050877 (full text): Eqs 1–3, 8–10, 22; §2.3–2.7; §4.1, §4.3.
+- [WallinBaer2023] Wallin K., Baer W. (2023). *Evaluation of Charpy-V transition curve fitting based on distribution-free statistical
+  assessment.* Int. J. Pres. Ves. Pip. 206:105079, doi:10.1016/j.ijpvp.2023.105079. **Abstract only** (BAM repository record, docId
+  58635): the full text, including its fitting recommendations, could not be accessed from this environment.
+- [Miura2025] Miura N., Shinko T., Nomoto A. (2025). *Variation of ductile-brittle transition temperature for Charpy curve provided by
+  hyperbolic tangent function.* Int. J. Pres. Ves. Pip. (ScienceDirect S0308016125000651); preprint SSRN doi:10.2139/ssrn.4917170.
+  **Abstract only** (Crossref record of the preprint).
+- [SokolovNanstad1995] Sokolov M.A., Nanstad R.K. (1995). *On Impact Testing of Subsize Charpy V-Notch Type Specimens.* ASTM STP 1270
+  (ORNL paper CONF-940657-12, OSTI 207586, full scanned text): Eq. 1 and p. 7 (fixed lower shelves), Fig. 1 (specimen types 1–5), Eqs 11, 16–21.
+- [NUREG/CR-6379] Sokolov M.A., Alexander D.J. (1997). *An Improved Correlation Procedure for Subsize and Full-Size Charpy Impact Specimen
+  Data.* NUREG/CR-6379, ORNL-6888 (OSTI 463630): abstract (same procedure as [SokolovNanstad1995]).
+- [Kumar1994] Kumar A.S., Schubert L.E., Cannon N.S., Hamilton M.L. *Effect of neutron irradiation on the impact properties of A533B
+  steel* (dataset ref 55; conference report version, OSTI 10191340, full scanned text): Eq. 2, Fig. 1, pp. 2–4.
+- [PR-EDB] Wang J.A., Subramani R. (2007). *PR-EDB: Power Reactor Embrittlement Database Version 3.* ORNL/TM-2006/605 (OSTI 932609): §A.4.3.5.
+- [10CFR50] 10 CFR Part 50 (eCFR, title 10 issue of 2026-09-09): Appendix G §II.D–E and §IV.A.1.a; §50.61(c)(2)(i)(B)–(C); §50.61a(a).
+- [E185-82] (listed above for WP2): §4.15, §4.17, §4.18, §9.2.2.2, §9.2.3, §10.2.1–10.2.4.
+- [E2248-18] ASTM E2248-18, *Standard Test Method for Impact Testing of Miniaturized Charpy V-Notch Specimens* (ASTM product page): §1.2, §1.3, §1.5, §5.2.
+- [SciPy] SciPy 1.13.1 reference documentation: `scipy.optimize.least_squares` (methods, bounds, `status`, `active_mask`) and
+  `scipy.optimize.curve_fit` (`pcov` with a rank-deficient Jacobian).
+- Not verified and not used: that US surveillance reports fitted with the CVGRAPH program fix the lower shelf at a stated value. Search
+  results point to NRC-hosted Westinghouse reports, but every copy tried refused automated download.
+
+**How the literature maps onto this dataset.** Marini 2020 and Switzner et al. 2023 each fit one well-characterized steel with a designed
+test matrix; this cohort is 170 curves digitized from 47 publications, with shelves sampled unevenly, several specimen geometries, no
+shear-fracture or lateral-expansion data (WP0 data dictionary) and no replicate structure. So (i) Switzner's two- and one-parameter
+algorithms, which borrow T0 and C from a shear-area fit, cannot be used; (ii) a fixed lower shelf taken from one steel or one specimen
+family cannot be assumed to transfer; (iii) a fit that converges is not evidence that the curve's sampling identifies its parameters, which
+is the WP3 question itself (brief §5 note).
+
+## D-040 — Model and parameterization
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision.** E(T) = LSE + (USE − LSE)/2 · [1 + tanh((T − T0)/C)]. LSE and USE are the lower- and upper-shelf absorbed energies (J), T0 the
+mid-transition temperature (°C), C the half-width (°C): between T0 − C and T0 + C the curve climbs from 11.9 % to 88.1 % of (USE − LSE), the
+interval D-037's screening band was modelled on. Equivalent to E = A + B·tanh((T − D)/C) with A = (USE + LSE)/2, B = (USE − LSE)/2, D = T0
+([Switzner2023] Eqs 1–3; [SokolovNanstad1995] Eq. 1; [Kumar1994] Eq. 2 writes c = 1/C and d = T0; [Marini2020] Eq. 1 is the special case LSE = 0).
+The solver works on (LSE, RISE = USE − LSE, T0, C), so that simple box bounds (RISE ≥ 0, C > 0) keep USE ≥ LSE and the curve rising.
+**Alternatives.** Asymmetric sigmoids (Burr-type, exponential lower part), which [WallinBaer2023]'s abstract reports as better for large data
+sets; fitting temperature as a function of energy. **Why not.** The brief fixes the tanh family; the author must be able to explain the model;
+the Wallin & Baer recommendations could not be read. **Consequence.** A symmetric tanh cannot represent an asymmetric transition or a falling
+upper shelf; misfit of that kind is diagnosed (D-043, D-047), not removed.
+
+## D-041 — Optimizer, starting values, bounds and weighting
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision.**
+- *Method.* `scipy.optimize.least_squares`, method `trf` (trust-region reflective: SciPy's method for box bounds [SciPy]), analytic Jacobian,
+  energies scaled by the curve's highest energy and temperatures by half its tested span, tolerances ftol = xtol = gtol = 1e-10,
+  at most 2,000 function evaluations per start. Not `curve_fit`: it wraps the same solver but hides the status and bound-activity
+  information, and with bounds it silently returns a pseudo-inverse covariance when the Jacobian is rank-deficient [SciPy]. Levenberg-
+  Marquardt (`nlsLM` in [Switzner2023], IMSL ZSSQ in [PR-EDB]) does not handle bounds.
+- *Weighting.* Ordinary, unweighted least squares on absorbed energy, as in [Marini2020], [Switzner2023], [SokolovNanstad1995], [Kumar1994].
+  Charpy scatter is not constant along the curve ([Marini2020] §3.1), but a weighting scheme needs a scatter model, which belongs to WP4.
+- *Starts.* Six, fixed in advance: LSE = lowest measured energy (or the fixed value); USE = mean of the three highest energies (D-037's
+  screening upper reference, used only as a starting value, never as the estimate); T0 ∈ {temperature at which the per-temperature mean energy
+  first crosses the midpoint of those two, lower quartile, upper quartile of the distinct test temperatures}; C ∈ {span/12, span/4}. The
+  solution is the lowest residual sum of squares among starts that report convergence (status > 0) with finite values (ties: earliest start).
+  Every start is recorded. Six starts separate a solver failure from an unlucky start; they are not a search for a convenient answer.
+- *Bounds* (physical unless stated): LSE ≥ 0 J; USE − LSE ≥ 0; T0 ≥ −273.15 °C. Numerical safety, deliberately wide so that resting on one
+  means the data did not constrain the parameter: C ≥ 1 °C (below the 2 °C test-temperature resolution of D-037); C ≤ tested span; T0 within
+  one span of the tested temperatures; USE − LSE ≤ 10 × highest measured energy; LSE ≤ highest measured energy. "On a bound" = SciPy reports
+  the bound active, or the scaled parameter is within 0.1 % of the bound interval.
+- *Environment.* SciPy 1.13.1 added to `requirements.txt` (the last SciPy release that supports the project's Python 3.9; built for NumPy 2).
+**Alternatives.** Unbounded fitting with post-hoc checks; soft penalties that pull shelves towards initial estimates ([PR-EDB] §A.4.3.5 does
+this "to avoid unphysical fits"); many random starts. **Why not.** Unbounded fits can swap the two shelves (a negative C describes the same
+curve), penalties quietly replace data with starting guesses, and random multistart is neither transparent nor needed for four parameters.
+
+## D-042 — Lower shelf: fixed or fitted
+**Status:** OPEN at pre-registration: the candidates, evidence and decision rule below were committed before any synthetic result existed.
+**Evidence from the literature.** [Marini2020] fits LSE = 0 (three parameters) for a 16MND5 forging. [SokolovNanstad1995] (ORNL, NRC HSSI
+programme) fixed the lower shelf at 2.7 J for every full-size fit and 0.1 J for every sub-size fit (p. 7). [Switzner2023] fits all four
+parameters without constraints; its free shear-area curve went below 0 % shear, "physically impossible" (§3.1), and four-parameter fits can fail to converge (§4.1).
+[PR-EDB] restrains both shelves with penalties to avoid unphysical fits. [Miura2025]'s abstract makes the scatter of T41J depend on LSE and on
+the number of lower- and upper-shelf points. No source gives a lower shelf for 1.5–5 mm miniature specimens of 20–27.5 mm length.
+**Pre-fit evidence from this cohort (WP2 descriptors only; no fit).** Full-size curves whose coldest test is at or below −150 °C have a median
+lowest energy of 5.2 J (quartiles 3.7–7.8 J; 41 curves), above 2.7 J; 17 of 134 full-size curves have measured energies below 2.7 J. Among the
+36 miniature curves, 4 have energies below 0.1 J (20 × 1.5 × 1.5 mm, 27.5 × 3.33 × 3.33 mm) and 23 have lowest energies above 0.3 J (KLST-type
+27 × 3 × 4 mm curves reach 0.5–1.2 J). No single sourced fixed value is consistent with all geometries in the cohort.
+**Candidates.** (1) `fitted`: LSE is a free parameter, bounded below by 0 J. (2) `fixed_convention`: 2.7 J full-size, 0.1 J miniature
+[SokolovNanstad1995]. (3) `fixed_zero`: LSE = 0 [Marini2020]. (4) `hybrid`: fitted when the curve has at least two distinct temperatures in
+D-037's lower screening band (a pre-fit count), otherwise the convention of (2).
+**Decision rule (pre-registered; `choose_lse_strategy` in `src/wp3_validation.py`).** Synthetic Block L: 3 full-size truths (LSE 2, 5, 10 J;
+USE 150 J; C 30 °C) and 6 miniature-scale truths (USE 1 or 8 J; LSE 1 %, 6 %, 12 % of USE) × 5 designs (lower shelf well sampled, weak,
+missing, and a 250 °C / 12-specimen window with T0 60 °C above or below its centre) × low, moderate, high scatter × 200 replicates, each
+strategy fitted to identical synthetic data. Key temperature: T41J from the analytic crossing (full-size) or T0 (miniature). Score = mean over
+data sets of the 90th percentile of |error|. (1) Eligible: mean share of replicates without a key temperature (solver failure or criterion not
+crossed) within 5 percentage points of the lowest. (2) The lowest score wins if at least 10 % below every other eligible score. (3) Otherwise
+`fitted` if within 10 % of the lowest score, else the lowest score. Rule 3 prefers not imposing a value because of the pre-fit evidence above.
+Real-data fit counts play no part.
+
+## D-043 — Upper-shelf energy
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision.** USE is the fitted upper asymptote of the tanh (LSE + RISE), as in [Switzner2023] Eq. 10 and [Kumar1994] (USE = a + b). It is
+never the WP2 screening upper reference (D-037). Every fit reports whether the data support it, using the fitted curve (x = (T − T0)/C):
+- `use_support` = *supported* if at least 2 specimens were tested at x ≥ 1.5 (where the fitted curve has reached ≥ 95.3 % of its rise),
+  *single specimen* if 1, *extrapolated* if 0 — the energy is still rising at the highest test temperature and USE is an asymptote the data
+  never reached. The 95 % level mirrors [E185-82] §4.17, which places the upper shelf above 95 % shear; shear data do not exist here.
+- *Upper-shelf trend*: for ≥ 3 specimens at ≥ 2 temperatures with x ≥ 1.5, the slope of the residuals against temperature is tested
+  (two-sided t-test, p < 0.05). A significant slope means the "shelf" is rising or falling (e.g. ref 104, where energy falls above ~250 °C),
+  so a flat asymptote is a compromise.
+- *Plateau mean*: mean energy of the specimens at x ≥ 1.5, the closest available analogue of [E185-82] §4.18's definition (average of the
+  specimens above the transition). Diagnostic only.
+Data are never removed to make a shelf flat.
+**Alternatives.** USE = E185-style average of upper-shelf points as the estimate; fixing USE before fitting. **Why not.** Identifying which
+points are "above the transition" needs shear data or a fit; averaging would also make USE depend on an extra threshold. Both remain visible
+as diagnostics.
+
+## D-044 — Index temperature for standard full-size specimens
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision.** For 55 × 10 × 10 mm Charpy V-notch specimens the index temperature is T41J, the temperature where the fitted curve equals 41 J,
+solved analytically: T41J = T0 + C·artanh(2(41 − LSE)/(USE − LSE) − 1).
+**Basis.** [10CFR50] Appendix G §II.E: ΔRT_NDT "is evaluated as the difference in the 30 ft-lb (41 J) index temperatures from the average
+Charpy curves measured before and after irradiation"; §50.61(c)(2)(i)(B) requires Charpy scatter small enough "to permit the determination of
+the 30-foot-pound temperature unambiguously"; [E185-82] §4.15, §9.2.3 and §10.2.1 define the shift at 41 J and require the index temperatures
+"from the average curves". [Marini2020] §1 lists 28, 41 and 68 J as the conventional nuclear levels. The 41 J level is a regulatory
+correlation index for full-size specimens, not a material constant.
+**Not calculated (value left blank, reason recorded)** when 41 J ≤ fitted LSE, 41 J ≥ fitted USE, the fit failed, or the crossing lies outside
+the tested temperatures (an extrapolated index is unsupported by data).
+**Full-size curves whose notch dimensions are not reported** (74 curves, 993 records): every record is labelled V-notch and 180 cite ASTM E23;
+WP1/WP2 classify them as full-size (D-016, D-037). They receive T41J and keep `notch_reported = False`; the CP3 tables count them separately.
+**Alternative.** Withhold T41J for them (−74 curves with an index). **Consequence if their notch were non-standard:** a biased T41J for those curves.
+
+## D-045 — Index temperature for non-standard geometries
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Geometries in the frozen primary cohort** (pre-fit, `curve_inventory.csv`): full-size 55 × 10 × 10 mm (134 curves); no E23-type sub-size
+specimens (55 mm long, reduced section); 36 reduced-length curves in nine geometries: 20 mm long with 1.5, 2.5, 3.33, 5 mm sections (refs 53,
+59), 23.6 mm with 3.33 and 5 mm (refs 52, 55, 59), 27.5 × 3.33 × 3.33 mm (ref 60), and 27 × 3 × 4 mm with a 1 mm, 60°, 0.1 mm-radius notch
+(KLST type; refs 107, 109). All reduced-length specimens reduce every dimension, the defining feature of miniaturized (MCVN) specimens in
+[E2248-18] §1.2, which §1.5 separates from E23 sub-size specimens.
+**Decision.** No index temperature is calculated for miniature (or E23 sub-size) curves; `index_status` records "no defensible criterion
+for this geometry". Their T0, C, LSE and USE are still estimated and diagnosed.
+**Why.** [E2248-18] §5.2: MCVN transition-region data "are not directly comparable to those obtained from full-size standard Charpy V-notch
+specimens and suitable correlation procedures have to be employed"; §1.3 leaves comparison with CVN data to the user. The published
+procedures do not give a criterion energy that can be applied here: [SokolovNanstad1995] obtain a subsize T41J only after converting
+subsize energies with brittle and ductile normalization factors weighted by *percent shear* (Eq. 11; factors fitted for their four specimen
+types), then shift temperatures by 30–53 °C with ±2σ bands of 20–30 °C (Eqs 17–20); this dataset has no shear data and different
+lengths and notches. [Kumar1994] define DBTT as the tanh midpoint and review constant-offset correlations whose scatter bands were 25–65 °C.
+The correlations listed in the dataset's descriptor (Table 3) correlate transition temperatures between sizes with material- and
+condition-specific constants; they are WP5 size corrections, not index criteria. Multiplying 41 J by a volume or ligament ratio is not
+supported by any of these sources.
+**Alternatives.** 41 J × a normalization factor; a relative criterion such as 50 % of USE ([E185-82] §10.2.4 lists it as an optional
+full-size index). **Consequence.** 36 miniature curves have T0 (a model parameter with the same definition at every size) but no index
+temperature; comparing them with full-size index temperatures is WP5's job, with its uncertainty.
+
+## D-046 — Failure categories and the mutually exclusive outcome
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision (`classify` in `src/wp3_fitter.py`).** Flags may overlap; each curve also gets exactly one outcome, the first that applies:
+1. *Optimizer failure* — no start returned a converged, finite solution.
+2. *Non-physical* — the best tanh would need a physically impossible parameter, so the solution rests on a physical bound: fitted LSE at
+   0 J (a negative lower shelf wanted), USE − LSE at 0 (no rise or a falling curve wanted), or T0 at absolute zero.
+3. *Boundary-limited* — a numerical-safety bound is active: C at 1 °C (the rise happens between two test temperatures, width unresolved),
+   C at the tested span, T0 at a range limit, USE − LSE at 10 × the highest energy, or fitted LSE at the highest energy.
+4. *Weakly identified* — converged, inside its bounds, but the sampling does not constrain a parameter (D-047).
+5. *Usable fit, index temperature unavailable* — reason recorded: no defensible criterion (D-045), criterion not crossed, or crossing
+   outside the tested range (D-044).
+6. *Usable fit, index temperature calculated.*
+Nothing is dropped: every curve has a row with its outcome, flags, bounds, starts and solver messages. Unlike [PR-EDB] §A.4.3.5, whose Monte
+Carlo "eliminated" nonphysical results, failures are counted.
+
+## D-047 — Identifiability diagnostics
+**Status:** PROPOSED (CP3); PRE-REGISTERED (their usefulness is tested in the synthetic validation, not assumed)
+**Decision.** Defined on the fitted curve, with x = (T − T0)/C and distinct temperatures as in D-037:
+- *weak transition*: fewer than 2 distinct test temperatures with −1 < x < 1 (inside the 11.9–88.1 % part of the rise). With one or none,
+  location and width cannot both be measured — the brief's ill-conditioning case.
+- *weak upper shelf*: `use_support` is not *supported*, or the upper-shelf residual trend is significant (D-043).
+- *weak lower shelf* (only when LSE is fitted): fewer than 2 specimens at x ≤ −1.5.
+- *numerically singular*: the Jacobian at the solution has rank below the number of parameters (NumPy's default rank tolerance).
+The x-limits come from the tanh shape (±1: characteristic interval; ±1.5: within 4.7 % of a shelf); the counts of 2 are the smallest that
+measure a level or a width twice. No condition-number threshold is imposed. The condition number of the scaled Jacobian and the spread of T0
+among starts within 1 % of the best cost are recorded for audit; the synthetic validation reports how they relate to the true error.
+
+## D-048 — Synthetic validation design
+**Status:** PROPOSED (CP3); PRE-REGISTERED
+**Decision (`src/wp3_validation.py`).** Synthetic curves from known tanh parameters; fixed seed 20260913, one seed per synthetic data set
+(so results do not depend on run order or worker count; lower-shelf strategies see identical data). Controlled, uncalibrated scatter —
+not the WP4 scatter model: Gaussian with standard deviation sd(T) = σ_T·|dE/dT| + cv·E(T) + 3·cv·LSE, levels zero (0, 0), low (2 °C, 0.03),
+moderate (5 °C, 0.06), high (10 °C, 0.12). The first term peaks at mid-transition, where [Marini2020] §3.1 reports the largest scatter; the
+last term stops lower-shelf energies being implausibly precise. Draws below 0 J are set to 0 J and counted.
+Blocks: L (lower-shelf strategies, D-042); A (sampling density: n = 6, 8, 12, 18, 30 uniformly over x = −3…3); B (patterns: shelves with 0–3
+transition points; lower or upper shelf weak or missing; clustered at the centre; clustered on the cold side; five temperatures × three
+specimens); C (USE 44, 70, 250 J; LSE 2, 10 J; C 12, 60 °C); D (fixed windows of 9/150 °C, 12/250 °C, 24/360 °C — the 10th percentile,
+median and 90th percentile of points and span of the full-size primary-cohort curves — with the true T0 at −60, 0, +60 °C from the window centre and C 12,
+30, 60 °C). 200 replicates per noisy scenario, 1 at zero noise. Designs expected to fail are included on purpose.
+**Reference scales (summaries only, not acceptance criteria).** 10 °C for T41J and T0 — about the 17 °F (9.4 °C) limit on the scatter of
+ΔRT_NDT for base metal in [10CFR50] §50.61(c)(2)(i)(C); 10 % for USE; 25 % for C.
