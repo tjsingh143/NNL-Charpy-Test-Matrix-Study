@@ -7,5 +7,5 @@ E4,Missing essential measurement: test temperature or absorbed energy,D-016,0,40
 E5,"Missing essential measurement: specimen dimensions (length, width or thickness)",D-016,55,3960
 E6,Physically impossible value,D-017,0,3960
 E7,Exact duplicate of an earlier record (all original fields identical),D-018,0,3960
-E8,Duplicate curve: same tests already present from another figure or publication,D-019,783,3177
-End,Records retained after WP1,,1598,3177
+E8,Duplicate curve: same tests already present from another figure or publication,D-019,910,3050
+End,Records retained after WP1,,1725,3050

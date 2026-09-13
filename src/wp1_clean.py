@@ -38,6 +38,11 @@ DUP_MIN_FRACTION = 0.7                        # D-019
 DUP_MIN_MATCHED = 3                           # D-019
 PARTIAL_OVERLAP_MIN_FRACTION = 0.5            # D-019 (flag only)
 TABULATED_MIN_SHARE = 0.9                     # D-019 canonical hierarchy, criterion (a)
+# Second duplicate test: two digitizations of the same data whose axes were calibrated differently (D-019).
+OFFSET_SHIFTS_C = np.arange(-6.0, 6.01, 0.5)  # constant temperature offset searched
+OFFSET_E_SCALES = (0.98, 0.99, 1.0, 1.01, 1.02)  # constant energy-scale factor searched
+OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION = 1.0, 0.01  # match tolerances after the offset is applied
+OFFSET_MIN_MATCHED = 5                        # more than the 3 of the plain test: 125 offsets give chance more tries
 FT_LBF_IN_J = 1.3558179483                    # exact conversion factor
 
 TEXT_COLUMNS_TO_HARMONIZE = list(TEXT_VALUE_MAPS)
@@ -321,7 +326,10 @@ HIERARCHY_CRITERIA = ["(a) tabulated values preferred over digitized", "(b) earl
 def candidate_pairs(units: dict):
     for a, b in itertools.combinations(sorted(units), 2):
         ua, ub = units[a], units[b]
-        if ua["family"] != ub["family"] or ua["dims"] != ub["dims"]:
+        if ua["dims"] != ub["dims"]:
+            continue
+        # A material label contradicted by the record's own composition (D-029) cannot rule a match out either.
+        if ua["family"] is not None and ub["family"] is not None and ua["family"] != ub["family"]:
             continue
         # An unresolved irradiation label cannot rule a match out: it is compared only when both copies' labels are settled (D-021).
         if ua["irr_key"] is not None and ub["irr_key"] is not None and ua["irr_key"] != ub["irr_key"]:
@@ -329,15 +337,54 @@ def candidate_pairs(units: dict):
         yield a, b
 
 
-def points_without_match(ua, ub, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_OF_MAX) -> np.ndarray:
-    """Boolean per point of ua: True where no point of ub lies within the matching tolerances."""
+def points_without_match(ua, ub, offset=None) -> np.ndarray:
+    """Boolean per point of ua: True where no point of ub lies within the matching tolerances of the test that linked them.
+    offset = (offset_C, scale) applied to ua for pairs linked by the constant-offset test."""
+    if offset is None:
+        t, e, tol_t, k_e = ua["t"], ua["e"], DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX
+    else:
+        t, e, tol_t, k_e = ua["t"] + offset[0], ua["e"] * offset[1], OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION
     tol_e = k_e * max(ua["e"].max(), ub["e"].max())
-    near = (np.abs(ua["t"][:, None] - ub["t"][None, :]) <= tol_t) & (np.abs(ua["e"][:, None] - ub["e"][None, :]) <= tol_e)
+    near = (np.abs(t[:, None] - ub["t"][None, :]) <= tol_t) & (np.abs(e[:, None] - ub["e"][None, :]) <= tol_e)
     return ~near.any(axis=1)
 
 
+def pair_offset(pairs: pd.DataFrame, u: str, v: str):
+    """(offset, scale) to apply to u when compared with v, or None if the pair was linked by the plain test."""
+    for a, b, sign in [(u, v, 1), (v, u, -1)]:
+        hit = pairs[(pairs["unit_a"] == a) & (pairs["unit_b"] == b) & (pairs["classification"] == "duplicate (constant axis offset)")]
+        if len(hit):
+            d, sc = float(hit["offset_C"].iloc[0]), float(hit["energy_scale"].iloc[0])
+            return (d, sc) if sign == 1 else (-d, 1 / sc)
+    return None
+
+
+def offset_aligned_pairs(units: dict, cand) -> dict:
+    """Pairs whose points coincide one-to-one within 1 °C and 1 % of the larger maximum energy after a single constant temperature
+    offset (|offset| <= 6 °C) and energy scale (0.98-1.02) is applied to one copy: the signature of the same plotted data digitized
+    twice with differently calibrated axes. Returns {(a, b): (matched, offset_C, scale)}."""
+    found = {}
+    for a, b in cand:
+        ua, ub = units[a], units[b]
+        n_small = min(ua["n"], ub["n"])
+        if n_small < OFFSET_MIN_MATCHED:
+            continue
+        # Necessary condition (cheap): enough points of the smaller copy have some partner within the offset window plus tolerance.
+        small, large = (ua, ub) if ua["n"] <= ub["n"] else (ub, ua)
+        win_t = OFFSET_SHIFTS_C.max() + OFFSET_TOL_T_C
+        win_e = (max(OFFSET_E_SCALES) - 1 + OFFSET_TOL_E_FRACTION) * max(ua["e"].max(), ub["e"].max())
+        near = ((np.abs(small["t"][:, None] - large["t"][None, :]) <= win_t) & (np.abs(small["e"][:, None] - large["e"][None, :]) <= win_e)).any(axis=1)
+        if near.sum() < max(OFFSET_MIN_MATCHED, DUP_MIN_FRACTION * n_small):
+            continue
+        best = max((greedy_match(ua["t"] + d, ua["e"] * sc, ub["t"], ub["e"], OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION), float(d), sc)
+                   for d in OFFSET_SHIFTS_C for sc in OFFSET_E_SCALES)
+        if best[0] >= OFFSET_MIN_MATCHED and best[0] / n_small >= DUP_MIN_FRACTION:
+            found[(a, b)] = best
+    return found
+
+
 def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_OF_MAX, min_frac=DUP_MIN_FRACTION, pairs_cache=None,
-                    keep_rule=CHOSEN_KEEP_RULE):
+                    keep_rule=CHOSEN_KEEP_RULE, offset_cache=None):
     unit_of = comparison_units(df)
     units = {}
     for key, idx in unit_of.groupby(unit_of).groups.items():
@@ -346,7 +393,8 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
         unresolved = bool(sub["irradiation_label_check"].eq("unresolved").any())
         irr = bool(sub["irradiated_resolved"].iloc[0])
         units[key] = dict(idx=list(idx), n=len(idx), ref=int(sub["ref_id"].iloc[0]), year=int(sub["ref_year"].iloc[0]),
-                          first_row=int(sub["source_row"].min()), family=sub["material_family"].iloc[0],
+                          first_row=int(sub["source_row"].min()),
+                          family=None if bool(sub["flag_label_says_base_metal_but_weld_metal_composition"].any()) else sub["material_family"].iloc[0],
                           irr_key=None if unresolved else (irr, str(sub["fluence_n_per_cm2"].iloc[0]) if irr else "none"),
                           irradiated_label=bool(sub["irradiated"].iloc[0]), irradiation_check=sub["irradiation_label_check"].iloc[0],
                           dims=tuple(str(sub[c].iloc[0]) for c in ["length_mm", "width_mm", "thickness_mm"]),
@@ -366,9 +414,25 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
                                               "partial overlap" if frac >= PARTIAL_OVERLAP_MIN_FRACTION else "coincidental")))
     pairs = pd.DataFrame(pairs, columns=["unit_a", "unit_b", "ref_a", "ref_b", "curve_a", "curve_b", "n_a", "n_b",
                                          "matched", "fraction_of_smaller", "classification"])
+    # Second test on pairs the plain test did not call duplicates: same data under a constant axis offset.
+    offsets = offset_cache if offset_cache is not None else offset_aligned_pairs(units, cand)
+    pairs["offset_C"], pairs["energy_scale"] = np.nan, np.nan
+    plain_dups = set(zip(pairs.loc[pairs["classification"] == "duplicate", "unit_a"], pairs.loc[pairs["classification"] == "duplicate", "unit_b"]))
+    for (a, b), (m, d, sc) in offsets.items():
+        if (a, b) in plain_dups:
+            continue
+        ua, ub = units[a], units[b]
+        row = dict(unit_a=a, unit_b=b, ref_a=ua["ref"], ref_b=ub["ref"], curve_a=ua["curve"], curve_b=ub["curve"], n_a=ua["n"], n_b=ub["n"],
+                   matched=m, fraction_of_smaller=m / min(ua["n"], ub["n"]), classification="duplicate (constant axis offset)",
+                   offset_C=d, energy_scale=sc)
+        hit = (pairs["unit_a"] == a) & (pairs["unit_b"] == b)
+        if hit.any():
+            pairs.loc[hit, list(row)] = list(row.values())
+        else:
+            pairs = pd.concat([pairs, pd.DataFrame([row])], ignore_index=True)
     key_of = KEEP_RULES[keep_rule]
     priority = sorted(units, key=lambda k: key_of(units[k]))
-    dup = pairs[pairs["classification"] == "duplicate"]
+    dup = pairs[pairs["classification"].str.startswith("duplicate")]
     neighbours = {}
     for r in dup.itertuples(index=False):
         neighbours.setdefault(r.unit_a, []).append((r.unit_b, r.matched))
@@ -389,7 +453,8 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
         rows.append(dict(removed_unit=u, removed_ref=units[u]["ref"], removed_year=units[u]["year"], removed_curve=units[u]["curve"],
                          removed_records=units[u]["n"], kept_unit=k, kept_ref=units[k]["ref"], kept_year=units[k]["year"],
                          kept_curve=units[k]["curve"], kept_records=units[k]["n"], matched_points=m,
-                         removed_points_without_match_in_kept=int(points_without_match(units[u], units[k]).sum()),
+                         removed_points_without_match_in_kept=int(points_without_match(units[u], units[k], pair_offset(pairs, u, k)).sum()),
+                         linked_by=("constant axis offset" if pair_offset(pairs, u, k) is not None else "plain point match"),
                          decided_by=decided if keep_rule == CHOSEN_KEEP_RULE else keep_rule,
                          removed_tabulated_share=round(units[u]["tab_share"], 2), kept_tabulated_share=round(units[k]["tab_share"], 2),
                          removed_label_problems="; ".join(units[u]["problems"]), kept_label_problems="; ".join(units[k]["problems"]),
@@ -397,21 +462,38 @@ def find_duplicates(df: pd.DataFrame, tol_t=DUP_TOL_T_C, k_e=DUP_TOL_E_FRACTION_
                          removed_irradiation_check=units[u]["irradiation_check"], kept_irradiation_check=units[k]["irradiation_check"]))
     removals = pd.DataFrame(rows, columns=["removed_unit", "removed_ref", "removed_year", "removed_curve", "removed_records", "kept_unit",
                                            "kept_ref", "kept_year", "kept_curve", "kept_records", "matched_points",
-                                           "removed_points_without_match_in_kept", "decided_by", "removed_tabulated_share",
+                                           "removed_points_without_match_in_kept", "linked_by", "decided_by", "removed_tabulated_share",
                                            "kept_tabulated_share", "removed_label_problems", "kept_label_problems",
                                            "removed_irradiated_label", "kept_irradiated_label", "removed_irradiation_check",
                                            "kept_irradiation_check"])
     return units, unit_of, pairs, removals, cand
 
 
-def duplicate_sensitivity(df: pd.DataFrame, cand) -> pd.DataFrame:
+def offset_evidence(units: dict, offsets: dict) -> pd.DataFrame:
+    """For each pair linked by the constant-offset test: matches without the offset (plain and tight tolerances), with the offset, and a
+    chance baseline (the same copy shifted by +/-20 and +/-30 °C, matched at the plain tolerances)."""
+    rows = []
+    for (a, b), (m, d, sc) in offsets.items():
+        ua, ub = units[a], units[b]
+        match = lambda shift, scale, tol_t, k_e: greedy_match(ua["t"] + shift, ua["e"] * scale, ub["t"], ub["e"], tol_t, k_e)
+        rows.append(dict(ref_a=ua["ref"], curve_a=ua["curve"], n_a=ua["n"], ref_b=ub["ref"], curve_b=ub["curve"], n_b=ub["n"],
+                         matched_plain_tolerance_no_offset=match(0.0, 1.0, DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX),
+                         matched_tight_tolerance_no_offset=match(0.0, 1.0, OFFSET_TOL_T_C, OFFSET_TOL_E_FRACTION),
+                         matched_tight_tolerance_with_offset=m, offset_C=d, energy_scale=sc,
+                         chance_baseline_plain_tolerance_shift_20_30C="; ".join(
+                             str(match(shift, 1.0, DUP_TOL_T_C, DUP_TOL_E_FRACTION_OF_MAX)) for shift in (-30.0, -20.0, 20.0, 30.0))))
+    return pd.DataFrame(rows)
+
+
+def duplicate_sensitivity(df: pd.DataFrame, cand, offsets) -> pd.DataFrame:
+    """Plain-test parameters varied; the constant-offset pairs (fixed tolerances) are held constant."""
     rows = []
     for tol_t in (2.0, 3.0, 5.0):
         for k_e in (0.01, 0.02, 0.03):
             for min_frac in (0.6, 0.7, 0.8, 0.9):
-                _, _, pairs, removals, _ = find_duplicates(df, tol_t, k_e, min_frac, pairs_cache=cand)
+                _, _, pairs, removals, _ = find_duplicates(df, tol_t, k_e, min_frac, pairs_cache=cand, offset_cache=offsets)
                 rows.append(dict(tol_T_C=tol_t, tol_E_fraction_of_max=k_e, min_fraction_matched=min_frac,
-                                 duplicate_pairs=int((pairs["classification"] == "duplicate").sum()),
+                                 duplicate_pairs=int(pairs["classification"].str.startswith("duplicate").sum()),
                                  partial_overlap_pairs=int((pairs["classification"] == "partial overlap").sum()),
                                  units_removed=len(removals), records_removed=int(removals["removed_records"].sum()),
                                  references_losing_records=removals["removed_ref"].nunique(),
@@ -472,6 +554,9 @@ def apply_exclusions(df: pd.DataFrame, out_dir):
     # Duplicate curves among the records still retained.
     ret = df["status"] == "retained"
     units, unit_of, pairs, removals, cand = find_duplicates(df.loc[ret])
+    offsets = {(r.unit_a, r.unit_b): (r.matched, r.offset_C, r.energy_scale)
+               for r in pairs[pairs["classification"] == "duplicate (constant axis offset)"].itertuples(index=False)}
+    offset_evidence(units, offsets).to_csv(out_dir / "duplicate_offset_evidence.csv", index=False)
     df["duplicate_comparison_unit"] = ""
     df.loc[ret, "duplicate_comparison_unit"] = unit_of
     for r in removals.itertuples(index=False):
@@ -481,7 +566,7 @@ def apply_exclusions(df: pd.DataFrame, out_dir):
                   f"kept by {r.decided_by})")
         df.loc[idx, ["status", "exclusion_step", "exclusion_reason"]] = ["excluded", "E8", reason]
     # The alternative keep rule is carried forward as a sensitivity case: same duplicate graph, other copy kept (D-019).
-    _, _, _, removals_alt, _ = find_duplicates(df.loc[ret], pairs_cache=cand, keep_rule=ALT_KEEP_RULE)
+    _, _, _, removals_alt, _ = find_duplicates(df.loc[ret], pairs_cache=cand, keep_rule=ALT_KEEP_RULE, offset_cache=offsets)
     df["status_under_alt_keep_rule"] = np.where(df["status"].eq("excluded") & df["exclusion_step"].ne("E8"), "excluded", "retained")
     for r in removals_alt.itertuples(index=False):
         df.loc[units[r.removed_unit]["idx"], "status_under_alt_keep_rule"] = "excluded"
@@ -498,7 +583,7 @@ def apply_exclusions(df: pd.DataFrame, out_dir):
     keep_rules.to_csv(out_dir / "duplicate_keep_rule_comparison.csv", index=False)
     pairs.to_csv(out_dir / "duplicate_curve_pairs.csv", index=False)
     removals.to_csv(out_dir / "duplicate_curve_removals.csv", index=False)
-    sens = duplicate_sensitivity(df.loc[ret], cand)
+    sens = duplicate_sensitivity(df.loc[ret], cand, offsets)
     sens.to_csv(out_dir / "duplicate_sensitivity.csv", index=False)
     return df, pairs, removals, sens
 
@@ -508,19 +593,16 @@ COMPOSITION_FIELDS = ["c_wt_pct", "si_wt_pct", "mn_wt_pct", "p_wt_pct", "s_wt_pc
 
 def duplicate_diagnostics(df, units, pairs, removals):
     """Flags on the kept copies of duplicated series, plus a comparison of alternative keep rules (D-019)."""
-    dup = pairs[pairs["classification"] == "duplicate"]
+    dup = pairs[pairs["classification"].str.startswith("duplicate")]
     nbrs = {}
     for r in dup.itertuples(index=False):
         nbrs.setdefault(r.unit_a, []).append(r.unit_b)
         nbrs.setdefault(r.unit_b, []).append(r.unit_a)
     corroborated = {}
     for u, others in nbrs.items():
-        ua, ok = units[u], np.zeros(units[u]["n"], dtype=bool)
+        ok = np.zeros(units[u]["n"], dtype=bool)
         for v in others:
-            ub = units[v]
-            tol_e = DUP_TOL_E_FRACTION_OF_MAX * max(ua["e"].max(), ub["e"].max())
-            ok |= ((np.abs(ua["t"][:, None] - ub["t"][None, :]) <= DUP_TOL_T_C)
-                   & (np.abs(ua["e"][:, None] - ub["e"][None, :]) <= tol_e)).any(axis=1)
+            ok |= ~points_without_match(units[u], units[v], pair_offset(pairs, u, v))
         corroborated[u] = ok
     removed_units = set(removals["removed_unit"])
     df["flag_point_not_corroborated_by_duplicate_copies"] = False
@@ -728,8 +810,14 @@ def run(dataset_key: str):
                "", "## Duplicate-curve detection", "",
                f"Parameters: |dT| <= {DUP_TOL_T_C} °C, |dE| <= {DUP_TOL_E_FRACTION_OF_MAX:.0%} of the larger curve maximum, "
                f"at least {DUP_MIN_MATCHED} one-to-one matched points and at least {DUP_MIN_FRACTION:.0%} of the smaller series matched.", "",
-               f"- Candidate pairs with >= {DUP_MIN_MATCHED} matched points: {len(pairs)}; duplicates: {int((pairs['classification'] == 'duplicate').sum())}; "
+               f"- Candidate pairs with >= {DUP_MIN_MATCHED} matched points: {len(pairs)}; duplicates by plain point matching: {int((pairs['classification'] == 'duplicate').sum())}; "
+               f"duplicates by constant-axis-offset matching: {int((pairs['classification'] == 'duplicate (constant axis offset)').sum())}; "
                f"partial overlaps (flagged only): {int((pairs['classification'] == 'partial overlap').sum())}.",
+               f"- Constant-offset test: one copy shifted by a constant {OFFSET_SHIFTS_C.min():g} to {OFFSET_SHIFTS_C.max():g} °C and scaled by "
+               f"{min(OFFSET_E_SCALES)}-{max(OFFSET_E_SCALES)} in energy, then matched within {OFFSET_TOL_T_C:g} °C and {OFFSET_TOL_E_FRACTION:.0%}; "
+               f"duplicate if >= {OFFSET_MIN_MATCHED} points and >= {DUP_MIN_FRACTION:.0%} of the smaller copy match. Pairs found: "
+               + ("; ".join(f"ref {r.ref_a} curve {r.curve_a:g} ({r.n_a}) with ref {r.ref_b} curve {r.curve_b:g} ({r.n_b}): {r.matched} matched at offset {r.offset_C:+g} °C, scale {r.energy_scale:g}"
+                            for r in pairs[pairs['classification'] == 'duplicate (constant axis offset)'].itertuples()) or "none") + ".",
                f"- Series removed: {len(removals)} ({int(removals['removed_records'].sum())} records) from references "
                f"{sorted(removals['removed_ref'].unique().tolist())}.",
                f"- Which criterion of the canonical hierarchy decided each removal: "

@@ -21,7 +21,7 @@ The dataset authors state that they converted all values to one unit per column 
 
 If a curve's energies had been left in ft-lbf while its dataset USE was in joules, the curve's highest energy would sit near 0.74 x USE (1 ft-lbf = 1.3558 J); the reverse error would give about 1.36 x USE.
 
-- Retained dataset curves checked: 210. Ratio max(energy)/USE: median 1.026, 5th-95th percentile 0.974-1.133, min 0.922, max 1.448.
+- Retained dataset curves checked: 208. Ratio max(energy)/USE: median 1.026, 5th-95th percentile 0.974-1.134, min 0.922, max 1.448.
 - Curves with ratio below 0.85 or above 1.25: 1 (271: 1.45).
 - Limitation: this detects inconsistency within a curve. A source whose energies and USE were both left unconverted would pass; that can only be ruled out against the source papers.
 

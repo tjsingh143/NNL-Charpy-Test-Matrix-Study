@@ -25,4 +25,5 @@ EOF
 .venv/bin/python src/wp0_data_dictionary.py                      # WP0 (also verifies checksums)
 .venv/bin/python src/wp1_clean.py                                # WP1, primary dataset (Materials Cloud 2025.30)
 .venv/bin/python src/wp1_clean.py --dataset eny5v-www93          # WP1, version-sensitivity dataset (2024.206)
+.venv/bin/python src/wp2_curves.py                               # WP2, both releases, version comparison, example figure
 echo "All outputs regenerated."

@@ -9,11 +9,11 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | flag_irradiation_status_differs_between_releases | 185 | 7, 8, 9, 13, 53 |
 | flag_condition_label_contradicted_by_source | 46 | 1 |
 | flag_title_reports_weld_or_haz_not_identified_in_records | 226 | 5, 7, 18, 34, 50, 60 |
-| flag_label_says_base_metal_but_weld_metal_composition | 11 | 53 |
-| flag_dataset_curve_id_mixes | 329 | 1, 15, 18, 21, 59 |
-| flag_partial_overlap_with_other_curve | 370 | 1, 5, 11, 15, 21, 27, 30, 32, 33, 52, 55 |
-| flag_point_not_corroborated_by_duplicate_copies | 11 | 44, 53 |
-| flag_duplicate_copies_disagree_on_composition | 359 | 14, 15, 17, 23, 27, 28, 29, 33, 37, 48, 49, 55 |
+| flag_label_says_base_metal_but_weld_metal_composition | 0 |  |
+| flag_dataset_curve_id_mixes | 213 | 1, 15, 18, 21, 59 |
+| flag_partial_overlap_with_other_curve | 149 | 5, 11, 15, 27, 30, 32, 33, 52, 55 |
+| flag_point_not_corroborated_by_duplicate_copies | 35 | 1, 44, 53 |
+| flag_duplicate_copies_disagree_on_composition | 464 | 1, 14, 15, 17, 23, 27, 28, 29, 33, 37, 48, 49, 55 |
 | flag_notch_dimensions_not_reported | 1354 | 6, 7, 8, 9, 13, 14, 15, 16, 17, 22, 23, 24, 27, 28, 29, 31, 37, 38, 39, 40, 42, 43, 44, 47, 49, 50, 54, 56, 57, 58, 104 |
 | flag_notch_shape_blank | 0 |  |
 | flag_irradiated_without_irradiation_temp | 135 | 1, 35, 59 |
@@ -21,7 +21,7 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | flag_energy_above_1p5x_dataset_use | 0 |  |
 | flag_energy_per_ligament_area_above_bound | 0 |  |
 | flag_test_temp_outside_review_window | 0 |  |
-| tag_reconstituted_specimen | 33 | 1, 21 |
+| tag_reconstituted_specimen | 21 | 1, 21 |
 | tag_simulated_haz | 125 | 15 |
 | tag_haz_statement | 314 | 15, 24, 53 |
 | tag_welded_area | 4 | 18 |
@@ -37,12 +37,12 @@ Flags mark records that need a decision or extra care later; tags describe speci
 
 | specimen_type_check | records | references |
 | --- | --- | --- |
-| no concern raised | 2794 | 2, 3, 4, 5, 6, 7, 11, 12, 14, 15, 16, 17, 18, 21, 22, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 104 |
+| no concern raised | 2667 | 2, 3, 4, 5, 6, 7, 11, 12, 14, 15, 16, 17, 18, 21, 22, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 104 |
 | source-checked: ordinary CVN | 383 | 1, 8, 9, 13, 23, 44 |
 
 | irradiation_label_check | irradiated | irradiated_resolved | records | references |
 | --- | --- | --- | --- | --- |
-| releases agree | False | False | 2600 | 1, 2, 3, 4, 5, 6, 11, 12, 14, 15, 17, 18, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 44, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 104 |
+| releases agree | False | False | 2473 | 1, 2, 3, 4, 5, 6, 11, 12, 14, 15, 17, 18, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 44, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 104 |
 | releases agree | True | True | 392 | 1, 2, 3, 16, 35, 50, 52, 53, 55, 57, 59, 104 |
 | source-checked: not irradiated | False | False | 47 | 13 |
 | unresolved | False | False | 126 | 7, 8, 9, 53 |
@@ -62,7 +62,7 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | A508 | simulated HAZ | Treatment code (simulated HAZ thermal cycle) | 125 |
 | A508 | weld region (zone not stated) | Test Condition Statement | 4 |
 | A533B | HAZ | Test Condition Statement | 150 |
-| A533B | plate | specification scope (nominal) | 1168 |
+| A533B | plate | specification scope (nominal) | 1041 |
 | A533B weld metal | weld metal | material label ('WM') | 84 |
 
 ## Grade or class stated in the citation title (reference level)

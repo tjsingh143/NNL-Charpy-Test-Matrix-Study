@@ -14,8 +14,8 @@ Each record is counted once, at the first step that applies (steps run in the or
 | E5 | Missing essential measurement: specimen dimensions (length, width or thickness) | D-016 | 55 | 3960 |
 | E6 | Physically impossible value | D-017 | 0 | 3960 |
 | E7 | Exact duplicate of an earlier record (all original fields identical) | D-018 | 0 | 3960 |
-| E8 | Duplicate curve: same tests already present from another figure or publication | D-019 | 783 | 3177 |
-| End | Records retained after WP1 |  | 1598 | 3177 |
+| E8 | Duplicate curve: same tests already present from another figure or publication | D-019 | 910 | 3050 |
+| End | Records retained after WP1 |  | 1725 | 3050 |
 
 ## Records by step and material family
 
@@ -24,6 +24,6 @@ Each record is counted once, at the first step that applies (steps run in the or
 | E1 | 0 | 0 | 0 | 0 | 0 | 713 | 713 |
 | E3 | 0 | 0 | 47 | 0 | 0 | 0 | 47 |
 | E5 | 0 | 0 | 55 | 0 | 0 | 0 | 55 |
-| E8 | 93 | 0 | 542 | 148 | 0 | 0 | 783 |
-| retained | 178 | 38 | 1559 | 1318 | 84 | 0 | 3177 |
+| E8 | 93 | 0 | 542 | 275 | 0 | 0 | 910 |
+| retained | 178 | 38 | 1559 | 1191 | 84 | 0 | 3050 |
 | total | 271 | 38 | 2203 | 1466 | 84 | 713 | 4775 |
