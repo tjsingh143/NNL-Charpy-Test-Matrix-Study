@@ -1,0 +1,52 @@
+column,change,old,new,records
+treatment,whitespace trimmed,' 40% Cold worked','40% Cold worked',15
+treatment,whitespace trimmed,' 20% Cold worked','20% Cold worked',3
+test_standard,text harmonized,'ASTM E 23-82','ASTM E23-82',144
+test_standard,text harmonized,'ASTM E 23-72','ASTM E23-72',45
+test_standard,text harmonized,'GB/T229-2007','GB/T 229-2007',24
+test_standard,text harmonized,'E23','ASTM E23',18
+test_standard,text harmonized,'GB/T229-2020','GB/T 229-2020',9
+test_standard,text harmonized,'ASTM-E23','ASTM E23',8
+test_standard,text harmonized,'ASTM E23 - 12c','ASTM E23-12c',2
+test_standard,text harmonized,'EN 10045-1:1990','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1991','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1992','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1993','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1994','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1995','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1996','EN 10045-1',1
+test_standard,text harmonized,'EN 10045-1:1997','EN 10045-1',1
+test_condition_statement,text harmonized,'Reconstituted','Reconstituted specimen',15
+treatment,text harmonized,'Step cooling','Step Cooling',30
+treatment,text harmonized,'Different Quenceing Rate','Different Quenching Rate',27
+treatment,text harmonized,'Solution Annneal + HIP','Solution Anneal + HIP',27
+treatment,text harmonized,'Conventioanal hot pierced ingots + Silicon-killing','Conventional hot pierced ingots + Silicon-killing',25
+treatment,text harmonized,'Conventioanal hot pierced ingots + Vacuum carbon deoxidation','Conventional hot pierced ingots + Vacuum carbon deoxidation',24
+treatment,text harmonized,'Conventioanal hot pierced ingots + Modified Vacuum carbon deoxidation','Conventional hot pierced ingots + Modified Vacuum carbon deoxidation',19
+treatment,text harmonized,'hot isostatic press','Hot Isostatic Press',5
+cooling_method,text harmonized,'Contineous Cooling','Continuous Cooling',12
+cooling_method,text harmonized,'water quenched','Water Quenched',7
+microstructure,text harmonized,'Baintic Structure','Bainitic Structure',96
+microstructure,text harmonized,'Baintie/Martensite','Bainite/Martensite',53
+microstructure,text harmonized,'Ferrite/Perarlite/Tempered Bainite','Ferrite/Pearlite/Tempered Bainite',40
+microstructure,text harmonized,'Tempered bainite','Tempered Bainite',19
+morphology,text harmonized,'columnar','Columnar',6
+morphology,text harmonized,'Dentritic Ferrite','Dendritic Ferrite',5
+morphology,text harmonized,'Dentritic','Dendritic',3
+manufacturer,text harmonized,'Addative Manufacturing (LPDED)','Additive Manufacturing (LPDED)',52
+irradiated,Yes/No to boolean,'No',False,4336
+irradiated,Yes/No to boolean,'Yes',True,439
+material_std / material_family (new columns),material name mapped,'20MnMoNi55','20MnMoNi55 (DIN 1.6310)' | family '20MnMoNi55',271
+material_std / material_family (new columns),material name mapped,'A302B','A302 Grade B' | family 'A302B',38
+material_std / material_family (new columns),material name mapped,'A508',"'A508, grade/class not stated' | family 'A508'",262
+material_std / material_family (new columns),material name mapped,'A533B',"'A533 Type B, class not stated' | family 'A533B'",1016
+material_std / material_family (new columns),material name mapped,'A533B ',"'A533 Type B, class not stated' | family 'A533B'",42
+material_std / material_family (new columns),material name mapped,'A533B - WM','Weld metal from an A533B weldment' | family 'A533B weld metal',84
+material_std / material_family (new columns),material name mapped,'A533B-1','A533 Type B Class 1' | family 'A533B',45
+material_std / material_family (new columns),material name mapped,'SA508',"'A508, grade/class not stated' | family 'A508'",1941
+material_std / material_family (new columns),material name mapped,'SA533B',"'A533 Type B, class not stated' | family 'A533B'",181
+material_std / material_family (new columns),material name mapped,'SA533B-1','A533 Type B Class 1' | family 'A533B',182
+material_std / material_family (new columns),material name mapped,'SS316','SS316' | family 'SS316 (austenitic stainless)',231
+material_std / material_family (new columns),material name mapped,'SS316H','SS316H' | family 'SS316 (austenitic stainless)',4
+material_std / material_family (new columns),material name mapped,'SS316L','SS316L' | family 'SS316 (austenitic stainless)',446
+material_std / material_family (new columns),material name mapped,'SS316LN','SS316LN' | family 'SS316 (austenitic stainless)',32

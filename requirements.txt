@@ -1,0 +1,5 @@
+# Pinned versions used to produce every output in this repository (see DECISIONS.md D-002).
+# Interpreter: CPython 3.9.6 (macOS system Python), project-local virtual environment in .venv/
+numpy==2.0.2
+pandas==2.2.3
+openpyxl==3.1.5

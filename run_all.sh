@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Regenerate every output of this repository from the vendored raw data.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if [ ! -x .venv/bin/python ]; then
+  python3 -m venv .venv
+  .venv/bin/python -m pip install --quiet -r requirements.txt
+fi
+
+# Refuse to run with package versions other than the pinned ones (DECISIONS.md D-002).
+.venv/bin/python - <<'EOF'
+import importlib.metadata as md, pathlib, sys
+bad = []
+for line in pathlib.Path("requirements.txt").read_text().splitlines():
+    line = line.split("#")[0].strip()
+    if "==" in line:
+        name, version = line.split("==")
+        if md.version(name) != version:
+            bad.append(f"{name} {md.version(name)} (pinned {version})")
+if bad:
+    sys.exit("Package versions differ from requirements.txt: " + ", ".join(bad))
+EOF
+
+.venv/bin/python src/wp0_data_dictionary.py                      # WP0 (also verifies checksums)
+.venv/bin/python src/wp1_clean.py                                # WP1, project dataset
+.venv/bin/python src/wp1_clean.py --dataset q4x6v-dyt25          # WP1, later release (comparison)
+echo "All outputs regenerated."
