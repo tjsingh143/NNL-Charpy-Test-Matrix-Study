@@ -1,0 +1,28 @@
+ref_id,irradiation_label_check,fluence_n_per_cm2,irradiation_temp_c,irradiation_time_h,records,dataset_series,curves,populations
+1,releases agree,3e+19,,,13,"6, 7","1-6.3, 1-7.1, 1-7.2",P2
+2,releases agree,1.3e+19,288.0,,23,"8, 10","2-8, 2-10",primary
+3,releases agree,1.6e+19,288.0,672.0,64,"13, 15, 17, 19","3-13, 3-15, 3-17, 3-19",primary
+7,unresolved,,,,36,"27, 28, 29, 30","7-27, 7-28, 7-29, 7-30",P3
+8,unresolved,,,,42,"31, 32","8-31, 8-32",P3
+9,unresolved,6e+19,,,14,35,9-35,P3
+16,releases agree,1.48e+19,290.0,,13,80,16-80,primary
+16,releases agree,1.75e+19,290.0,,11,81,16-81,primary
+16,releases agree,2.52e+19,290.0,,9,79,16-79,primary
+35,releases agree,1e+20,,,15,159,35-159,primary
+50,releases agree,2.7e+19,149.0,,6,208,50-208,primary
+50,releases agree,2.8e+19,149.0,,5,211,50-211,primary
+50,releases agree,2.8e+19,288.0,,15,209,50-209,primary
+50,releases agree,3.1e+19,149.0,,10,212,50-212,primary
+52,releases agree,1e+19,150.0,,12,221,52-221,primary
+53,releases agree,8e+19,290.0,,16,"243, 244","53-243, 53-244",primary
+53,unresolved,8e+19,290.0,,34,"223, 224","53-223, 53-224",P3
+55,releases agree,1e+19,150.0,,35,"255, 257, 259","55-255, 55-257, 55-259",primary
+57,releases agree,3.4e+19,269.85,,19,264,57-264,primary
+59,releases agree,1.3e+18,,,75,"267, 270, 272, 275, 277, 279","59-267, 59-270, 59-272, 59-275, 59-277, 59-279",primary
+59,releases agree,2.7e+18,,,12,273,59-273,primary
+59,releases agree,2.7e+19,,,20,"268, 271","59-268, 59-271.1",primary
+104,releases agree,6.2e+17,200.0,,6,none,104-none.2,primary
+104,releases agree,3.9e+18,200.0,,6,none,104-none.3,primary
+104,releases agree,1.3e+19,200.0,,3,none,104-none.4,primary
+104,releases agree,2.34e+19,200.0,,4,none,104-none.5,primary
+109,releases agree,1.1100000000000002e+20,286.0,,52,"287, 289, 291, 293","109-287, 109-289, 109-291, 109-293",primary

@@ -1,0 +1,10 @@
+ref_id,dataset_series,records,curves,split_by,pieces
+1,3,15,2,treatment,1-3.1 (14); 1-3.2 (1)
+1,6,107,3,"irradiated_resolved, fluence_level, test_condition_statement",1-6.1 (95); 1-6.2 (10); 1-6.3 (2)
+1,7,11,2,test_condition_statement,1-7.1 (8); 1-7.2 (3)
+15,66,20,2,treatment,15-66.1 (10); 15-66.2 (10)
+15,76,10,2,treatment,15-76.1 (8); 15-76.2 (2)
+18,86,8,2,"product_form, test_condition_statement",18-86.1 (4); 18-86.2 (4)
+21,100,20,2,test_condition_statement,21-100.1 (14); 21-100.2 (6)
+39,182,33,2,post_treatment_temp_c,39-182.1 (1); 39-182.2 (32)
+59,271,22,2,"length_mm, width_mm, thickness_mm, notch_depth_mm, irradiated_resolved, fluence_level",59-271.1 (12); 59-271.2 (10)

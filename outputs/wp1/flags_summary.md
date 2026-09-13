@@ -4,23 +4,24 @@ Flags mark records that need a decision or extra care later; tags describe speci
 
 | field | retained_records | references |
 | --- | --- | --- |
-| flag_precracked_label_in_later_release | 366 | 1, 8, 9, 13, 19, 23 |
-| flag_source_reports_precracked_specimens | 182 | 1 |
-| flag_irradiation_status_differs_between_releases | 200 | 7, 8, 9, 13, 53 |
+| flag_precracked_label_in_2025_release | 338 | 1, 8, 9, 13, 23 |
+| flag_source_reports_precracked_specimens | 227 | 1, 44 |
+| flag_irradiation_status_differs_between_releases | 185 | 7, 8, 9, 13, 53 |
+| flag_condition_label_contradicted_by_source | 48 | 1 |
 | flag_title_reports_weld_or_haz_not_identified_in_records | 226 | 5, 7, 18, 34, 50, 60 |
-| flag_label_says_base_metal_but_weld_metal_composition | 11 | 53 |
-| flag_dataset_curve_id_mixes | 329 | 1, 15, 18, 21, 59 |
-| flag_partial_overlap_with_other_curve | 370 | 1, 5, 11, 15, 21, 27, 30, 32, 33, 52, 55 |
-| flag_point_not_corroborated_by_duplicate_copies | 40 | 19, 26, 43, 52, 53 |
-| flag_duplicate_copies_disagree_on_composition | 366 | 9, 15, 17, 19, 23, 26, 27, 28, 29, 33, 48, 49, 52, 55 |
-| flag_notch_dimensions_not_reported | 1345 | 6, 7, 8, 9, 13, 15, 16, 17, 22, 23, 24, 27, 28, 29, 31, 37, 38, 39, 40, 42, 43, 47, 49, 50, 54, 56, 57, 58, 104 |
+| flag_label_says_base_metal_but_weld_metal_composition | 0 |  |
+| flag_dataset_curve_id_mixes | 213 | 1, 15, 18, 21, 59 |
+| flag_partial_overlap_with_other_curve | 149 | 5, 11, 15, 27, 30, 32, 33, 52, 55 |
+| flag_point_not_corroborated_by_duplicate_copies | 35 | 1, 44, 53 |
+| flag_duplicate_copies_disagree_on_composition | 464 | 1, 14, 15, 17, 23, 27, 28, 29, 33, 37, 48, 49, 55 |
+| flag_notch_dimensions_not_reported | 1354 | 6, 7, 8, 9, 13, 14, 15, 16, 17, 22, 23, 24, 27, 28, 29, 31, 37, 38, 39, 40, 42, 43, 44, 47, 49, 50, 54, 56, 57, 58, 104 |
 | flag_notch_shape_blank | 0 |  |
-| flag_irradiated_without_irradiation_temp | 135 | 1, 35, 59 |
-| flag_zero_energy | 2 | 32, 43 |
+| flag_irradiated_without_irradiation_temp | 274 | 1, 7, 8, 9, 13, 35, 59 |
+| flag_zero_energy | 1 | 32 |
 | flag_energy_above_1p5x_dataset_use | 0 |  |
 | flag_energy_per_ligament_area_above_bound | 0 |  |
 | flag_test_temp_outside_review_window | 0 |  |
-| tag_reconstituted_specimen | 33 | 1, 21 |
+| tag_reconstituted_specimen | 21 | 1, 21 |
 | tag_simulated_haz | 125 | 15 |
 | tag_haz_statement | 314 | 15, 24, 53 |
 | tag_welded_area | 4 | 18 |
@@ -32,21 +33,36 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | tag_hydrogen_charged | 0 |  |
 | tag_orientation_semantics_differ | 52 | 31 |
 
+## Outcome of source checks on retained records (D-020, D-021)
+
+| specimen_type_check | records | references |
+| --- | --- | --- |
+| no concern raised | 2815 | 2, 3, 4, 5, 6, 7, 11, 12, 14, 15, 16, 17, 18, 21, 22, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 104, 107, 109 |
+| source-checked: ordinary CVN | 383 | 1, 8, 9, 13, 23, 44 |
+
+| irradiation_label_check | irradiated | irradiated_resolved | records | references |
+| --- | --- | --- | --- | --- |
+| releases agree | False | False | 2569 | 1, 2, 3, 4, 5, 6, 11, 12, 14, 15, 17, 18, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38, 39, 40, 41, 42, 43, 44, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59, 60, 104, 107, 109 |
+| releases agree | True | True | 444 | 1, 2, 3, 16, 35, 50, 52, 53, 55, 57, 59, 104, 109 |
+| source-checked: not irradiated | True | False | 47 | 13 |
+| unresolved | False | False | 12 | 53 |
+| unresolved | True | True | 126 | 7, 8, 9, 53 |
+
 ## Product form of retained records
 
 | material_family | product_form | product_form_basis | records |
 | --- | --- | --- | --- |
 | 20MnMoNi55 | forging | citation title (reference level) | 27 |
-| 20MnMoNi55 | not determinable | grade name does not imply a product form | 163 |
+| 20MnMoNi55 | not determinable | grade name does not imply a product form | 151 |
 | A302B | plate | specification scope (nominal) | 38 |
 | A508 | HAZ | Test Condition Statement | 39 |
 | A508 | additively manufactured | Manufacturer field | 52 |
 | A508 | additively manufactured | citation title (reference level) | 14 |
-| A508 | forging | specification scope (nominal) | 1330 |
+| A508 | forging | specification scope (nominal) | 1473 |
 | A508 | simulated HAZ | Treatment code (simulated HAZ thermal cycle) | 125 |
 | A508 | weld region (zone not stated) | Test Condition Statement | 4 |
 | A533B | HAZ | Test Condition Statement | 150 |
-| A533B | plate | specification scope (nominal) | 1182 |
+| A533B | plate | specification scope (nominal) | 1041 |
 | A533B weld metal | weld metal | material label ('WM') | 84 |
 
 ## Grade or class stated in the citation title (reference level)
@@ -55,7 +71,7 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | --- | --- | --- |
 | grade in title: A508-3 | 33 | 35 |
 | grade in title: A533 Grade B Class 1 | 37 | 57 |
-| grade in title: Ni-Mo-Cr low alloy (Gr.4N type) | 29 | 9 |
+| grade in title: Ni-Mo-Cr low alloy (Gr.4N type) | 14 | 9 |
 | grade in title: SA 508 Mn-Mo-Ni | 18 | 6 |
 | grade in title: SA 508 class 3 | 68 | 4 |
 | grade in title: SA508 CL 3 and CL 3a | 71 | 24 |
@@ -65,8 +81,8 @@ Flags mark records that need a decision or extra care later; tags describe speci
 | grade in title: SA508 Gr.1A | 212 | 22, 23, 30, 32, 40 |
 | grade in title: SA508 Gr.3 | 66 | 31 |
 | grade in title: SA508 Gr.3 and Gr.4N | 42 | 8 |
-| grade in title: SA508 Gr.3 and SA508 Gr.4N | 9 | 37 |
-| grade in title: SA508 Gr.4N | 211 | 11, 13, 16, 17, 19, 29, 38 |
-| grade in title: SA508 Gr4N | 37 | 26 |
+| grade in title: SA508 Gr.3 and SA508 Gr.4N | 24 | 37 |
+| grade in title: SA508 Gr.4N | 231 | 11, 13, 14, 16, 17, 29, 38 |
+| grade in title: SA508 Gr4N | 12 | 26 |
 | grade in title: SA508/SA533-B-1 weld and HAZ | 34 | 34 |
 | grade in title: SA508Gr.3 | 65 | 39 |

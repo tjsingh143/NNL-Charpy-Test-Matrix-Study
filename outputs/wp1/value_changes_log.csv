@@ -20,9 +20,6 @@ test_condition_statement,text harmonized,'Reconstituted','Reconstituted specimen
 treatment,text harmonized,'Step cooling','Step Cooling',30
 treatment,text harmonized,'Different Quenceing Rate','Different Quenching Rate',27
 treatment,text harmonized,'Solution Annneal + HIP','Solution Anneal + HIP',27
-treatment,text harmonized,'Conventioanal hot pierced ingots + Silicon-killing','Conventional hot pierced ingots + Silicon-killing',25
-treatment,text harmonized,'Conventioanal hot pierced ingots + Vacuum carbon deoxidation','Conventional hot pierced ingots + Vacuum carbon deoxidation',24
-treatment,text harmonized,'Conventioanal hot pierced ingots + Modified Vacuum carbon deoxidation','Conventional hot pierced ingots + Modified Vacuum carbon deoxidation',19
 treatment,text harmonized,'hot isostatic press','Hot Isostatic Press',5
 cooling_method,text harmonized,'Contineous Cooling','Continuous Cooling',12
 cooling_method,text harmonized,'water quenched','Water Quenched',7
@@ -33,17 +30,20 @@ microstructure,text harmonized,'Tempered bainite','Tempered Bainite',19
 morphology,text harmonized,'columnar','Columnar',6
 morphology,text harmonized,'Dentritic Ferrite','Dendritic Ferrite',5
 morphology,text harmonized,'Dentritic','Dendritic',3
-manufacturer,text harmonized,'Addative Manufacturing (LPDED)','Additive Manufacturing (LPDED)',52
-irradiated,Yes/No to boolean,'No',False,4336
-irradiated,Yes/No to boolean,'Yes',True,439
+manufacturer,text harmonized,'Vaccum Induction Melting','Vacuum Induction Melting',194
+manufacturer,text harmonized,'Vaccum-Induction Melting Furnace','Vacuum Induction Melting Furnace',90
+manufacturer,text harmonized,'Silicon-Killing / Vaccum carbon deoxidation','Silicon-Killing / Vacuum carbon deoxidation',68
+irradiated,Yes/No to boolean,'No',False,4256
+irradiated,Yes/No to boolean,'Yes',True,705
+material_std / material_family (new columns),material name mapped,'15Cr2MoV-A','15Cr2MoV-A (WWER-440 vessel steel)' | family '15Cr2MoV-A',38
 material_std / material_family (new columns),material name mapped,'20MnMoNi55','20MnMoNi55 (DIN 1.6310)' | family '20MnMoNi55',271
 material_std / material_family (new columns),material name mapped,'A302B','A302 Grade B' | family 'A302B',38
-material_std / material_family (new columns),material name mapped,'A508',"'A508, grade/class not stated' | family 'A508'",262
+material_std / material_family (new columns),material name mapped,'A508',"'A508, grade/class not stated' | family 'A508'",307
 material_std / material_family (new columns),material name mapped,'A533B',"'A533 Type B, class not stated' | family 'A533B'",1016
 material_std / material_family (new columns),material name mapped,'A533B ',"'A533 Type B, class not stated' | family 'A533B'",42
 material_std / material_family (new columns),material name mapped,'A533B - WM','Weld metal from an A533B weldment' | family 'A533B weld metal',84
 material_std / material_family (new columns),material name mapped,'A533B-1','A533 Type B Class 1' | family 'A533B',45
-material_std / material_family (new columns),material name mapped,'SA508',"'A508, grade/class not stated' | family 'A508'",1941
+material_std / material_family (new columns),material name mapped,'SA508',"'A508, grade/class not stated' | family 'A508'",2044
 material_std / material_family (new columns),material name mapped,'SA533B',"'A533 Type B, class not stated' | family 'A533B'",181
 material_std / material_family (new columns),material name mapped,'SA533B-1','A533 Type B Class 1' | family 'A533B',182
 material_std / material_family (new columns),material name mapped,'SS316','SS316' | family 'SS316 (austenitic stainless)',231

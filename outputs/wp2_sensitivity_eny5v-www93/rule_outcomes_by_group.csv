@@ -1,0 +1,17 @@
+dimension,group,curves_before,records_before,curves_looser,records_looser,curves_primary,records_primary,curves_stricter,records_stricter
+material_family,20MnMoNi55,8,178,8,178,8,178,5,140
+material_family,A302B,2,38,2,38,2,38,2,38
+material_family,A508,96,1189,90,1161,86,1126,18,358
+material_family,A533B,71,1103,68,1089,61,1034,26,632
+material_family,A533B weld metal,4,78,4,78,4,78,3,67
+product_form_group,HAZ (incl. simulated),26,280,23,261,19,228,3,65
+product_form_group,forging,79,1048,77,1043,75,1023,18,358
+product_form_group,not determinable,6,151,6,151,6,151,5,140
+product_form_group,plate,65,1025,62,1011,57,974,25,605
+product_form_group,weld metal,4,78,4,78,4,78,3,67
+product_form_group,weld region (zone not stated),1,4,0,0,0,0,0,0
+irradiation,irradiated,34,379,32,372,28,343,12,167
+irradiation,unirradiated,147,2207,140,2172,133,2111,42,1068
+geometry_class,full-size (55x10x10 mm),149,2139,142,2105,133,2033,38,947
+geometry_class,miniature (reduced length),30,439,30,439,28,421,16,288
+geometry_class,"sub-size, standard length (55 mm, reduced thickness)",2,8,0,0,0,0,0,0

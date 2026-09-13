@@ -1,0 +1,5 @@
+fluence_treatment,curves,identical_to_primary,primary_curves_merged
+exact reported value (primary),223,True,none
+within a factor of 1.2 (alternative),223,True,none
+"diagnostic: exact value, dataset series ignored",217,False,1-3.2 + 1-4 | 1-5 + 1-6.1 | 1-6.3 + 1-7.2 | 15-76.2 + 15-77 | 17-84 + 17-85 | 41-187 + 41-188
+"diagnostic: within a factor of 1.2, dataset series ignored",216,False,1-3.2 + 1-4 | 1-5 + 1-6.1 | 1-6.3 + 1-7.2 | 15-76.2 + 15-77 | 16-80 + 16-81 | 17-84 + 17-85 | 41-187 + 41-188

@@ -1,0 +1,8 @@
+step,criterion,basis,records,curves,references
+Start,Records retained by WP1 (canonical keep rule),outputs/wp1*/reconciliation_table.md,3198,233,56
+P1,excluded: specimen type not supported as ordinary Charpy V-notch,CP1 decision 2; D-020,0,0,0
+P2,excluded: condition label contradicted by the source,D-031 (approved at CP2),48,7,1
+P3,excluded: irradiation status unresolved between releases,CP1 decision 1; D-021; D-035 (approved at CP2),138,11,4
+P4,secondary: SA508 Gr.1A main-steam-line piping steel,CP1 decision 3; D-027,212,19,5
+P5,secondary: additively manufactured SA508 Gr.3 (manufacturing route differs from conventional RPV material),D-034 (approved at CP2),66,5,1
+End,primary RPV population,,2734,191,47

@@ -6,11 +6,12 @@ This project is an analysis of published test data. No Charpy tests were perform
 
 **Dataset.** Lee, I., Merickel, J. W., Kasala Sreenivasulu, Y., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., & Song, R.
 *Dataset of Charpy V-notch impact test records of nuclear structural materials.* Materials Cloud Archive.
-- Release used by this project (named in PROJECT_BRIEF.md): record eny5v-www93, Materials Cloud ID 2024.206,
-  DOI [10.24435/materialscloud:gh-za](https://doi.org/10.24435/materialscloud:gh-za), issued 2024-12-19.
-- Later release, vendored for comparison only: record q4x6v-dyt25, Materials Cloud ID 2025.30,
+- **Primary dataset:** record q4x6v-dyt25, Materials Cloud ID 2025.30,
   DOI [10.24435/materialscloud:p6-5y](https://doi.org/10.24435/materialscloud:p6-5y), issued 2025-02-26.
-  This is the release cited by the descriptor paper. Which release the project uses is decision D-001 in `DECISIONS.md`.
+  This is the release described and cited by the descriptor paper.
+- **Version-sensitivity dataset:** record eny5v-www93, Materials Cloud ID 2024.206,
+  DOI [10.24435/materialscloud:gh-za](https://doi.org/10.24435/materialscloud:gh-za), issued 2024-12-19 (the release named in the
+  original PROJECT_BRIEF.md). The choice was approved at checkpoint CP1: decision D-001 in `DECISIONS.md`.
 
 **Descriptor paper.** Lee, I., Merickel, J. W., Sreenivasulu, Y. K., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., & Song, R. (2025).
 Comprehensive Toughness Dataset of Nuclear Reactor Structural Materials using Charpy V-Notch Impact Testing.
@@ -28,22 +29,24 @@ redistribution and adaptation with attribution. The full legal text is in `LICEN
 Notes: the descriptor *article* is published under CC BY-NC-ND 4.0 and is not redistributed here. The authors' GitHub copy of the
 workbook is under an MIT license; this project uses the Materials Cloud copies instead.
 
-**Changes.** The files in `raw/` are unmodified. Files in `processed/` are derived by `src/wp1_clean.py`: text labels are
-harmonized, descriptive fields and flags are added, and records are marked retained or excluded with a reason. No measurement
-value is altered. Every change is logged in `outputs/wp1/value_changes_log.csv` and justified in `DECISIONS.md`.
+**Changes.** The files in `raw/` are unmodified (moved into one folder per release after CP1; checksums unchanged). Files in
+`processed/` are derived by `src/wp1_clean.py`: text labels are harmonized, descriptive fields and flags are added, and records are
+marked retained or excluded with a reason. No measurement value is altered. Every change is logged in
+`outputs/wp1*/value_changes_log.csv` and justified in `DECISIONS.md`.
 
 ## Files
 
 | Path | What it is |
 |---|---|
-| `raw/Charpy_Impact_Test_Dataset.xlsx` | Project dataset (record eny5v-www93) |
-| `raw/files_description.md` | File description published with that record |
-| `raw/materialscloud_record_eny5v-www93.json` | Snapshot of the archive record metadata (its view/download counters change online) |
-| `raw/alternate_record_q4x6v-dyt25/` | Same three files for the later release (comparison only) |
+| `raw/release_2025.30_q4x6v-dyt25/Charpy_Impact_Test_Dataset.xlsx` | Primary dataset workbook |
+| `raw/release_2025.30_q4x6v-dyt25/files_description.md` | File description published with that record |
+| `raw/release_2025.30_q4x6v-dyt25/materialscloud_record_q4x6v-dyt25.json` | Snapshot of the archive record metadata (its view/download counters change online) |
+| `raw/release_2024.206_eny5v-www93/` | The same three files for the version-sensitivity dataset |
 | `LICENSE-CC-BY-4.0.txt` | License text |
 | `CHECKSUMS.sha256` | SHA-256 of every file above |
-| `processed/primary/` | WP1 output for the project dataset (generated) |
-| `processed/alt_q4x6v-dyt25/` | WP1 output for the later release (generated, comparison only) |
+| `FROZEN_COHORTS_CP2.csv` | Curve and record counts and a SHA-256 membership fingerprint for each WP2 cohort of both releases, frozen at checkpoint CP2; `src/wp2_curves.py` stops if regenerated cohorts differ (DECISIONS.md D-039). Not data; not generated |
+| `processed/primary/` | WP1 output (`charpy_records_with_status.csv`, `charpy_clean.csv`) and WP2 output (`charpy_records_with_curves.csv`: curve, population and cohort of every record) for the primary dataset (generated) |
+| `processed/sensitivity_eny5v-www93/` | The same files for the version-sensitivity dataset (generated) |
 
 ## Acquisition
 
