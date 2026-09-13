@@ -891,7 +891,47 @@ this "to avoid unphysical fits"); many random starts. **Why not.** Unbounded fit
 curve), penalties quietly replace data with starting guesses, and random multistart is neither transparent nor needed for four parameters.
 
 ## D-042 — Lower shelf: fixed or fitted
-**Status:** OPEN at pre-registration: the candidates, evidence and decision rule below were committed before any synthetic result existed.
+**Status:** PROPOSED (CP3) — decided by the pre-registered rule (commit `11daf72`) on synthetic Block L, before any published curve was
+fitted. The rule's outcome is sensitive to how its score weights the two specimen scales; that sensitivity is put to the author at CP3.
+
+**Decision.** The lower-shelf energy is a fitted parameter (bounded below by 0 J) for every curve and every geometry.
+
+**Block L result** (`outputs/wp3/synthetic_lse_strategy_comparison.csv`, `synthetic_lse_strategy_per_dataset.csv`; SYNTHETIC). Score = mean
+over the 135 synthetic data sets of the 90th-percentile |key-temperature error| (°C): `fitted` 12.62, `fixed_convention` 11.93, `fixed_zero`
+14.60, `hybrid` 12.06. Share of replicates without a key temperature: 1.8 %, 0, 0, 1.0 %. All four eligible; the lowest score (11.93) is not
+10 % below `hybrid` (12.06); `fitted` is within 10 % of the lowest → rule 3 → `fitted`.
+
+**What the pooled score hides (reported; not used to change the rule).**
+- *Full-size T41J favours a fixed shelf in every design and at every scatter level.* Full-size scores: `fixed_zero` 9.80, `fixed_convention`
+  10.13, `hybrid` 11.66, `fitted` 11.94 °C; by scatter level `fitted` vs `fixed_convention`: low 4.67 vs 3.64, moderate 10.17 vs 8.25, high
+  20.99 vs 18.50 °C. With 41 J far above the shelf, a wrong fixed LSE shifts T41J little, while a free LSE adds variance.
+- *Miniature-scale T0 favours fitting.* Miniature scores: `hybrid` 12.27, `fixed_convention` 12.83, `fitted` 12.96, `fixed_zero` 17.00 °C.
+  A wrong fixed value fails badly when many specimens sit on the lower shelf: for the test window whose cold end lies deep in the lower
+  shelf, the miniature score (all six miniature truths) was 14.35 °C `fitted` against 22.21 (`fixed_convention`) and 43.12 °C
+  (`fixed_zero`); for LSE = 12 % of USE, USE 8 J and moderate scatter, 14.6 °C fitted against 52.8 °C (fixed 0.1 J) and 81.6 °C (fixed 0 J). The cohort's KLST-type curves (lowest energies
+  0.5–1.2 J, 6–14 % of the screening upper reference) resemble this case.
+- *Lower shelf missing* (coldest test at x = −0.5): a fitted LSE can land above 41 J, so T41J is undefined in up to 32 % (moderate) and 44 %
+  (high scatter) of full-size replicates; this design accounts for 96 % of the fitted strategy's missing key temperatures. There the true
+  T41J lies below the lowest test temperature, so no strategy's T41J would be reported as supported (D-044).
+- *Weighting sensitivity of the rule itself.* The score gives equal weight to each synthetic data set: 6 miniature truths against 3 full-size
+  truths, so miniature results carry two thirds of the weight, although 134 of the 170 primary curves are full-size. That weighting was not a
+  deliberate choice. Weighting the two scale groups 134 : 36 instead gives `fixed_convention` 10.70, `fixed_zero` 11.32, `hybrid` 11.79,
+  `fitted` 12.16 °C, and the same rule would then select `fixed_convention`. The pre-registered outcome is kept, because rewriting a
+  pre-registered rule after seeing its result is exactly what pre-registration exists to prevent.
+
+**Why `fitted` is acceptable, and what argues against it.** For: no externally imposed number; no sourced fixed value is consistent with
+every geometry in the cohort (pre-fit evidence above); one method for all geometries keeps a method difference out of WP5's size
+comparison; a poorly determined fitted shelf is visible (weak-lower-shelf and non-physical flags, undefined index) rather than a hidden bias.
+Against: for full-size T41J — the project's index — the synthetic 90th-percentile error was about 15–20 % larger than with LSE fixed at 2.7 J.
+
+**Declared before any published curve was fitted: sensitivity reported at CP3.** The primary cohort is also fitted with `fixed_convention`.
+Only the differences in T41J, T0 and USE are reported (`outputs/wp3/lse_sensitivity_published.csv`). Outcome counts under the alternative
+are not used to choose, because a fixed shelf mechanically cannot trigger the lower-shelf flags.
+
+**Open for CP3.** Keep `fitted` for all geometries, or approve a geometry-specific choice (LSE fixed at 2.7 J for full-size, fitted for
+miniatures); the latter would be recorded as a change made after the synthetic results and before approval.
+
+**History — pre-registered text (unchanged below).**
 **Evidence from the literature.** [Marini2020] fits LSE = 0 (three parameters) for a 16MND5 forging. [SokolovNanstad1995] (ORNL, NRC HSSI
 programme) fixed the lower shelf at 2.7 J for every full-size fit and 0.1 J for every sub-size fit (p. 7). [Switzner2023] fits all four
 parameters without constraints; its free shear-area curve went below 0 % shear, "physically impossible" (§3.1), and four-parameter fits can fail to converge (§4.1).
@@ -922,7 +962,10 @@ never the WP2 screening upper reference (D-037). Every fit reports whether the d
   never reached. The 95 % level mirrors [E185-82] §4.17, which places the upper shelf above 95 % shear; shear data do not exist here.
 - *Upper-shelf trend*: for ≥ 3 specimens at ≥ 2 temperatures with x ≥ 1.5, the slope of the residuals against temperature is tested
   (two-sided t-test, p < 0.05). A significant slope means the "shelf" is rising or falling (e.g. ref 104, where energy falls above ~250 °C),
-  so a flat asymptote is a compromise.
+  so a flat asymptote is a compromise. **Changed after the synthetic validation (D-051):** the pre-registered version counted this flag
+  towards *weakly identified*; it is now a separate model-adequacy flag reported beside the outcome, because on correctly specified
+  synthetic curves it fired only at its chance rate and flagged fits were no less accurate (D-047). Its power against genuinely non-flat
+  shelves is measured in synthetic Block E.
 - *Plateau mean*: mean energy of the specimens at x ≥ 1.5, the closest available analogue of [E185-82] §4.18's definition (average of the
   specimens above the transition). Diagnostic only.
 Data are never removed to make a shelf flat.
@@ -975,7 +1018,9 @@ temperature; comparing them with full-size index temperatures is WP5's job, with
    0 J (a negative lower shelf wanted), USE − LSE at 0 (no rise or a falling curve wanted), or T0 at absolute zero.
 3. *Boundary-limited* — a numerical-safety bound is active: C at 1 °C (the rise happens between two test temperatures, width unresolved),
    C at the tested span, T0 at a range limit, USE − LSE at 10 × the highest energy, or fitted LSE at the highest energy.
-4. *Weakly identified* — converged, inside its bounds, but the sampling does not constrain a parameter (D-047).
+4. *Weakly identified* — converged, inside its bounds, but the sampling does not constrain a parameter (D-047): weak transition, weak
+   upper shelf, weak lower shelf (fitted LSE), or a rank-deficient Jacobian. (The upper-shelf trend flag belonged here at pre-registration
+   and was moved out after the synthetic validation, D-051.)
 5. *Usable fit, index temperature unavailable* — reason recorded: no defensible criterion (D-045), criterion not crossed, or crossing
    outside the tested range (D-044).
 6. *Usable fit, index temperature calculated.*
@@ -987,12 +1032,24 @@ Carlo "eliminated" nonphysical results, failures are counted.
 **Decision.** Defined on the fitted curve, with x = (T − T0)/C and distinct temperatures as in D-037:
 - *weak transition*: fewer than 2 distinct test temperatures with −1 < x < 1 (inside the 11.9–88.1 % part of the rise). With one or none,
   location and width cannot both be measured — the brief's ill-conditioning case.
-- *weak upper shelf*: `use_support` is not *supported*, or the upper-shelf residual trend is significant (D-043).
+- *weak upper shelf*: `use_support` is not *supported* (D-043). (Pre-registered: "or the upper-shelf residual trend is significant";
+  moved to a separate model-adequacy flag after the synthetic validation, D-051.)
 - *weak lower shelf* (only when LSE is fitted): fewer than 2 specimens at x ≤ −1.5.
 - *numerically singular*: the Jacobian at the solution has rank below the number of parameters (NumPy's default rank tolerance).
 The x-limits come from the tanh shape (±1: characteristic interval; ±1.5: within 4.7 % of a shelf); the counts of 2 are the smallest that
 measure a level or a width twice. No condition-number threshold is imposed. The condition number of the scaled Jacobian and the spread of T0
 among starts within 1 % of the best cost are recorded for audit; the synthetic validation reports how they relate to the true error.
+**What the synthetic validation showed** (`outputs/wp3/synthetic_flag_check.csv`, Blocks A–D with scatter, 17,800 fits; the clean comparison
+is fits carrying exactly one flag against fits carrying none). Weak transition, weak upper shelf and weak lower shelf each mark clearly
+worse recovery (T0 90th-percentile error about 1.8–3.3 times, USE or LSE errors far larger); C at its lower bound, USE − LSE at its upper bound
+and a rank-deficient Jacobian never occur alone and mark the worst fits; LSE at 0 J alone mildly worsens T41J and C. The upper-shelf trend flag
+alone marks no loss of accuracy and fires at its chance rate (4.7 % of applicable fits), so it was moved out of the outcome (D-051). The audit
+diagnostics also separate good from bad fits (highest condition-number quartile, disagreeing starts), but no threshold was set on them.
+**Known weaknesses of these diagnostics, to be stated at CP3.** They are computed on the fitted curve, so (i) a wrong fit can look supported —
+when every specimen lies below the true transition, 6–10 % of fits pass with USE off by about 85 %; (ii) passing can select a biased subset —
+with the lower shelf just at the support limit, the fits that pass had a larger T41J error than all fits together; (iii) they are conservative
+where a design sits exactly on a threshold. Where 41 J lies near the upper shelf (USE 44 J), T41J stays imprecise even in passing fits; the
+position of 41 J on the fitted rise is recorded (`index_fraction_of_rise`) without a flag.
 
 ## D-048 — Synthetic validation design
 **Status:** PROPOSED (CP3); PRE-REGISTERED
@@ -1006,5 +1063,46 @@ transition points; lower or upper shelf weak or missing; clustered at the centre
 specimens); C (USE 44, 70, 250 J; LSE 2, 10 J; C 12, 60 °C); D (fixed windows of 9/150 °C, 12/250 °C, 24/360 °C — the 10th percentile,
 median and 90th percentile of points and span of the full-size primary-cohort curves — with the true T0 at −60, 0, +60 °C from the window centre and C 12,
 30, 60 °C). 200 replicates per noisy scenario, 1 at zero noise. Designs expected to fail are included on purpose.
+**Added after Blocks A–D had been run (D-051):** Block E, upper shelves that are not flat (the true energy changes by −20, −10 or +10 % of USE
+per 100 °C above x = 1.5), two designs, low and moderate scatter, to measure what the upper-shelf trend flag detects. Block L replicates are
+summarized per synthetic data set (`synthetic_lse_strategy_per_dataset.csv`); per-replicate rows are stored for Blocks A–E.
 **Reference scales (summaries only, not acceptance criteria).** 10 °C for T41J and T0 — about the 17 °F (9.4 °C) limit on the scatter of
 ΔRT_NDT for base metal in [10CFR50] §50.61(c)(2)(i)(C); 10 % for USE; 25 % for C.
+
+## D-049 — Dataset-provided USE and DBTT: a diagnostic comparison only
+**Status:** PROPOSED (CP3); declared before any published curve was fitted
+**Decision.** The dataset's `use_j_dataset` and `dbtt_c_dataset` (definition undocumented; the descriptor calls them "estimated values",
+D-022) play no part in fitting, initialization, bounds, flags or method choice. After all fits are made, `src/wp3_fit_curves.py` compares them
+per primary curve with our fitted USE, T41J (full-size) and T0, reports how often the dataset DBTT is closer to our T41J or to our T0, and
+counts dataset USE values below 41 J (where a 41 J DBTT cannot exist). Disagreements are reported and, where a source defines its DBTT (e.g.
+[Kumar1994]: the tanh midpoint), the definitional difference is named. The method is not adjusted to reproduce the dataset values.
+
+## D-050 — Looser and stricter cohorts
+**Status:** PROPOSED (CP3); declared before any published curve was fitted
+**Decision.** The CP2-frozen looser cohort (182 curves) contains the primary (170) and stricter (60) cohorts, so every looser-cohort curve
+is fitted once with the locked method, and outcome counts are tabulated for all three (`cohort_sensitivity_outcomes.csv`). This is a
+diagnostic: the cohorts did not inform the fitter, and no WP4–WP6 conclusion is drawn from them in WP3. The membership check against
+`data/FROZEN_COHORTS_CP2.csv` runs before any fit. Other frozen cohorts (alternative keep rule, unresolved irradiation, additively
+manufactured, piping) and the 2024.206 release are not fitted in WP3.
+
+## D-051 — How the WP3 method evolved (chronological, including changes after results existed)
+**Status:** record
+1. *Pre-registration* (commit `11daf72`): fitter, validation design, four lower-shelf candidates and the decision rule, committed before any
+   synthetic or published-data fit.
+2. *Block L run* (synthetic only): rule 3 selected `fitted`; `LOCKED_LSE_STRATEGY` set accordingly. Inspection showed the full-size advantage
+   of a fixed shelf and the unintended 2 : 1 weighting of miniature data sets (D-042). The rule was **not** changed; a column reporting the
+   cohort-weighted score was added to the output, marked as not used by the rule.
+3. *Blocks A–D run* (synthetic only). Changes made as a result, all before any published curve was fitted:
+   a. Methodological: the upper-shelf trend flag no longer makes a fit *weakly identified*; it is a separate model-adequacy flag (D-043,
+      D-046, D-047). Before the change the same fits were counted weakly identified; error statistics are unchanged, and per scenario up to
+      8.5 % of fits moved from *weakly identified* to *usable* (verified by rerunning: every error statistic identical, only outcome shares moved).
+   b. Validation design: Block E added to measure that flag's power (D-048).
+   c. Reporting: the "only this flag" comparison added to `synthetic_flag_check.csv`; the audit column `index_fraction_of_rise` added
+      (no rule attached); per-replicate storage limited to Blocks A–E.
+   d. Teaching figure: the "poor sampling" example first showed one replicate, which happened to be more accurate than the "good sampling"
+      replicate and so misrepresented unreliability; it now overlays 40 replicate fits and states the 90th-percentile errors.
+   e. Software bugs fixed (no reported number affected): a column-name collision in `scenario_metrics` stopped the figure step; the
+      example figure first regenerated synthetic data from rounded temperatures.
+4. *Published data*: fitted only after the commit that locks the method (named in the CP3 summary). Any later change is listed here with what
+   it changed and whether it was a software bug or a methodological change.
+

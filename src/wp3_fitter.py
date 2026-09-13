@@ -285,12 +285,22 @@ def index_temperature(fit: dict, t: np.ndarray, criterion_j) -> tuple:
     return value, "calculated"
 
 
+def index_fraction_of_rise(fit: dict, criterion_j) -> float:
+    """Where the criterion sits on the fitted rise, (E_crit - LSE) / (USE - LSE). Audit only: the synthetic validation showed that
+    T41J is less precise when 41 J lies near a shelf (Block C, USE 44 J), but no flag is attached to it (D-047)."""
+    if criterion_j is None or not fit.get("optimizer_success", False) or fit["use_j"] <= fit["lse_j"]:
+        return np.nan
+    return float((criterion_j - fit["lse_j"]) / (fit["use_j"] - fit["lse_j"]))
+
+
 OUTCOMES = ["optimizer failure", "non-physical", "boundary-limited", "weakly identified",
             "usable fit, index temperature unavailable", "usable fit, index temperature calculated"]
 
 
 def classify(fit: dict, index_status: str) -> dict:
-    """Diagnostic flags (may overlap) and one mutually exclusive outcome, assigned in the precedence order of OUTCOMES (D-046)."""
+    """Diagnostic flags (may overlap) and one mutually exclusive outcome, assigned in the precedence order of OUTCOMES (D-046).
+    flag_nonflat_upper_shelf is a model-adequacy flag reported beside the outcome, not part of it (D-047, changed after the synthetic
+    validation: on correctly specified synthetic curves it fired only by chance and flagged fits were no less accurate)."""
     f = {k: False for k in ["flag_optimizer_failure", "flag_nonphysical_lse_at_zero", "flag_nonphysical_no_rise",
                             "flag_nonphysical_t0_at_absolute_zero", "flag_boundary_c_min", "flag_boundary_c_max",
                             "flag_boundary_t0_limit", "flag_boundary_rise_max", "flag_boundary_lse_max",
@@ -318,8 +328,8 @@ def classify(fit: dict, index_status: str) -> dict:
     groups = [("non-physical", ["flag_nonphysical_lse_at_zero", "flag_nonphysical_no_rise", "flag_nonphysical_t0_at_absolute_zero"]),
               ("boundary-limited", ["flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit",
                                     "flag_boundary_rise_max", "flag_boundary_lse_max"]),
-              ("weakly identified", ["flag_weak_transition", "flag_weak_upper_shelf", "flag_nonflat_upper_shelf",
-                                     "flag_weak_lower_shelf", "flag_numerically_singular"])]
+              ("weakly identified", ["flag_weak_transition", "flag_weak_upper_shelf", "flag_weak_lower_shelf",
+                                     "flag_numerically_singular"])]
     for outcome, keys in groups:
         hit = [k.replace("flag_", "") for k in keys if f[k]]
         if hit:
