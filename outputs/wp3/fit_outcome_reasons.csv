@@ -1,0 +1,11 @@
+outcome,outcome_detail,outcome_reason,curves,full_size_curves,miniature_curves
+boundary-limited,fitted LSE at its 0 J bound (lower-shelf-bound-limited),lse_at_lower_bound,15,0,15
+boundary-limited,numerical-safety bound,boundary_c_min,2,0,2
+boundary-limited,numerical-safety bound,"boundary_t0_limit, boundary_rise_max",1,1,0
+weakly identified,,weak_upper_shelf,29,28,1
+weakly identified,,weak_lower_shelf,3,0,3
+weakly identified,,weak_transition,1,1,0
+weakly identified,,"weak_transition, weak_lower_shelf",1,0,1
+weakly identified,,"weak_upper_shelf, weak_lower_shelf",1,0,1
+"usable fit, index temperature unavailable",,not calculated: no defensible criterion for this geometry,13,0,13
+"usable fit, index temperature calculated",,,104,104,0

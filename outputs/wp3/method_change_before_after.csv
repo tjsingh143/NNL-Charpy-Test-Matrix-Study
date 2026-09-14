@@ -1,0 +1,19 @@
+quantity,previous CP3 presentation (all fitted; pre-CP3 classification),all fitted; amended classification (terminology change only),FINAL PRIMARY (geometry-specific lower shelf; amended classification)
+lower-shelf strategy,all fitted: LSE fitted >= 0 J for every geometry (pre-registered rule outcome),all fitted: LSE fitted >= 0 J for every geometry (pre-registered rule outcome),"geometry-specific: LSE fixed at 2.7 J (full-size), fitted >= 0 J (miniature)"
+optimizer failure,0,0,0
+non-physical,71,0,0
+boundary-limited,3,74,18
+  boundary-limited: fitted LSE at its 0 J bound (alone or with another bound),counted as non-physical,71,15
+  boundary-limited: numerical-safety bound only,3,3,3
+weakly identified,47,47,35
+"usable fit, index temperature unavailable",13,13,13
+"usable fit, index temperature calculated",36,36,104
+usable fits (both usable categories),49,49,117
+TOTAL curves,170,170,170
+full-size curves with T41J calculated (of 134),132,132,134
+full-size T41J with a usable fit,36,36,104
+T41J with the index-support warning (41 J outside 11.9-88.1 % of the fitted rise),15,15,9
+"T41J not empirically bracketed by measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome)",0,0,1
+flag: fitted LSE at its 0 J bound (overlapping),71,71,15
+flag: weak lower shelf (overlapping),105,105,18
+miniature curves with a usable fit (of 36),13,13,13

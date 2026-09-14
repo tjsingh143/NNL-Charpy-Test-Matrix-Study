@@ -1,0 +1,5 @@
+geometry_category,lower_shelf_treatment,curves,"mean residual, x <= -1.5 (fitted lower shelf), % of USE","curves with points, x <= -1.5 (fitted lower shelf)","mean residual, -1.5 < x <= -0.5 (lower transition), % of USE","curves with points, -1.5 < x <= -0.5 (lower transition)","mean residual, -0.5 < x < 0.5 (middle), % of USE","curves with points, -0.5 < x < 0.5 (middle)","mean residual, 0.5 <= x < 1.5 (upper transition), % of USE","curves with points, 0.5 <= x < 1.5 (upper transition)",median C (°C)
+full-size,"LSE fitted, above 0 J",78,-0.438179327421635,62,0.48488997721182747,76,-0.41183398819057127,76,1.2381659624610286,74,40.94349095891087
+full-size,"LSE fitted, at its 0 J bound",56,0.12342268217598913,30,-2.808456718278917,55,1.671194211846038,55,-1.5383006205999141,54,50.830606786928406
+miniature,"LSE fitted, above 0 J",21,-0.43715204945758596,19,0.04081988597274934,18,-0.4241901859604854,20,2.760857008101533,19,29.154586034994296
+miniature,"LSE fitted, at its 0 J bound",15,1.1360828955738502,8,-5.961761701979262,15,2.8599442880462616,15,-1.4275376229443604,15,34.752654754368706

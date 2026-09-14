@@ -1,0 +1,4 @@
+case,full-size curves,records,T41J calculated,T41J with a usable fit,T41J with a usable fit and no index-support warning,T41J with an index-support warning,T41J in a weakly identified or boundary-limited fit,stricter-cohort curves with a usable-fit T41J,irradiated curves with a usable-fit T41J,"median T41J, usable fits (°C)"
+primary: all full-size curves,134,2059,134,104,101,9,30,33,14,-52.857246085098026
+sensitivity: excluding curves with exact notch dimensions unreported,60,1066,60,46,43,7,14,22,10,-27.07191386778655
+"the excluded curves: full-size V-notch, exact notch dimensions unreported",74,993,74,58,58,2,16,11,4,-68.86232708707522

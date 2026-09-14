@@ -1,0 +1,20 @@
+dimension,group,t41j_curves,bracketed,not_bracketed,not_bracketed_curve_ids
+all,full-size curves with a calculated T41J (final method),134,133,1,33-153
+fit outcome,boundary-limited,1,1,0,
+fit outcome,weakly identified,29,29,0,
+fit outcome,"usable fit, index temperature calculated",104,103,1,33-153
+index-position warning,warning: 41 J outside the central 11.9-88.1 % of the fitted rise,9,9,0,
+index-position warning,no warning: 41 J inside the central 11.9-88.1 % of the fitted rise,125,124,1,33-153
+notch metadata,"full-size V-notch, exact notch dimensions unreported",74,74,0,
+notch metadata,notch dimensions reported,60,59,1,33-153
+measured energies below 41 J,0,1,0,1,33-153
+measured energies below 41 J,1,11,11,0,
+measured energies below 41 J,2,30,30,0,
+measured energies below 41 J,3 or more,92,92,0,
+measured energies above 41 J,0,0,0,0,
+measured energies above 41 J,1,0,0,0,
+measured energies above 41 J,2,0,0,0,
+measured energies above 41 J,3 or more,134,133,1,33-153
+measured energies exactly at 41 J,0,134,133,1,33-153
+measured energies exactly at 41 J,1 or more,0,0,0,
+lower-shelf sensitivity case,full-size curves with a calculated T41J (all-fitted method),132,132,0,

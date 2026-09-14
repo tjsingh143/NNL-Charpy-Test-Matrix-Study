@@ -1,0 +1,22 @@
+outcome,curves,fit_quality_group,full-size_curves,miniature_curves,share,cohort
+optimizer failure,0,optimizer failure,0,0,0.0,looser
+non-physical (inadmissible),0,non-physical (inadmissible),0,0,0.0,looser
+boundary-limited,19,boundary-limited,1,18,0.1043956043956044,looser
+weakly identified,42,weakly identified,34,8,0.23076923076923078,looser
+"usable fit, index temperature unavailable",14,usable fit,1,13,0.07692307692307693,looser
+"usable fit, index temperature calculated",107,usable fit,107,0,0.5879120879120879,looser
+TOTAL,182,,143,39,1.0,looser
+optimizer failure,0,optimizer failure,0,0,0.0,primary
+non-physical (inadmissible),0,non-physical (inadmissible),0,0,0.0,primary
+boundary-limited,18,boundary-limited,1,17,0.10588235294117647,primary
+weakly identified,35,weakly identified,29,6,0.20588235294117646,primary
+"usable fit, index temperature unavailable",13,usable fit,0,13,0.07647058823529412,primary
+"usable fit, index temperature calculated",104,usable fit,104,0,0.611764705882353,primary
+TOTAL,170,,134,36,1.0,primary
+optimizer failure,0,optimizer failure,0,0,0.0,stricter
+non-physical (inadmissible),0,non-physical (inadmissible),0,0,0.0,stricter
+boundary-limited,12,boundary-limited,1,11,0.2,stricter
+weakly identified,6,weakly identified,5,1,0.1,stricter
+"usable fit, index temperature unavailable",9,usable fit,0,9,0.15,stricter
+"usable fit, index temperature calculated",33,usable fit,33,0,0.55,stricter
+TOTAL,60,,39,21,1.0,stricter
