@@ -1,0 +1,8 @@
+outcome,curves,fit_quality_group,full-size_curves,miniature_curves,share
+optimizer failure,0,optimizer failure,0,0,0.0
+non-physical (inadmissible),0,non-physical (inadmissible),0,0,0.0
+boundary-limited,74,boundary-limited,57,17,0.43529411764705883
+weakly identified,47,weakly identified,41,6,0.27647058823529413
+"usable fit, index temperature unavailable",13,usable fit,0,13,0.07647058823529412
+"usable fit, index temperature calculated",36,usable fit,36,0,0.21176470588235294
+TOTAL,170,,134,36,1.0

@@ -1,0 +1,16 @@
+geometry_category,change,curves
+full-size,curves compared,134
+full-size,outcome category differs,89
+full-size,outcome: final 'boundary-limited' / all fitted 'weakly identified',1
+full-size,"outcome: final 'usable fit, index temperature calculated' / all fitted 'boundary-limited'",43
+full-size,"outcome: final 'usable fit, index temperature calculated' / all fitted 'weakly identified'",28
+full-size,outcome: final 'weakly identified' / all fitted 'boundary-limited',14
+full-size,"outcome: final 'weakly identified' / all fitted 'usable fit, index temperature calculated'",3
+full-size,index availability differs,2
+full-size,index: final 'calculated' / all fitted 'undefined: 41 J at or below the fitted LSE',1
+full-size,index: final 'calculated' / all fitted 'unsupported: crossing below the lowest test temperature',1
+full-size,index-support warning differs (both calculated),11
+miniature,curves compared,36
+miniature,outcome category differs,0
+miniature,index availability differs,0
+miniature,index-support warning differs (both calculated),0

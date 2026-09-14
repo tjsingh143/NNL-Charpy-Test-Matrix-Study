@@ -2,7 +2,7 @@
 
 Pure functions without file I/O. The synthetic validation (src/wp3_validation.py) and the fits to the published Charpy data
 (src/wp3_fit_curves.py) both call exactly this code, so what is validated is what is applied. Every choice is recorded, with its
-source, in DECISIONS.md (D-040 to D-050).
+source, in DECISIONS.md (D-040 to D-051; the CP3 amendments of D-042, D-044 and D-046 are marked where they apply).
 
 Model (D-040):  E(T) = LSE + (USE - LSE) / 2 * [1 + tanh((T - T0) / C)]
     LSE  lower-shelf energy (J)             USE  upper-shelf energy (J)
@@ -49,11 +49,32 @@ TREND_P_VALUE = 0.05         # residual trend on the upper shelf (two-sided t-te
 FULL_SIZE_CRITERION_J = 41.0
 CRITERION_J = {"full-size": FULL_SIZE_CRITERION_J, "sub-size (E23 type)": None, "miniature": None}
 
-# D-042. Lower-shelf strategies compared in the synthetic validation (the adopted one is named in wp3_fit_curves.py).
-# Fixed convention: 2.7 J for full-size and 0.1 J for sub-size specimens, Sokolov & Nanstad (1995), ASTM STP 1270, p. 7.
+# D-044, index-support diagnostic (added at the author's CP3 instruction, 2026-09-14): a calculated index whose criterion lies outside
+# the central characteristic interval of the fitted rise (x = -1...+1, 11.9-88.1 % of USE - LSE; the interval of D-037 and D-047) sits
+# on a flat part of the fitted curve, where the curve is less steep and the index less firmly anchored. Reported beside the value; the
+# value is never withheld because of it, and it is not part of the outcome.
+INDEX_RISE_FRACTION_LOW = 0.5 * (1.0 + np.tanh(-X_TRANSITION))    # 0.1192
+INDEX_RISE_FRACTION_HIGH = 0.5 * (1.0 + np.tanh(X_TRANSITION))    # 0.8808
+
+# D-042. Lower-shelf strategies.
+# The four candidates pre-registered for synthetic Block L (commit 11daf72). fixed_convention: 2.7 J for full-size and 0.1 J for
+# sub-size specimens, Sokolov & Nanstad (1995), ASTM STP 1270, p. 7.
 FIXED_LSE_CONVENTION_J = {"full-size": 2.7, "miniature": 0.1}
 LSE_STRATEGIES = ["fitted", "fixed_convention", "fixed_zero", "hybrid"]
 HYBRID_MIN_LOWER_BAND_TEMPERATURES = 2
+# The pre-registered rule selected `fitted` for every geometry; that method was presented at CP3. At CP3 the author amended D-042
+# (2026-09-14): the FINAL PRIMARY method is `geometry_specific`, LSE fixed at 2.7 J for full-size 55 x 10 x 10 mm specimens
+# (Sokolov & Nanstad 1995 p. 7) and fitted, bounded below by 0 J, for miniature specimens (no 0.1 J miniature convention). It is not
+# a Block L candidate and was not selected by the pre-registered rule. The all-fitted method stays as an explicit sensitivity case.
+PRIMARY_LSE_STRATEGY = "geometry_specific"
+SENSITIVITY_LSE_STRATEGY = "fitted"
+LSE_STRATEGY_LABELS = {
+    "geometry_specific": "geometry-specific: LSE fixed at 2.7 J (full-size), fitted >= 0 J (miniature)",
+    "fitted": "all fitted: LSE fitted >= 0 J for every geometry (pre-registered rule outcome)",
+    "fixed_convention": "fixed convention: 2.7 J (full-size), 0.1 J (miniature)",
+    "fixed_zero": "fixed at 0 J",
+    "hybrid": "hybrid: fitted if >= 2 lower-band temperatures, else the fixed convention",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +124,8 @@ def prefit_lower_band_temperatures(t: np.ndarray, e: np.ndarray) -> int:
 def lse_setting(strategy: str, geometry_category: str, t: np.ndarray, e: np.ndarray):
     """None = LSE is fitted; a number = LSE fixed at that value (J). geometry_category: 'full-size' or 'miniature' (D-042)."""
     convention = FIXED_LSE_CONVENTION_J["full-size" if geometry_category == "full-size" else "miniature"]
+    if strategy == "geometry_specific":
+        return FIXED_LSE_CONVENTION_J["full-size"] if geometry_category == "full-size" else None
     if strategy == "fitted":
         return None
     if strategy == "fixed_convention":
@@ -286,35 +309,56 @@ def index_temperature(fit: dict, t: np.ndarray, criterion_j) -> tuple:
 
 
 def index_fraction_of_rise(fit: dict, criterion_j) -> float:
-    """Where the criterion sits on the fitted rise, (E_crit - LSE) / (USE - LSE). Audit only: the synthetic validation showed that
-    T41J is less precise when 41 J lies near a shelf (Block C, USE 44 J), but no flag is attached to it (D-047)."""
+    """Where the criterion sits on the fitted rise, (E_crit - LSE) / (USE - LSE). The synthetic validation showed that T41J is less
+    precise when 41 J lies near a shelf (Block C, USE 44 J); since CP3 a calculated index outside the central 11.9-88.1 % of the rise
+    carries flag_index_near_fitted_shelf (index-support diagnostic, D-044), which never withholds the value."""
     if criterion_j is None or not fit.get("optimizer_success", False) or fit["use_j"] <= fit["lse_j"]:
         return np.nan
     return float((criterion_j - fit["lse_j"]) / (fit["use_j"] - fit["lse_j"]))
 
 
-OUTCOMES = ["optimizer failure", "non-physical", "boundary-limited", "weakly identified",
+OUTCOMES = ["optimizer failure", "non-physical (inadmissible)", "boundary-limited", "weakly identified",
             "usable fit, index temperature unavailable", "usable fit, index temperature calculated"]
 
+# Fit diagnostics (describe the fit) and index diagnostics (describe the index temperature). Only fit diagnostics other than
+# flag_nonflat_upper_shelf take part in the outcome; flag_nonflat_upper_shelf (model adequacy, D-043) and both index diagnostics are
+# reported beside it.
+FIT_FLAGS = ["flag_optimizer_failure", "flag_nonphysical_no_rise", "flag_nonphysical_t0_at_absolute_zero", "flag_lse_at_lower_bound",
+             "flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit", "flag_boundary_rise_max", "flag_boundary_lse_max",
+             "flag_weak_transition", "flag_weak_upper_shelf", "flag_nonflat_upper_shelf", "flag_weak_lower_shelf",
+             "flag_numerically_singular"]
+INDEX_FLAGS = ["flag_index_unavailable", "flag_index_near_fitted_shelf"]
+OUTCOME_FLAG_GROUPS = [
+    # Non-physical (inadmissible): even the constrained best fit has no admissible transition. A zero rise means no ductile-to-brittle
+    # transition at all (T0 and C lose their meaning); T0 at absolute zero places the transition at the physical temperature limit.
+    ("non-physical (inadmissible)", ["flag_nonphysical_no_rise", "flag_nonphysical_t0_at_absolute_zero"]),
+    # Boundary-limited: the fit rests on a bound. flag_lse_at_lower_bound (fitted LSE at 0 J) belongs here since the CP3 amendment of
+    # D-046: the constrained fit wants the lower asymptote at its allowed boundary, meaning the lower shelf is not independently supported
+    # or the symmetric tanh is compensating for a curve-shape mismatch. A 0 J lower shelf is an admissible value (Marini 2020 fixes it),
+    # and the measured energies are physical; the pre-registered version counted it as non-physical.
+    ("boundary-limited", ["flag_lse_at_lower_bound", "flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit",
+                          "flag_boundary_rise_max", "flag_boundary_lse_max"]),
+    ("weakly identified", ["flag_weak_transition", "flag_weak_upper_shelf", "flag_weak_lower_shelf", "flag_numerically_singular"]),
+]
 
-def classify(fit: dict, index_status: str) -> dict:
-    """Diagnostic flags (may overlap) and one mutually exclusive outcome, assigned in the precedence order of OUTCOMES (D-046).
-    flag_nonflat_upper_shelf is a model-adequacy flag reported beside the outcome, not part of it (D-047, changed after the synthetic
-    validation: on correctly specified synthetic curves it fired only by chance and flagged fits were no less accurate)."""
-    f = {k: False for k in ["flag_optimizer_failure", "flag_nonphysical_lse_at_zero", "flag_nonphysical_no_rise",
-                            "flag_nonphysical_t0_at_absolute_zero", "flag_boundary_c_min", "flag_boundary_c_max",
-                            "flag_boundary_t0_limit", "flag_boundary_rise_max", "flag_boundary_lse_max",
-                            "flag_weak_transition", "flag_weak_upper_shelf", "flag_nonflat_upper_shelf",
-                            "flag_weak_lower_shelf", "flag_numerically_singular", "flag_index_unavailable"]}
+
+def classify(fit: dict, index_status: str, index_fraction: float = np.nan) -> dict:
+    """Diagnostic flags (may overlap) and one mutually exclusive outcome, assigned in the precedence order of OUTCOMES (D-046, as amended
+    at CP3). flag_nonflat_upper_shelf is a model-adequacy flag reported beside the outcome, not part of it (D-047, changed after the
+    synthetic validation: on correctly specified synthetic curves it fired only by chance and flagged fits were no less accurate).
+    index_fraction = index_fraction_of_rise(); it sets the index-support diagnostic flag_index_near_fitted_shelf (D-044)."""
+    f = {k: False for k in FIT_FLAGS + INDEX_FLAGS}
     f["flag_index_unavailable"] = index_status != "calculated"
+    f["flag_index_near_fitted_shelf"] = bool(index_status == "calculated" and np.isfinite(index_fraction) and not
+                                             INDEX_RISE_FRACTION_LOW <= index_fraction <= INDEX_RISE_FRACTION_HIGH)
     if not fit.get("optimizer_success", False):
         f["flag_optimizer_failure"] = True
         return {**f, "outcome": OUTCOMES[0], "outcome_reason": fit.get("optimizer_message", "")}
     fitted_lse = fit["lse_mode"] == "fitted"
     physical_t0_floor = fit["bound_t0_low"] <= ABSOLUTE_ZERO_C + 1e-9
-    f["flag_nonphysical_lse_at_zero"] = fitted_lse and fit["at_lower_bound_lse"]
     f["flag_nonphysical_no_rise"] = fit["at_lower_bound_rise"]
     f["flag_nonphysical_t0_at_absolute_zero"] = fit["at_lower_bound_t0"] and physical_t0_floor
+    f["flag_lse_at_lower_bound"] = fitted_lse and fit["at_lower_bound_lse"]
     f["flag_boundary_c_min"] = fit["at_lower_bound_c"]
     f["flag_boundary_c_max"] = fit["at_upper_bound_c"]
     f["flag_boundary_t0_limit"] = fit["at_upper_bound_t0"] or (fit["at_lower_bound_t0"] and not physical_t0_floor)
@@ -325,15 +369,29 @@ def classify(fit: dict, index_status: str) -> dict:
     f["flag_nonflat_upper_shelf"] = bool(fit["upper_shelf_trend_p_value"] < TREND_P_VALUE)
     f["flag_weak_lower_shelf"] = fitted_lse and fit["lse_support"] != "supported"
     f["flag_numerically_singular"] = fit["jacobian_rank"] < fit["n_parameters"]
-    groups = [("non-physical", ["flag_nonphysical_lse_at_zero", "flag_nonphysical_no_rise", "flag_nonphysical_t0_at_absolute_zero"]),
-              ("boundary-limited", ["flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit",
-                                    "flag_boundary_rise_max", "flag_boundary_lse_max"]),
-              ("weakly identified", ["flag_weak_transition", "flag_weak_upper_shelf", "flag_weak_lower_shelf",
-                                     "flag_numerically_singular"])]
-    for outcome, keys in groups:
+    for outcome, keys in OUTCOME_FLAG_GROUPS:
         hit = [k.replace("flag_", "") for k in keys if f[k]]
         if hit:
             return {**f, "outcome": outcome, "outcome_reason": ", ".join(hit)}
     if f["flag_index_unavailable"]:
         return {**f, "outcome": OUTCOMES[4], "outcome_reason": index_status}
     return {**f, "outcome": OUTCOMES[5], "outcome_reason": ""}
+
+
+PRE_CP3_OUTCOMES = ["optimizer failure", "non-physical", "boundary-limited", "weakly identified",
+                    "usable fit, index temperature unavailable", "usable fit, index temperature calculated"]
+
+
+def pre_cp3_outcome(flags) -> str:
+    """The outcome precedence as pre-registered and presented at CP3 before the author's amendment (D-046 history), applied to the flags of
+    classify(): a fitted LSE at 0 J counted as non-physical. Used only to reproduce the earlier CP3 counts; never for a current result."""
+    if flags["flag_optimizer_failure"]:
+        return PRE_CP3_OUTCOMES[0]
+    if flags["flag_lse_at_lower_bound"] or flags["flag_nonphysical_no_rise"] or flags["flag_nonphysical_t0_at_absolute_zero"]:
+        return PRE_CP3_OUTCOMES[1]
+    if any(flags[k] for k in ["flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit", "flag_boundary_rise_max",
+                              "flag_boundary_lse_max"]):
+        return PRE_CP3_OUTCOMES[2]
+    if any(flags[k] for k in ["flag_weak_transition", "flag_weak_upper_shelf", "flag_weak_lower_shelf", "flag_numerically_singular"]):
+        return PRE_CP3_OUTCOMES[3]
+    return PRE_CP3_OUTCOMES[4] if flags["flag_index_unavailable"] else PRE_CP3_OUTCOMES[5]

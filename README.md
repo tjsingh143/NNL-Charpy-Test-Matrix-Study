@@ -19,7 +19,7 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP0 Acquisition and data dictionary | done (CP1 approved; regenerated for the 2025.30 primary release) |
 | WP1 Cleaning and normalization | done (CP1 approved; corrections surfaced in WP2 approved at CP2) |
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
-| WP3 Transition curve fitting | done — CP3 awaiting approval (branch `wp3`) |
+| WP3 Transition curve fitting | done — CP3 approved in principle with amendments; revised results awaiting final approval (branch `wp3`) |
 | WP4–WP7 | not started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
@@ -48,7 +48,7 @@ Which release is primary, and why, is decision D-001 (approved at CP1); see also
 
 Creates `.venv/` with the pinned packages if it does not exist, verifies the raw-data checksums, and regenerates everything in
 `outputs/` and `data/processed/` from `data/raw/` (WP0, WP1 for both dataset releases, WP2 including `outputs/wp2/example_curves.png`,
-WP3 synthetic fitter validation and fits to the published curves). WP2 ends by checking that every cohort still has the membership frozen
+WP3 synthetic fitter validation and fits to the published curves, each with the final primary method and the all-fitted lower-shelf sensitivity case). WP2 ends by checking that every cohort still has the membership frozen
 at checkpoint CP2 (`data/FROZEN_COHORTS_CP2.csv`) and stops if it does not; WP3 repeats that check before fitting anything.
 WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers.
 
@@ -74,4 +74,4 @@ WP3's synthetic validation uses a fixed seed and runs in parallel worker process
 | `src/wp3_fitter.py` | WP3: tanh model, bounded least-squares fit, diagnostics, index temperature, outcome categories |
 | `src/wp3_validation.py` | WP3: fitter validation on SYNTHETIC curves with known truth (lower-shelf decision rule, error vs sampling and scatter) |
 | `src/wp3_fit_curves.py` | WP3: fits to the published curves of the frozen cohorts, outcome accounting, comparisons, `wp3_summary.md` |
-| `outputs/wp3/` | `synthetic_*` = SYNTHETIC validation outputs; all other files = fits to published data (`wp3_summary.md` collects them) |
+| `outputs/wp3/` | `synthetic_*` = SYNTHETIC validation outputs; all other files = fits to published data (`wp3_summary.md` collects them); final primary method. `sensitivity_all_fitted_lse/` = the pre-registered all-fitted lower-shelf method, kept as a sensitivity case |

@@ -1,16 +1,18 @@
-flag,meaning,curves
-flag_optimizer_failure,optimizer failure (no start converged),0
-flag_nonphysical_lse_at_zero,non-physical: fitted LSE at 0 J,71
-flag_nonphysical_no_rise,non-physical: no rise (USE = LSE),0
-flag_nonphysical_t0_at_absolute_zero,non-physical: T0 at absolute zero,0
-flag_boundary_c_min,boundary: C at 1 °C (width unresolved),3
-flag_boundary_c_max,boundary: C at the tested span,0
-flag_boundary_t0_limit,boundary: T0 at a range limit,0
-flag_boundary_rise_max,boundary: USE - LSE at 10x highest energy,0
-flag_boundary_lse_max,boundary: LSE at highest energy,0
-flag_weak_transition,weak: < 2 test temperatures inside T0 ± C,5
-flag_weak_upper_shelf,weak: upper shelf not supported (< 2 specimens at >= 95 % of rise),29
-flag_nonflat_upper_shelf,model adequacy (not an outcome): upper-shelf residual trend (p < 0.05),8
-flag_weak_lower_shelf,weak: lower shelf not supported (< 2 specimens at <= 5 % of rise; LSE fitted),105
-flag_numerically_singular,ill-conditioned: Jacobian rank-deficient,1
-flag_index_unavailable,index temperature not calculated (any reason),38
+flag,meaning,curves,full_size_curves,miniature_curves
+flag_optimizer_failure,optimizer failure (no start converged),0,0,0
+flag_nonphysical_no_rise,non-physical (inadmissible): no rise (USE = LSE),0,0,0
+flag_nonphysical_t0_at_absolute_zero,non-physical (inadmissible): T0 at absolute zero,0,0,0
+flag_lse_at_lower_bound,"boundary: fitted LSE at its 0 J lower bound (lower shelf not independently supported, or the symmetric tanh compensating for a curve-shape mismatch; LSE fitted only)",15,0,15
+flag_boundary_c_min,boundary: C at 1 °C (width unresolved),2,0,2
+flag_boundary_c_max,boundary: C at the tested span,0,0,0
+flag_boundary_t0_limit,boundary: T0 at a range limit,1,1,0
+flag_boundary_rise_max,boundary: USE - LSE at 10x highest energy,1,1,0
+flag_boundary_lse_max,boundary: LSE at highest energy,0,0,0
+flag_weak_transition,weak: < 2 test temperatures inside T0 ± C,5,2,3
+flag_weak_upper_shelf,weak: upper shelf not supported (< 2 specimens at >= 95 % of rise),35,29,6
+flag_weak_lower_shelf,weak: lower shelf not supported (< 2 specimens at <= 5 % of rise; LSE fitted only),18,0,18
+flag_numerically_singular,ill-conditioned: Jacobian rank-deficient,1,0,1
+flag_nonflat_upper_shelf,model adequacy (not an outcome): upper-shelf residual trend (p < 0.05),7,5,2
+flag_index_unavailable,index temperature not calculated (any reason),36,0,36
+flag_index_near_fitted_shelf,"index support (not an outcome): T41J calculated, but 41 J outside the central 11.9-88.1 % of the fitted rise",9,9,0
+flag_full_size_notch_dimensions_unreported,"metadata (not a fit diagnostic): full-size V-notch, exact notch dimensions unreported; T41J still calculated (D-044)",74,74,0

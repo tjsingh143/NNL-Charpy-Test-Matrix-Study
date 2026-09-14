@@ -4,18 +4,25 @@ Every curve here is generated from a known tanh curve plus controlled random sca
 with the truth. Nothing produced here is, or may be mixed with, published Charpy data; every output file name starts with
 'synthetic_' and every table carries a data_type column saying SYNTHETIC.
 
-Order (DECISIONS.md D-042, D-048):
-  1. Block L compares the four lower-shelf strategies on the same synthetic data sets and applies the decision rule written in
-     choose_lse_strategy() before any result existed. LOCKED_LSE_STRATEGY records the outcome; the run stops if the rule ever
-     gives a different answer, so the choice cannot drift silently.
-  2. Blocks A-D validate the locked strategy across sampling density, sampling pattern, parameter values, noise and a fixed test
-     window, including designs expected to fail. Block E (non-flat upper shelves) was added after A-D had been run, to test the
-     upper-shelf trend flag, whose role changed as a result (D-047).
+Order (DECISIONS.md D-042, D-048, D-051):
+  1. Block L compares the four pre-registered lower-shelf strategies on the same synthetic data sets and applies the decision rule
+     written in choose_lse_strategy() before any result existed. PREREGISTERED_RULE_OUTCOME records its outcome (`fitted`); the run
+     stops if the rule ever gives a different answer, so the history cannot drift silently.
+  2. Blocks A-D validate the method across sampling density, sampling pattern, parameter values, noise and a fixed test window,
+     including designs expected to fail. Block E (non-flat upper shelves) was added after A-D had been run, to test the upper-shelf
+     trend flag, whose role changed as a result (D-047).
+  3. CP3 amendment (author, 2026-09-14; D-042): the final primary method is `geometry_specific` (LSE fixed at 2.7 J for full-size,
+     fitted for miniature specimens). Blocks A-E therefore run twice on identical synthetic data: with the pre-registered all-fitted
+     method (sensitivity and history case; scenario IDs as before CP3) and with the final method. No scenario was added or changed.
+     Every Block A-E truth is full-size, so the final method fixes LSE at 2.7 J there; its miniature behaviour is Block L's `fitted`
+     miniature results, and its full-size Block L behaviour is `fixed_convention`'s full-size results (identical fits on identical data).
 
-Outputs (outputs/wp3/): synthetic_validation_design.csv, synthetic_validation_replicates_blocks_A-E.csv.gz, synthetic_validation_metrics.csv,
-synthetic_lse_strategy_comparison.csv, synthetic_lse_strategy_per_dataset.csv, synthetic_lse_strategy_rule.md,
-synthetic_flag_check.csv, synthetic_trust_limits.csv, synthetic_nonflat_upper_shelf_check.csv,
-synthetic_*.png. Fixed seed SEED; results are identical for any number of worker processes.
+Outputs (outputs/wp3/): synthetic_validation_design.csv, synthetic_validation_replicates_blocks_A-E.csv.gz (both methods),
+synthetic_validation_metrics.csv (every scenario; column lse_strategy), synthetic_lse_strategy_comparison.csv,
+synthetic_lse_strategy_per_dataset.csv, synthetic_lse_strategy_rule.md, synthetic_final_method_block_l.csv, and for the final method
+synthetic_flag_check.csv, synthetic_trust_limits.csv, synthetic_nonflat_upper_shelf_check.csv, synthetic_*.png; the same three tables for
+the all-fitted sensitivity case in outputs/wp3/sensitivity_all_fitted_lse/. Fixed seed SEED; results are identical for any number of
+worker processes.
 
 Run:  .venv/bin/python src/wp3_validation.py
 """
@@ -29,10 +36,12 @@ import numpy as np
 import pandas as pd
 
 from common import OUTPUTS, md_table, write_text
-from wp3_fitter import (CRITERION_J, LSE_STRATEGIES, OUTCOMES, classify, criterion_temperature, fit_curve, index_fraction_of_rise,
-                        index_temperature, lse_setting, tanh_energy)
+from wp3_fitter import (CRITERION_J, FIT_FLAGS, LSE_STRATEGIES, LSE_STRATEGY_LABELS, OUTCOMES, PRIMARY_LSE_STRATEGY,
+                        SENSITIVITY_LSE_STRATEGY, classify, criterion_temperature, fit_curve, index_fraction_of_rise, index_temperature,
+                        lse_setting, tanh_energy)
 
 OUT = OUTPUTS / "wp3"
+SENSITIVITY_OUT = OUT / "sensitivity_all_fitted_lse"
 DATA_TYPE = "SYNTHETIC (fitter validation; not published measurements)"
 SEED = 20260913
 REPLICATES = 200
@@ -49,8 +58,15 @@ REFERENCE_FULL = dict(lse=5.0, use=150.0, t0=0.0, c=30.0)
 # = 9.4 °C base-metal scatter limit for credible surveillance shifts in 10 CFR 50.61(c)(2)(i)(C)); 10 % for USE; 25 % for C.
 REF_TEMPERATURE_C, REF_USE_REL, REF_C_REL = 10.0, 0.10, 0.25
 
-# D-042. Filled in only after Block L was run with the rule below (None = run Block L and stop).
-LOCKED_LSE_STRATEGY = "fitted"  # Block L outcome under the pre-registered rule (rule 3), recorded in D-042
+# D-042. Filled in only after Block L was run with the rule below (None = run Block L and stop). Named LOCKED_LSE_STRATEGY until CP3,
+# when it also set the method of Blocks A-E and of the published fits; since the author's CP3 amendment it records only the
+# pre-registered rule's outcome, which every run must still reproduce. The final primary method is wp3_fitter.PRIMARY_LSE_STRATEGY.
+PREREGISTERED_RULE_OUTCOME = "fitted"  # Block L outcome under the pre-registered rule (rule 3), recorded in D-042
+if PREREGISTERED_RULE_OUTCOME not in (None, SENSITIVITY_LSE_STRATEGY):
+    raise RuntimeError("The all-fitted sensitivity case must be the pre-registered rule outcome (D-042).")
+SCALES = ["full-size", "miniature"]
+# Block L candidate whose fits the final primary method reproduces exactly, per scale (same LSE setting on the same synthetic data).
+FINAL_METHOD_BLOCK_L_COMPONENTS = {"full-size": "fixed_convention", "miniature": "fitted"}
 
 
 # ---------------------------------------------------------------------------
@@ -82,52 +98,55 @@ def build_scenarios() -> list:
             for noise in ("low", "moderate", "high"):
                 for strategy in LSE_STRATEGIES:
                     add("L", design, spec, truth, noise, scale, strategy)
-    if LOCKED_LSE_STRATEGY is None:
+    if PREREGISTERED_RULE_OUTCOME is None:
         return rows
-    s = LOCKED_LSE_STRATEGY
-    noises = ["zero", "low", "moderate", "high"]
-    # Block A: sampling density (uniform over both shelves and the transition).
-    for n in (6, 8, 12, 18, 30):
-        for noise in noises:
-            add("A", f"uniform x -3..3, n={n}", _x(np.linspace(-3, 3, n)), REFERENCE_FULL, noise, strategy=s)
-    # Block B: sampling patterns.
-    shelves = [-3.5, -3.0, -2.5, 2.5, 3.0, 3.5]
-    patterns = [("shelves only, 0 transition points (n=6)", _x(shelves)),
-                ("shelves + 1 transition point (n=7)", _x(shelves + [0.0])),
-                ("shelves + 2 transition points (n=8)", _x(shelves + [-0.5, 0.5])),
-                ("shelves + 3 transition points (n=9)", _x(shelves + [-0.7, 0.0, 0.7])),
-                ("x -1.5..3, n=12 (lower shelf weak)", _x(np.linspace(-1.5, 3, 12))),
-                ("x -0.5..3, n=12 (lower shelf missing)", _x(np.linspace(-0.5, 3, 12))),
-                ("x -3..1.5, n=12 (upper shelf weak)", _x(np.linspace(-3, 1.5, 12))),
-                ("x -3..0.5, n=12 (upper shelf missing)", _x(np.linspace(-3, 0.5, 12))),
-                ("clustered at centre: 2+2 shelf points, 8 in |x|<=0.5 (n=12)", _x([-3, -3, 3, 3] + list(np.linspace(-0.5, 0.5, 8)))),
-                ("clustered cold side: x -3..-0.5, n=12", _x(np.linspace(-3, -0.5, 12))),
-                ("5 temperatures x 3 specimens, x = -2.5, -1, 0, 1, 2.5 (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 1.0, 2.5], 3)))]
-    for design, spec in patterns:
-        for noise in noises:
-            add("B", design, spec, REFERENCE_FULL, noise, strategy=s)
-    # Block C: parameter values (one at a time around the reference), moderate scatter.
-    for label, change in [("USE 44 J (41 J near upper shelf)", dict(use=44.0)), ("USE 70 J", dict(use=70.0)),
-                          ("USE 250 J", dict(use=250.0)), ("LSE 2 J", dict(lse=2.0)), ("LSE 10 J", dict(lse=10.0)),
-                          ("C 12 °C (narrow)", dict(c=12.0)), ("C 60 °C (broad)", dict(c=60.0))]:
-        for design, spec in [("uniform x -3..3, n=12", _x(np.linspace(-3, 3, 12))),
-                             ("5 temperatures x 3 specimens (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 1.0, 2.5], 3)))]:
-            add("C", f"{label}; {design}", spec, {**REFERENCE_FULL, **change}, "moderate", strategy=s)
-    # Block D: a fixed test window planned without knowing T0 (cohort 10th percentile / median / 90th percentile of points and span).
-    for n, span in [(9, 150.0), (12, 250.0), (24, 360.0)]:
-        for t0 in (-60.0, 0.0, 60.0):
-            for c in (12.0, 30.0, 60.0):
-                add("D", f"window {span:g} °C, n={n}; true T0 {t0:+g} °C from centre; true C {c:g} °C", ("window", n, span, "absolute", 0.0),
-                    {**REFERENCE_FULL, "t0": t0, "c": c}, "moderate", strategy=s)
-    # Block E (added after Blocks A-D had been run, D-047): upper shelves that are NOT flat, which a tanh cannot represent. Above
-    # x = 1.5 the true energy changes linearly by `shelf_slope` x USE per 100 °C (negative: falling, as ref 104 is described in D-037).
-    # Tests whether the upper-shelf trend flag detects them and how far the fitted USE is pulled.
-    for slope in (-0.20, -0.10, 0.10):
-        for design, spec in [("uniform x -3..5, n=12 (upper shelf sampled to x = 5)", _x(np.linspace(-3, 5, 12))),
-                             ("x = -2.5, -1, 0, 2, 4 x 3 specimens (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 2.0, 4.0], 3)))]:
-            for noise in ("low", "moderate"):
-                add("E", f"upper shelf {100 * slope:+g} % of USE per 100 °C; {design}", spec, REFERENCE_FULL, noise, strategy=s,
-                    shelf_slope=slope)
+    # Blocks A-E, first with the pre-registered all-fitted method (sensitivity and history case: its scenario IDs are those used before
+    # CP3), then, unchanged, with the final primary method of the CP3 amendment (D-042). data_key() excludes the strategy, so both
+    # methods are fitted to identical synthetic data.
+    for s in (SENSITIVITY_LSE_STRATEGY, PRIMARY_LSE_STRATEGY):
+        noises = ["zero", "low", "moderate", "high"]
+        # Block A: sampling density (uniform over both shelves and the transition).
+        for n in (6, 8, 12, 18, 30):
+            for noise in noises:
+                add("A", f"uniform x -3..3, n={n}", _x(np.linspace(-3, 3, n)), REFERENCE_FULL, noise, strategy=s)
+        # Block B: sampling patterns.
+        shelves = [-3.5, -3.0, -2.5, 2.5, 3.0, 3.5]
+        patterns = [("shelves only, 0 transition points (n=6)", _x(shelves)),
+                    ("shelves + 1 transition point (n=7)", _x(shelves + [0.0])),
+                    ("shelves + 2 transition points (n=8)", _x(shelves + [-0.5, 0.5])),
+                    ("shelves + 3 transition points (n=9)", _x(shelves + [-0.7, 0.0, 0.7])),
+                    ("x -1.5..3, n=12 (lower shelf weak)", _x(np.linspace(-1.5, 3, 12))),
+                    ("x -0.5..3, n=12 (lower shelf missing)", _x(np.linspace(-0.5, 3, 12))),
+                    ("x -3..1.5, n=12 (upper shelf weak)", _x(np.linspace(-3, 1.5, 12))),
+                    ("x -3..0.5, n=12 (upper shelf missing)", _x(np.linspace(-3, 0.5, 12))),
+                    ("clustered at centre: 2+2 shelf points, 8 in |x|<=0.5 (n=12)", _x([-3, -3, 3, 3] + list(np.linspace(-0.5, 0.5, 8)))),
+                    ("clustered cold side: x -3..-0.5, n=12", _x(np.linspace(-3, -0.5, 12))),
+                    ("5 temperatures x 3 specimens, x = -2.5, -1, 0, 1, 2.5 (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 1.0, 2.5], 3)))]
+        for design, spec in patterns:
+            for noise in noises:
+                add("B", design, spec, REFERENCE_FULL, noise, strategy=s)
+        # Block C: parameter values (one at a time around the reference), moderate scatter.
+        for label, change in [("USE 44 J (41 J near upper shelf)", dict(use=44.0)), ("USE 70 J", dict(use=70.0)),
+                              ("USE 250 J", dict(use=250.0)), ("LSE 2 J", dict(lse=2.0)), ("LSE 10 J", dict(lse=10.0)),
+                              ("C 12 °C (narrow)", dict(c=12.0)), ("C 60 °C (broad)", dict(c=60.0))]:
+            for design, spec in [("uniform x -3..3, n=12", _x(np.linspace(-3, 3, 12))),
+                                 ("5 temperatures x 3 specimens (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 1.0, 2.5], 3)))]:
+                add("C", f"{label}; {design}", spec, {**REFERENCE_FULL, **change}, "moderate", strategy=s)
+        # Block D: a fixed test window planned without knowing T0 (cohort 10th percentile / median / 90th percentile of points and span).
+        for n, span in [(9, 150.0), (12, 250.0), (24, 360.0)]:
+            for t0 in (-60.0, 0.0, 60.0):
+                for c in (12.0, 30.0, 60.0):
+                    add("D", f"window {span:g} °C, n={n}; true T0 {t0:+g} °C from centre; true C {c:g} °C",
+                        ("window", n, span, "absolute", 0.0), {**REFERENCE_FULL, "t0": t0, "c": c}, "moderate", strategy=s)
+        # Block E (added after Blocks A-D had been run, D-047): upper shelves that are NOT flat, which a tanh cannot represent. Above
+        # x = 1.5 the true energy changes linearly by `shelf_slope` x USE per 100 °C (negative: falling, as ref 104 is described in
+        # D-037). Tests whether the upper-shelf trend flag detects them and how far the fitted USE is pulled.
+        for slope in (-0.20, -0.10, 0.10):
+            for design, spec in [("uniform x -3..5, n=12 (upper shelf sampled to x = 5)", _x(np.linspace(-3, 5, 12))),
+                                 ("x = -2.5, -1, 0, 2, 4 x 3 specimens (n=15)", _x(np.repeat([-2.5, -1.0, 0.0, 2.0, 4.0], 3)))]:
+                for noise in ("low", "moderate"):
+                    add("E", f"upper shelf {100 * slope:+g} % of USE per 100 °C; {design}", spec, REFERENCE_FULL, noise, strategy=s,
+                        shelf_slope=slope)
     return rows
 
 
@@ -176,15 +195,18 @@ def run_scenario(sc: dict) -> list:
         lse_fixed = lse_setting(sc["lse_strategy"], sc["scale"], t, e)
         fit = fit_curve(t, e, lse_fixed)
         t41, index_status = index_temperature(fit, t, criterion)
-        cls = classify(fit, index_status)
+        fraction = index_fraction_of_rise(fit, criterion)
+        cls = classify(fit, index_status, fraction)
         row = dict(scenario_id=sc["scenario_id"], replicate=rep, n_clipped_at_zero=n_clipped, lse_mode=fit["lse_mode"],
                    outcome=cls["outcome"], outcome_reason=cls["outcome_reason"], index_status=index_status, t41_c=t41,
+                   n_points_below_criterion=int(np.sum(e < criterion)) if criterion else np.nan,
+                   n_points_above_criterion=int(np.sum(e > criterion)) if criterion else np.nan,
                    **{k: v for k, v in cls.items() if k.startswith("flag_")})
         if fit.get("optimizer_success"):
             t41_any = criterion_temperature(fit["lse_j"], fit["use_j"], fit["t0_c"], fit["c_c"], criterion)[0] if criterion else np.nan
             row.update(lse_j=fit["lse_j"], use_j=fit["use_j"], t0_c=fit["t0_c"], c_c=fit["c_c"], t41_analytic_c=t41_any,
                        use_support=fit["use_support"], lse_support=fit["lse_support"], n_T_transition_fit=fit["n_T_transition_fit"],
-                       upper_shelf_trend_p_value=fit["upper_shelf_trend_p_value"], index_fraction_of_rise=index_fraction_of_rise(fit, criterion),
+                       upper_shelf_trend_p_value=fit["upper_shelf_trend_p_value"], index_fraction_of_rise=fraction,
                        jacobian_condition_number=fit["jacobian_condition_number"],
                        t0_spread_within_1pct_of_best_cost_c=fit["t0_spread_within_1pct_of_best_cost_c"],
                        err_lse_j=fit["lse_j"] - truth["lse"], err_use_rel=fit["use_j"] / truth["use"] - 1.0,
@@ -272,6 +294,33 @@ def choose_lse_strategy(block_l: pd.DataFrame) -> tuple:
     return choice, reason, summary.reset_index(), per
 
 
+def final_method_scores(summary: pd.DataFrame, per: pd.DataFrame) -> pd.DataFrame:
+    """Block L scores of the final primary method (CP3 amendment, D-042), assembled - not re-run - from the pre-registered candidates
+    whose fits it reproduces exactly on the same synthetic data: `fixed_convention` for full-size truths (LSE fixed at 2.7 J) and `fitted`
+    for miniature truths. Same score definitions and cohort weight as choose_lse_strategy(). Descriptive only: it is not a candidate of
+    the pre-registered rule, the rule's outcome is unchanged, and the choice of the final method was the author's."""
+    comp = per[per["lse_strategy"] == per["scale"].map(FINAL_METHOD_BLOCK_L_COMPONENTS)]
+    w_full = float(summary["cohort_weight_full_size"].iloc[0])
+    by_scale = {s: comp.loc[comp["scale"] == s, "p90_abs_key_temperature_c"].mean() for s in SCALES}
+    return pd.DataFrame([{"lse_strategy": PRIMARY_LSE_STRATEGY, "score_mean_p90_c": comp["p90_abs_key_temperature_c"].mean(),
+                          "mean_missing_share": comp["missing_share"].mean(), "score_full-size_c": by_scale["full-size"],
+                          "score_miniature_c": by_scale["miniature"],
+                          "cohort_weighted_score_c_not_used_by_rule": w_full * by_scale["full-size"] + (1 - w_full) * by_scale["miniature"],
+                          "cohort_weight_full_size": w_full, "eligible": "not a rule candidate",
+                          "role": "final primary method (CP3 author decision); assembled from fixed_convention (full-size) and fitted "
+                                  "(miniature); not a rule candidate"}])
+
+
+def final_method_block_l(metrics: pd.DataFrame) -> pd.DataFrame:
+    """Per Block L data set, how the final primary method recovers the truth (the scenarios of its component candidates): trust-limit
+    classes as in trust_limits(), plus the shares of the lower-shelf diagnostics. Key temperatures: T41J for full-size truths; for
+    miniature truths no index exists (D-045), so T0 and USE are judged."""
+    m = metrics[(metrics["block"] == "L") & (metrics["lse_strategy"] == metrics["scale"].map(FINAL_METHOD_BLOCK_L_COMPONENTS))]
+    out = trust_limits(m, blocks=("L",))
+    return out.merge(m[["scenario_id", "share_flag_lse_at_lower_bound", "share_flag_weak_lower_shelf", "all_lse_j_p90_abs"]],
+                     on="scenario_id")
+
+
 # ---------------------------------------------------------------------------
 # 4. Driver
 # ---------------------------------------------------------------------------
@@ -296,17 +345,20 @@ def main():
     block_l = reps.merge(design[["scenario_id", "data_key", "lse_strategy", "scale"]], on="scenario_id")
     block_l = block_l[block_l["scenario_id"].isin(design.loc[design["block"] == "L", "scenario_id"])]
     choice, reason, summary, per = choose_lse_strategy(block_l)
-    print(f"Lower-shelf rule (Block L): {choice} ({reason})")
+    print(f"Pre-registered lower-shelf rule (Block L): {choice} ({reason})")
+    if PREREGISTERED_RULE_OUTCOME is None:
+        print(summary.to_string(index=False))
+        print("PREREGISTERED_RULE_OUTCOME is not set: Block L only. Record the decision in DECISIONS.md, set it, and rerun.")
+        return
+    if choice != PREREGISTERED_RULE_OUTCOME:
+        raise RuntimeError(f"The pre-registered lower-shelf rule now selects {choice!r}, but it selected "
+                           f"{PREREGISTERED_RULE_OUTCOME!r} when it was run (D-042).")
+    summary = pd.concat([summary.assign(role="pre-registered Block L candidate"), final_method_scores(summary, per)], ignore_index=True)
     print(summary.to_string(index=False))
     summary.insert(0, "data_type", DATA_TYPE)
     per.insert(0, "data_type", DATA_TYPE)
     summary.to_csv(OUT / "synthetic_lse_strategy_comparison.csv", index=False)
     per.to_csv(OUT / "synthetic_lse_strategy_per_dataset.csv", index=False)
-    if LOCKED_LSE_STRATEGY is None:
-        print("LOCKED_LSE_STRATEGY is not set: Block L only. Record the decision in DECISIONS.md, set it, and rerun.")
-        return
-    if choice != LOCKED_LSE_STRATEGY:
-        raise RuntimeError(f"The lower-shelf decision rule now selects {choice!r}, but {LOCKED_LSE_STRATEGY!r} is locked (D-042).")
     write_text(OUT / "synthetic_lse_strategy_rule.md", lse_rule_markdown(choice, reason, summary, per))
     reps.insert(0, "data_type", DATA_TYPE)
     design.to_csv(OUT / "synthetic_validation_design.csv", index=False)
@@ -314,12 +366,18 @@ def main():
     reps[ad].to_csv(OUT / "synthetic_validation_replicates_blocks_A-E.csv.gz", index=False, compression={"method": "gzip", "mtime": 0})
     metrics = scenario_metrics(design, reps)
     metrics.to_csv(OUT / "synthetic_validation_metrics.csv", index=False)
-    checks = flag_check(reps, design)
-    checks.to_csv(OUT / "synthetic_flag_check.csv", index=False)
-    limits = trust_limits(metrics)
-    limits.to_csv(OUT / "synthetic_trust_limits.csv", index=False)
-    misspecified_shelf_check(reps, design).to_csv(OUT / "synthetic_nonflat_upper_shelf_check.csv", index=False)
-    figures(scenarios, design, reps, metrics, per)
+    final_method_block_l(metrics).to_csv(OUT / "synthetic_final_method_block_l.csv", index=False)
+    # Blocks A-E, once per method: final primary method in outputs/wp3/, all-fitted sensitivity case in its own folder.
+    SENSITIVITY_OUT.mkdir(parents=True, exist_ok=True)
+    for strategy, folder in [(PRIMARY_LSE_STRATEGY, OUT), (SENSITIVITY_LSE_STRATEGY, SENSITIVITY_OUT)]:
+        ids = design.loc[(design["block"] != "L") & (design["lse_strategy"] == strategy), "scenario_id"]
+        r, dsg, m = (reps[reps["scenario_id"].isin(ids)], design[design["scenario_id"].isin(ids)],
+                     metrics[metrics["scenario_id"].isin(ids)])
+        flag_check(r, dsg).to_csv(folder / "synthetic_flag_check.csv", index=False)
+        trust_limits(m).to_csv(folder / "synthetic_trust_limits.csv", index=False)
+        misspecified_shelf_check(r, dsg).to_csv(folder / "synthetic_nonflat_upper_shelf_check.csv", index=False)
+        if strategy == PRIMARY_LSE_STRATEGY:
+            figures([sc for sc in scenarios if sc["scenario_id"] in set(ids)], dsg, r, m, per)
     print(f"Synthetic validation: {len(design)} scenarios, {len(reps)} fits -> {OUT}")
 
 
@@ -334,7 +392,13 @@ def lse_rule_markdown(choice, reason, summary, per) -> str:
         f"Data type: {DATA_TYPE}.", "",
         "Key temperature: T41J from the analytic crossing (full-size truths) or T0 (miniature-scale truths). Score = mean over synthetic "
         "data sets of the 90th percentile of |error| (°C). Missing = share of replicates without a key temperature.", "",
-        md_table(summary.drop(columns=["data_type"]).round(3)), "", f"**Rule outcome: `{choice}`** ({reason}).", ""])
+        md_table(summary.drop(columns=["data_type"]).round(3)), "", f"**Rule outcome: `{choice}`** ({reason}).", "",
+        "**CP3 amendment (author, 2026-09-14; D-042).** The pre-registered rule's outcome above is kept as history and is reproduced on every "
+        f"run. The final primary method is `{PRIMARY_LSE_STRATEGY}` ({LSE_STRATEGY_LABELS[PRIMARY_LSE_STRATEGY]}), chosen by the author on "
+        "the literature, the intended estimand (full-size T41J) and the full-size synthetic results, after the rule's equal weighting of "
+        "synthetic data sets was found to weight miniature truths about 2 : 1 against full-size truths. Its row is assembled from the "
+        "candidates whose fits it reproduces exactly and is descriptive: it is not a candidate of the rule and selected nothing. The "
+        f"all-fitted method (`{SENSITIVITY_LSE_STRATEGY}`) is kept as an explicit sensitivity case.", ""])
 
 
 def flag_check(reps: pd.DataFrame, design: pd.DataFrame) -> pd.DataFrame:
@@ -357,7 +421,8 @@ def flag_check(reps: pd.DataFrame, design: pd.DataFrame) -> pd.DataFrame:
         summarise(outcome, "outcome", d[d["outcome"] == outcome])
     summarise("all usable outcomes", "outcome group", d[d["outcome"].isin(USABLE)])
     summarise("all fits with estimates", "outcome group", d[d["outcome"] != OUTCOMES[0]])
-    flags = [c for c in d.columns if c.startswith("flag_") and c != "flag_index_unavailable"]
+    # Fit diagnostics only; the index diagnostics describe the index temperature and are checked separately below.
+    flags = [c for c in FIT_FLAGS if c in d.columns]
     for flag in flags:
         summarise(f"{flag} = True", "flag", d[d[flag]])
         summarise(f"{flag} = False", "flag", d[~d[flag]])
@@ -367,6 +432,13 @@ def flag_check(reps: pd.DataFrame, design: pd.DataFrame) -> pd.DataFrame:
     for flag in flags:
         summarise(f"only {flag}", "only this flag", d[(n_flags == 1) & d[flag]])
     summarise("two or more flags", "only this flag", d[n_flags >= 2])
+    # Index-support diagnostic (D-044, added at CP3): among usable fits with a calculated T41J, does 41 J on a flat part of the fitted
+    # curve (outside the central 11.9-88.1 % of the rise) go with a larger T41J error?
+    calc = d[d["outcome"] == OUTCOMES[5]]
+    summarise("usable fit with T41J: 41 J inside the central 11.9-88.1 % of the fitted rise", "index support",
+              calc[~calc["flag_index_near_fitted_shelf"]])
+    summarise("usable fit with T41J: 41 J outside it (flag_index_near_fitted_shelf)", "index support",
+              calc[calc["flag_index_near_fitted_shelf"]])
     ok = d[d["outcome"] != OUTCOMES[0]].copy()
     ok["condition_number_quartile"] = pd.qcut(np.log10(ok["jacobian_condition_number"].replace(np.inf, 1e300)), 4,
                                               labels=["Q1 (lowest)", "Q2", "Q3", "Q4 (highest)"])
@@ -376,6 +448,12 @@ def flag_check(reps: pd.DataFrame, design: pd.DataFrame) -> pd.DataFrame:
               ok[ok["t0_spread_within_1pct_of_best_cost_c"] > 1.0])
     summarise("starts within 1 % of best cost agree on T0 within 1 °C", "audit: start agreement",
               ok[ok["t0_spread_within_1pct_of_best_cost_c"] <= 1.0])
+    # Audit added at the CP3 amendment (no rule attached, D-051): usable fits with a calculated T41J whose synthetic energies are all
+    # above 41 J, so that the crossing rests on the fitted or fixed lower part of the curve rather than on a measured point below 41 J.
+    summarise("usable fit with T41J: no specimen energy below 41 J", "audit: criterion bracketing",
+              calc[calc["n_points_below_criterion"] == 0])
+    summarise("usable fit with T41J: at least one specimen energy below 41 J", "audit: criterion bracketing",
+              calc[calc["n_points_below_criterion"] > 0])
     return pd.DataFrame(rows)
 
 
@@ -396,18 +474,20 @@ def misspecified_shelf_check(reps: pd.DataFrame, design: pd.DataFrame) -> pd.Dat
     return pd.DataFrame(rows)
 
 
-def trust_limits(metrics: pd.DataFrame) -> pd.DataFrame:
-    """Per scenario with scatter (Blocks A-D): is truth recovered within the reference scales by all fits, and by usable fits only?"""
-    m = metrics[metrics["block"].isin(["A", "B", "C", "D"]) & (metrics["noise"] != "zero")].copy()
+def trust_limits(metrics: pd.DataFrame, blocks=("A", "B", "C", "D")) -> pd.DataFrame:
+    """Per scenario with scatter (Blocks A-D by default): is truth recovered within the reference scales by all fits, and by usable fits
+    only? T41J is judged only for full-size truths; miniature truths (Block L) have no index criterion (D-045)."""
+    m = metrics[metrics["block"].isin(blocks) & (metrics["noise"] != "zero")].copy()
     m["share_usable"] = m[[f"share_{o}" for o in USABLE]].sum(axis=1)
     m["share_not_usable"] = 1.0 - m["share_usable"]
-    ok_all = (m["all_t41_analytic_p90_abs"] <= REF_TEMPERATURE_C) & (m["all_t0_p90_abs"] <= REF_TEMPERATURE_C) & \
+    judge_t41 = m["scale"] == "full-size"
+    ok_all = (~judge_t41 | (m["all_t41_analytic_p90_abs"] <= REF_TEMPERATURE_C)) & (m["all_t0_p90_abs"] <= REF_TEMPERATURE_C) & \
              (m["all_use_rel_p90_abs"] <= REF_USE_REL)
     m["all_fits_within_reference_p90"] = ok_all
-    ok_usable = (m["usable_t41_p90_abs"].fillna(np.inf) <= REF_TEMPERATURE_C) & (m["usable_t0_p90_abs"].fillna(np.inf) <= REF_TEMPERATURE_C) & \
-                (m["usable_use_rel_p90_abs"].fillna(np.inf) <= REF_USE_REL)
+    ok_usable = (~judge_t41 | (m["usable_t41_p90_abs"].fillna(np.inf) <= REF_TEMPERATURE_C)) & \
+                (m["usable_t0_p90_abs"].fillna(np.inf) <= REF_TEMPERATURE_C) & (m["usable_use_rel_p90_abs"].fillna(np.inf) <= REF_USE_REL)
     m["usable_fits_within_reference_p90"] = ok_usable & (m["share_usable"] > 0)
-    cols = ["data_type", "scenario_id", "block", "design", "noise", "lse_true", "use_true", "t0_true", "c_true", "share_usable",
+    cols = ["data_type", "scenario_id", "block", "scale", "lse_strategy", "design", "noise", "lse_true", "use_true", "t0_true", "c_true", "share_usable",
             "share_not_usable", "share_index_calculated", "all_t41_analytic_p90_abs", "all_t0_p90_abs", "all_use_rel_p90_abs",
             "all_c_rel_p90_abs", "usable_t41_p90_abs", "usable_t0_p90_abs", "usable_use_rel_p90_abs", "all_fits_within_reference_p90",
             "usable_fits_within_reference_p90"]
@@ -480,7 +560,8 @@ def figures(scenarios, design, reps, metrics, per) -> None:
         ax.text(0.0, -0.2, txt, transform=ax.transAxes, fontsize=7.2, va="top", color=INK2)
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc="upper center", ncol=4, fontsize=7.5, frameon=False, bbox_to_anchor=(0.5, 0.95))
-    fig.suptitle("SYNTHETIC fitter-validation examples (not published data)", fontsize=10, color=INK)
+    fig.suptitle("SYNTHETIC fitter-validation examples (not published data); final method: full-size LSE fixed at 2.7 J", fontsize=10,
+                 color=INK)
     fig.tight_layout(rect=(0, 0.02, 1, 0.9))
     fig.subplots_adjust(bottom=0.27)
     fig.savefig(OUT / "synthetic_examples.png", dpi=150, metadata={"Software": None})
@@ -508,7 +589,8 @@ def figures(scenarios, design, reps, metrics, per) -> None:
         ax.set_ylim(bottom=0)
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc="upper center", ncol=3, fontsize=8, frameon=False, bbox_to_anchor=(0.5, 1.0))
-    fig.suptitle("SYNTHETIC validation: recovery error vs specimen count (all fits that returned estimates; 200 replicates each)",
+    fig.suptitle("SYNTHETIC validation, final method (full-size LSE fixed at 2.7 J): recovery error vs specimen count "
+                 "(all fits that returned estimates; 200 replicates each)",
                  fontsize=9.5, color=INK, y=0.9)
     fig.tight_layout(rect=(0, 0, 1, 0.84))
     fig.savefig(OUT / "synthetic_error_vs_specimens.png", dpi=150, metadata={"Software": None})
@@ -535,7 +617,8 @@ def figures(scenarios, design, reps, metrics, per) -> None:
     axes[2].set_xlabel("Share of fits flagged not usable (%)", fontsize=8, color=INK)
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc="upper center", ncol=2, fontsize=8, frameon=False, bbox_to_anchor=(0.5, 0.99))
-    fig.suptitle("SYNTHETIC validation: sampling patterns, moderate scatter (reference lines: 10 °C, 10 %)", fontsize=9.5, color=INK, y=0.93)
+    fig.suptitle("SYNTHETIC validation, final method (full-size LSE fixed at 2.7 J): sampling patterns, moderate scatter "
+                 "(reference lines: 10 °C, 10 %)", fontsize=9.5, color=INK, y=0.93)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(OUT / "synthetic_sampling_patterns.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
