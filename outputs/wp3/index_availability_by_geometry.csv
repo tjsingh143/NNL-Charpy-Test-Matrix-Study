@@ -1,12 +1,12 @@
-geometry_group,curves,criterion,basis,index_calculated,index_calculated_and_fit_usable,index_calculated_with_index_support_warning,not_calculated,not_calculated_reasons
-"full-size 55x10x10 mm V-notch, exact notch dimensions unreported",74,41 J,"10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044)",74,58,2,0,
-"full-size 55x10x10 mm V-notch, notch dimensions reported",60,41 J,"10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044)",60,46,7,0,
-miniature: 20x1.5x1.5 a=0.33,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,4,not calculated: no defensible criterion for this geometry (4)
-miniature: 20x2.5x2.5 a=0.38,5,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,5,not calculated: no defensible criterion for this geometry (5)
-miniature: 20x3.33x3.33 a=0.51,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,4,not calculated: no defensible criterion for this geometry (4)
-miniature: 20x5x5 a=0.76,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,4,not calculated: no defensible criterion for this geometry (4)
-miniature: 23.6x3.33x3.33 a=0.51,7,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,7,not calculated: no defensible criterion for this geometry (7)
-miniature: 23.6x5x5 a=0.76,2,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,2,not calculated: no defensible criterion for this geometry (2)
-miniature: 23.6x5x5 a=0.78,1,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,1,not calculated: no defensible criterion for this geometry (1)
-miniature: 27.5x3.33x3.33 a=0.6,1,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,1,not calculated: no defensible criterion for this geometry (1)
-miniature: 27x3x4 a=1,8,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,8,not calculated: no defensible criterion for this geometry (8)
+geometry_group,curves,criterion,basis,index_calculated,index_calculated_and_fit_usable,index_calculated_with_index_support_warning,index_calculated_not_bracketed_by_measured_energy,not_calculated,not_calculated_reasons
+"full-size 55x10x10 mm V-notch, exact notch dimensions unreported",74,41 J,"10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044)",74,58,2,0,0,
+"full-size 55x10x10 mm V-notch, notch dimensions reported",60,41 J,"10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044)",60,46,7,1,0,
+miniature: 20x1.5x1.5 a=0.33,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,4,not calculated: no defensible criterion for this geometry (4)
+miniature: 20x2.5x2.5 a=0.38,5,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,5,not calculated: no defensible criterion for this geometry (5)
+miniature: 20x3.33x3.33 a=0.51,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,4,not calculated: no defensible criterion for this geometry (4)
+miniature: 20x5x5 a=0.76,4,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,4,not calculated: no defensible criterion for this geometry (4)
+miniature: 23.6x3.33x3.33 a=0.51,7,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,7,not calculated: no defensible criterion for this geometry (7)
+miniature: 23.6x5x5 a=0.76,2,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,2,not calculated: no defensible criterion for this geometry (2)
+miniature: 23.6x5x5 a=0.78,1,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,1,not calculated: no defensible criterion for this geometry (1)
+miniature: 27.5x3.33x3.33 a=0.6,1,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,1,not calculated: no defensible criterion for this geometry (1)
+miniature: 27x3x4 a=1,8,none established,"ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045)",0,0,0,0,8,not calculated: no defensible criterion for this geometry (8)

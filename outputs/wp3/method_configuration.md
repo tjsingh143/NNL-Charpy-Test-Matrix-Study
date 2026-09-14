@@ -7,7 +7,8 @@
 | lower shelf, sensitivity case | `fitted`: LSE fitted (>= 0 J) for every geometry; the pre-registered rule's outcome, presented at CP3 | D-042 |
 | upper shelf | fitted asymptote LSE + (USE - LSE); supported if >= 2 specimens where the fit is >= 95.3 % of the rise (x >= 1.5); residual trend test (p < 0.05) reported as a model-adequacy flag outside the outcome | D-043 |
 | index temperature, full-size 55x10x10 mm V-notch | T at 41 J, analytic; only if LSE < 41 J < USE and inside the tested range; also for full-size V-notch curves whose exact notch dimensions are unreported (flagged) | D-044 |
-| index support (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |
+| index support: position on the fitted rise (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |
+| index support: empirical bracketing (not an outcome; project diagnostic, not an ASTM requirement) | criterion_bracketed_by_measured_energy = min(measured energy) <= 41 J <= max(measured energy), with the measured energies below, at and above 41 J counted; a calculated T41J that is not bracketed carries flag_index_not_bracketed_by_measured_energy ("T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies."); the value is kept; computed outside the outcome classification (final CP3 approval) | D-044 |
 | index temperature, miniature / E23 sub-size | not calculated (no defensible criterion) | D-045 |
 | optimizer | scipy.optimize.least_squares, method trf, analytic Jacobian, scaled parameters, ftol = xtol = gtol = 1e-10, max_nfev = 2000 per start | D-041 |
 | weighting | ordinary (unweighted) least squares on energy | D-041 |

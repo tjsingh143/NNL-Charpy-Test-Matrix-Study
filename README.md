@@ -19,8 +19,9 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP0 Acquisition and data dictionary | done (CP1 approved; regenerated for the 2025.30 primary release) |
 | WP1 Cleaning and normalization | done (CP1 approved; corrections surfaced in WP2 approved at CP2) |
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
-| WP3 Transition curve fitting | done — CP3 approved in principle with amendments; revised results awaiting final approval (branch `wp3`) |
-| WP4–WP7 | not started |
+| WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
+| WP4 Per-curve uncertainty | next permitted work package; not started |
+| WP5–WP7 | not started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
 

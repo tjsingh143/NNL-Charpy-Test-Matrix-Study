@@ -13,6 +13,7 @@ TOTAL curves,170,170,170
 full-size curves with T41J calculated (of 134),132,132,134
 full-size T41J with a usable fit,36,36,104
 T41J with the index-support warning (41 J outside 11.9-88.1 % of the fitted rise),15,15,9
+"T41J not empirically bracketed by measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome)",0,0,1
 flag: fitted LSE at its 0 J bound (overlapping),71,71,15
 flag: weak lower shelf (overlapping),105,105,18
 miniature curves with a usable fit (of 36),13,13,13

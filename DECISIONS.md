@@ -822,6 +822,8 @@ All numbers regenerate with `src/wp3_validation.py` (synthetic curves only) and 
 D-051). `PROPOSED (CP3)` = the status of every WP3 entry when CP3 was first presented (commit `20481dd`). `APPROVED IN PRINCIPLE (CP3)` =
 approved by the author at the CP3 review (2026-09-14); final CP3 approval follows the author's review of the amended results.
 `AMENDED (CP3)` = changed by the author's CP3 decision; the entry keeps its earlier text, rule and outcome as history.
+`FINAL APPROVED (CP3)` = approved by the author at final CP3 approval (2026-09-14), after reviewing the amended results; the earlier statuses
+follow it as history.
 
 **CP3 review record (author, 2026-09-14).** WP3 is approved in principle; the final primary fitting method is amended before CP3 is
 finally approved and `wp3` is merged. Each item is recorded in full in the entry named.
@@ -843,6 +845,30 @@ finally approved and `wp3` is merged. Each item is recorded in full in the entry
 11. D-050 cohorts: approved; the CP2 memberships stay frozen.
 12. D-051 method history: approved and extended with this amendment.
 Not authorized by this review: WP4, merging `wp3` into `main`, bootstrap estimates of real-data uncertainty.
+
+**CP3 final approval record (author, 2026-09-14).** The author reviewed the amended results and gave final CP3 approval; `wp3` is merged into
+`main` once the one clarification below is implemented and verified. Each item is recorded in full in the entry named.
+1. D-040 model: FINAL APPROVED; the symmetric tanh stays, with its empirical-model limitation explicit.
+2. D-041 optimizer: FINAL APPROVED; deterministic bounded `least_squares`, analytic Jacobian, deterministic starts, wide safety bounds, audit
+   information and the current weighting; not tuned per published curve.
+3. D-042 lower shelf: FINAL APPROVED AS AMENDED AT CP3; full-size LSE fixed at 2.7 J, miniature LSE fitted with a 0 J lower bound; the
+   all-fitted approach stays a named sensitivity and history case, and its chronology stays as recorded.
+4. D-043 upper shelf: FINAL APPROVED; USE = fitted asymptote with support diagnostics; a non-flat shelf trend stays a model-adequacy warning.
+5. D-044 full-size T41J: FINAL APPROVED WITH ONE ADDITIONAL SUPPORT DIAGNOSTIC, the empirical bracketing of 41 J by the measured energies
+   (`criterion_bracketed_by_measured_energy`; warning "T41J calculated from fitted curve; 41 J not empirically bracketed by measured
+   energies."). A project support diagnostic, not an ASTM requirement; values are kept; no frozen WP2 cohort or fit outcome changes. The
+   index-position warning stays; the two are reported separately. Triggered by curve 33-153, which is not tuned.
+6. D-045 miniature index: FINAL APPROVED; no invented criterion; any cross-size or index correlation is WP5 work.
+7. D-046 outcomes: FINAL APPROVED AS AMENDED; zero-LSE miniature fits are boundary-limited, "non-physical" is reserved for inadmissible
+   solutions, and the empirical-bracketing diagnostic is a support warning, never an outcome.
+8. D-047 identifiability diagnostics: FINAL APPROVED subject to the D-046 terminology; the empirical-bracketing flag is an index-support
+   diagnostic, not a fitter-identifiability outcome; no condition-number threshold.
+9. D-048 synthetic validation: FINAL APPROVED; not redesigned; no scenario added for the diagnostic-only change; history intact.
+10. D-049 dataset values: FINAL APPROVED as a diagnostic only; nothing is fitted toward the dataset's undocumented values.
+11. D-050 cohorts: FINAL APPROVED; frozen memberships unchanged.
+12. D-051 method history: FINAL APPROVED and extended with step 6 (this clarification).
+WP4 (per-curve uncertainty) is the next permitted work package and has not started; this approval session did not include WP4 work,
+bootstrap uncertainty, a scatter model or WP5.
 
 **Sources cited in WP3** (what was actually read is stated; nothing below is cited from memory)
 - [Marini2020] Marini B. (2020). *Empirical estimation of uncertainties of Charpy impact testing transition temperatures for an RPV steel.*
@@ -887,7 +913,8 @@ family cannot be assumed to transfer; (iii) a fit that converges is not evidence
 is the WP3 question itself (brief §5 note).
 
 ## D-040 — Model and parameterization
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Final CP3 decision (author, 2026-09-14).** Approved: the symmetric hyperbolic-tangent model stays, and its empirical-model limitation stays explicit.
 **CP3 decision (author, 2026-09-14).** Approved. The model form and the transparent parameter names LSE, USE, T0 and C are kept. The
 symmetric tanh is an empirical model and does not describe every measured Charpy transition curve; that limitation stays explicit
 (on the published curves it shows as alternating residual patterns, D-042, `residual_pattern_by_lower_shelf_outcome.csv`).
@@ -902,7 +929,9 @@ the Wallin & Baer recommendations could not be read. **Consequence.** A symmetri
 upper shelf; misfit of that kind is diagnosed (D-043, D-047), not removed.
 
 ## D-041 — Optimizer, starting values, bounds and weighting
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Final CP3 decision (author, 2026-09-14).** Approved: deterministic bounded SciPy `least_squares`, analytic Jacobian, deterministic starts, wide
+safety bounds, audit information and the current (unweighted) weighting. The optimizer is not tuned per published curve.
 **CP3 decision (author, 2026-09-14).** Approved: the deterministic bounded `least_squares` implementation, analytic Jacobian, documented wide
 safety bounds, deterministic starts and audit metadata stay. Starts and bounds are not tuned on individual published curves. Where LSE is
 fixed (full-size curves under the D-042 amendment) the LSE start and the LSE bounds do not apply; nothing else changes.
@@ -929,10 +958,16 @@ this "to avoid unphysical fits"); many random starts. **Why not.** Unbounded fit
 curve), penalties quietly replace data with starting guesses, and random multistart is neither transparent nor needed for four parameters.
 
 ## D-042 — Lower shelf: fixed or fitted
-**Status:** AMENDED (CP3) by the author, 2026-09-14 — the final primary method is geometry-specific. This amendment was made at the CP3
-review, after the synthetic and the published-data results existed; it is **not** pre-registered. The pre-registered rule (commit `11daf72`),
+**Status:** FINAL APPROVED AS AMENDED AT CP3 (author, 2026-09-14). Earlier: AMENDED (CP3) by the author, 2026-09-14 — the final primary method
+is geometry-specific. This amendment was made at the CP3 review, after the synthetic and the published-data results existed; it is **not** pre-registered. The pre-registered rule (commit `11daf72`),
 its outcome (`fitted` for every geometry, presented at CP3 in commit `20481dd`) and the reasoning presented then are kept below as history, and
 the all-fitted method is kept as an explicit sensitivity case.
+
+**Final CP3 decision (author, 2026-09-14).** Approved as amended: full-size LSE fixed at 2.7 J; miniature LSE fitted with a 0 J lower bound; the
+original all-fitted approach stays a named sensitivity and history case. The chronology recorded here and in D-051 stands unchanged: the
+all-fitted method was the pre-registered rule's outcome; the rule's synthetic weighting issue was found when the Block L results were inspected
+and brought to the author at CP3; the author then approved the geometry-specific method on the literature, the full-size T41J estimand and the
+synthetic evidence that already existed; it was not chosen by maximizing published-data fit counts.
 
 **CP3 decision (author, 2026-09-14): final primary lower-shelf method.**
 - *Full-size 55 × 10 × 10 mm CVN:* LSE fixed at **2.7 J**.
@@ -1006,7 +1041,8 @@ the lowest test temperature). These differences are reported, not used to choose
   exactly one measured energy below 41 J. The existing index-support diagnostic (D-044) does not flag it. Audit columns `n_points_below_criterion` and
   `n_points_above_criterion` were added to expose this; no rule is attached (on SYNTHETIC Blocks A–D, the 78 usable T41J fits without a specimen below
   41 J had a 90th-percentile error of 5.5 °C against 8.5 °C for the rest, with true lower shelves of 2–10 J). Whether this should become part of the
-  index-support diagnostic is for the author.
+  index-support diagnostic is for the author. [Final CP3 approval, 2026-09-14: the author added a separate empirical-bracketing support diagnostic
+  instead of extending the index-position warning; 33-153 now carries its warning; its fit, T41J and outcome are unchanged (D-044, D-051 step 6).]
 - Published curve 49-206 (upper shelf never reached): with the lower shelf fixed, the fit moves to USE − LSE at 10 × the highest energy and T0 at its
   range limit (boundary-limited); its T41J is still calculated (index-support warning: 41 J at 3 % of the fitted rise).
 
@@ -1089,8 +1125,10 @@ crossed) within 5 percentage points of the lowest. (2) The lowest score wins if 
 Real-data fit counts play no part.
 
 ## D-043 — Upper-shelf energy
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED (the trend flag's role changed after the synthetic validation and
-before any published curve was fitted, as recorded below and in D-051)
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED (the trend flag's
+role changed after the synthetic validation and before any published curve was fitted, as recorded below and in D-051)
+**Final CP3 decision (author, 2026-09-14).** Approved: USE remains the fitted asymptote; the upper-shelf support diagnostics stay; a non-flat
+upper-shelf trend stays a model-adequacy warning, not an outcome failure.
 **CP3 decision (author, 2026-09-14).** Approved: USE stays the fitted asymptote, with the upper-shelf support diagnostic; a significant
 upper-shelf residual trend stays a model-adequacy warning, not by itself a fit-failure outcome. The history of that classification change is
 kept. Under the final method the trend flag fires on 7 primary curves (5 full-size, 2 miniature; 8 under the all-fitted method; `fit_flags.csv`).
@@ -1113,8 +1151,50 @@ points are "above the transition" needs shear data or a fit; averaging would als
 as diagnostics.
 
 ## D-044 — Index temperature for standard full-size specimens
-**Status:** APPROVED IN PRINCIPLE WITH A METADATA CAVEAT (CP3, author 2026-09-14); PRE-REGISTERED. Added at the author's CP3 instruction: the
-explicit notch-metadata flag and description, the notch-metadata sensitivity summary, and the index-support diagnostic as a flag.
+**Status:** FINAL APPROVED WITH ONE ADDITIONAL SUPPORT DIAGNOSTIC (CP3, author 2026-09-14): the empirical bracketing of 41 J by the measured
+energies. Earlier: APPROVED IN PRINCIPLE WITH A METADATA CAVEAT (CP3, author 2026-09-14); PRE-REGISTERED. Added at the author's CP3 instruction:
+the explicit notch-metadata flag and description, the notch-metadata sensitivity summary, and the index-support diagnostic as a flag.
+
+**Final CP3 decision (author, 2026-09-14).** T41J continues to be calculated for full-size V-notch curves from the analytic crossing of the fitted
+curve when the existing mathematical requirements are met, including the 74 curves whose exact notch dimensions are unreported (metadata caveat and
+notch-metadata sensitivity kept). Added: an independent **empirical-bracketing** diagnostic, defined from the actual measurements:
+`criterion_bracketed_by_measured_energy` = min(measured energy) <= 41 J <= max(measured energy), recorded with the numbers of measured energies
+below, exactly at and above 41 J. A T41J that is mathematically calculated while the measurements do not bracket 41 J is not deleted; it is
+flagged `flag_index_not_bracketed_by_measured_energy`, with the text "T41J calculated from fitted curve; 41 J not empirically bracketed by measured
+energies." The diagnostic lets a user tell (A) a fitted crossing supported by observations on both sides of 41 J from (B) a crossing supplied
+mainly by the model because the observed energies lie on one side only. It is a **project support diagnostic, not an ASTM requirement**; it does
+not change the frozen WP2 cohorts, does not make a fit failed and is not an outcome (D-046); it is an index-support diagnostic, not a
+fitter-identifiability diagnostic (D-047). The index-position warning (`flag_index_near_fitted_shelf`) is kept, and the two are reported
+separately because they answer different questions: the index position says where 41 J lies on the fitted S-curve; the empirical bracketing says
+whether measured energies occur on both sides of 41 J. Curve 33-153 triggered the review; its fit was not tuned.
+**Implementation.** `criterion_bracketing()` in `src/wp3_fitter.py`, a pure function of the measured energies, the criterion and the index status,
+called in `src/wp3_fit_curves.py::fit_all` after `classify()`; `classify()` is unchanged and never sees the result. New columns in `fits_primary.csv`,
+`fits_looser_cohort_curves.csv` and `sensitivity_all_fitted_lse/fits_primary.csv`: `measured_energy_min_j`, `measured_energy_max_j`,
+`n_points_at_criterion`, `criterion_bracketed_by_measured_energy`, `flag_index_not_bracketed_by_measured_energy`, `index_empirical_bracketing`
+(beside the existing audit columns `n_points_below_criterion` and `n_points_above_criterion`, which it now uses). Reporting:
+`t41j_empirical_bracketing_by_curve.csv` (every full-size primary curve), `t41j_empirical_bracketing_summary.csv` (counts and overlaps), a row in
+`fit_flags.csv`, `method_change_before_after.csv` and `method_configuration.md`, a column in `index_availability_by_geometry.csv`, and
+`wp3_summary.md` §3.2. The synthetic validation is unchanged (D-048).
+**Result** (primary cohort, final method; `t41j_empirical_bracketing_summary.csv`). Of the 134 full-size curves with a calculated T41J, 133 are
+bracketed by their measured energies and 1 is not: 33-153, a usable fit. Overlaps: none of the 9 T41J values with the index-position warning and
+none of the 74 from curves with exact notch dimensions unreported is unbracketed; by outcome, unbracketed / T41J values: boundary-limited 0 / 1,
+weakly identified 0 / 29, usable 1 / 104. No calculated T41J lacks a measured energy above 41 J; 11 are bracketed by a single measured energy below
+41 J; no measured energy is exactly 41 J. Under the all-fitted sensitivity case 0 of 132 T41J values are unbracketed (33-153 has no T41J there).
+**Curve 33-153** (ref 33; A508 forging, unirradiated, full-size V-notch with notch dimensions reported; 7 points from −120.1 to 24.4 °C). T41J
+−114.5 °C, 5.6 °C above the lowest test temperature, from a usable fit (LSE fixed at 2.7 J, USE 235.8 J, T0 −77.9 °C, C 44.9 °C). 41 J lies at
+16.4 % of the fitted rise, inside 11.9–88.1 %, so the index-position warning does not fire. All 7 measured energies are above 41 J; the lowest,
+42.8 J, was measured at the coldest test temperature, −120.1 °C, which is colder than the reported T41J, and the fitted curve gives 33.7 J there.
+The crossing is therefore placed by the tanh shape and the fixed 2.7 J lower shelf, not by measurements on both sides of 41 J. With the lower shelf
+fitted (sensitivity case) the same data give LSE 31.7 J and a crossing at −123.0 °C, below the lowest test temperature, so no T41J is reported.
+The value is retained unchanged and warned.
+**Synthetic context** (existing audit rows of `synthetic_flag_check.csv`, Blocks A–D with scatter, final method; no scenario added). Usable T41J
+fits with no specimen energy below 41 J: 78 fits, T41J P90 |error| 5.5 °C; with at least one: 10,172 fits, 8.5 °C. Those truths are symmetric tanh
+curves with lower shelves of 2–10 J; none has a lower transition that departs from the tanh shape, which is where a crossing without a measurement
+below 41 J depends most on the model. The warning records missing empirical support, not a demonstrated loss of accuracy.
+**Alternatives.** (1) Withhold an unbracketed T41J. (2) Fold the condition into the index-position warning. (3) Count it towards the fit outcome.
+**Why not.** (1) deletes a mathematically defined value that a later analysis can still examine; (2) merges two different questions, which 33-153
+shows can disagree; (3) would reclassify a fit because of a support property of its index, contrary to D-046. **If an alternative were chosen.**
+(1) or (3): 103 instead of 104 usable-fit T41J values; (2): one merged warning on 10 curves instead of 9, with its two reasons indistinguishable.
 
 **CP3 decision (author, 2026-09-14).** T41J continues to be calculated for full-size 55 × 10 × 10 mm V-notch curves when LSE < 41 J < USE, the
 crossing is mathematically defined, and it lies inside the tested temperatures. For the 74 full-size curves whose exact notch dimensions are not
@@ -1140,6 +1220,7 @@ T41J calculated for all 134 full-size primary curves (74 of 74 with exact notch 
 below 11.9 % of the rise, mostly high-USE ref 12 A508 forgings: 4-20, 12-49, 12-50, 12-51, 12-53, 12-54, 12-55, 38-168, 49-206); 3 of the 9 are usable
 fits. SYNTHETIC check (Blocks A–D, final method): usable fits with the warning had a 90th-percentile |T41J error| of 19.2 °C (37 % beyond 10 °C, 244
 fits) against 8.1 °C (6 %, 10,006 fits) without it. One usable-fit T41J (33-153) has no measured energy below 41 J and carries no warning (D-042).
+[Final CP3 approval, 2026-09-14: it now carries the separate empirical-bracketing warning; see the final decision above.]
 *Notch-metadata sensitivity:* excluding the 74 exact-notch-unreported curves leaves 60 full-size curves (1,066 records), all with T41J; 46 with a
 usable-fit T41J (104 with them), 43 of those without the index-support warning (101), 22 in the stricter cohort (33) and 10 irradiated (14). The
 median usable-fit T41J is −27 °C for the 60 notch-reported curves and −69 °C for the 74 others (−53 °C together); the two groups differ in material
@@ -1165,7 +1246,9 @@ Of the 132, 36 come from fits with no flag. For 15 of the 132, 41 J lies on the 
 rise), 9 of them in fits with no flag (`index_position_on_fitted_rise.csv`); their T41J is poorly anchored even when every flag passes.
 
 ## D-045 — Index temperature for non-standard geometries
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED
+**Final CP3 decision (author, 2026-09-14).** Approved: no invented miniature T41J-equivalent criterion; miniature curves receive LSE, USE, T0 and C
+where defensible; any cross-size or index correlation remains WP5 work.
 **CP3 decision (author, 2026-09-14).** Approved. No 41 J-equivalent criterion is invented for miniature specimens, 41 J is not
 volume-scaled, and no universal miniature energy criterion is introduced. Miniature curves report LSE, USE, T0 and C where defensible and no
 geometry-normalized index temperature, unless a later WP5 correlation establishes one. [E2248-18]'s warning that miniature transition data are
@@ -1195,8 +1278,14 @@ temperature; comparing them with full-size index temperatures is WP5's job, with
 calculated for all 36 miniature curves (9 geometries); 13 of them are fits with no flag.
 
 ## D-046 — Failure categories and the mutually exclusive outcome
-**Status:** AMENDED (CP3) by the author, 2026-09-14 — zero-LSE classification and terminology. The pre-registered version (below) is kept as
-history; it produced the counts presented at CP3.
+**Status:** FINAL APPROVED AS AMENDED (CP3, author 2026-09-14). Earlier: AMENDED (CP3) by the author, 2026-09-14 — zero-LSE classification and
+terminology. The pre-registered version (below) is kept as history; it produced the counts presented at CP3.
+
+**Final CP3 decision (author, 2026-09-14).** Approved as amended: zero-LSE miniature fits stay boundary-limited (support-limited) rather than
+automatically non-physical; "non-physical" stays reserved for truly inadmissible solutions. The empirical-bracketing diagnostic of D-044 is a
+support warning reported beside the outcome, like the index-position warning, and never a mutually exclusive outcome: it is computed after
+`classify()`, which is unchanged. Checked when it was added: the outcome of every curve in the primary cohort, the looser cohort and the all-fitted
+sensitivity case is identical before and after; primary counts 0 / 0 / 18 / 35 / 13 / 104 (170).
 
 **CP3 decision (author, 2026-09-14).** A fitted LSE landing at its 0 J lower bound does not by itself make a curve's outcome "non-physical".
 It keeps an explicit diagnostic, `flag_lse_at_lower_bound`, and the fit is classed *boundary-limited* (lower-shelf-bound-limited) when that is
@@ -1247,8 +1336,12 @@ Nothing is dropped: every curve has a row with its outcome, flags, bounds, start
 Carlo "eliminated" nonphysical results, failures are counted.
 
 ## D-047 — Identifiability diagnostics
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14), subject to the D-046 amendment; PRE-REGISTERED (their usefulness is tested in the
-synthetic validation, not assumed)
+**Status:** FINAL APPROVED (CP3, author 2026-09-14), subject to the D-046 terminology already implemented. Earlier: APPROVED IN PRINCIPLE (CP3,
+author 2026-09-14), subject to the D-046 amendment; PRE-REGISTERED (their usefulness is tested in the synthetic validation, not assumed)
+**Final CP3 decision (author, 2026-09-14).** Approved: the validated support, bound, transition and Jacobian diagnostics stay as they are. The
+D-044 empirical-bracketing flag (`flag_index_not_bracketed_by_measured_energy`) is added as an index-support diagnostic, not as a
+fitter-identifiability diagnostic or outcome: it is not in `FIT_FLAGS`, not in the "only this flag" comparison and not in `classify()`. No
+condition-number threshold is introduced.
 **CP3 decision (author, 2026-09-14).** Approved, with the zero-LSE classification amended (D-046). Kept: weak transition sampling, weak upper-shelf
 support, weak lower-shelf support where LSE is fitted, rank/Jacobian diagnostics, bound diagnostics, and audit-only condition-number and start-spread
 information. No condition-number cutoff is introduced. The documented weaknesses stay stated: false confidence can remain in some cold-side-only
@@ -1301,7 +1394,12 @@ where a design sits exactly on a threshold. Where 41 J lies near the upper shelf
 position of 41 J on the fitted rise is recorded (`index_fraction_of_rise`) without a flag.
 
 ## D-048 — Synthetic validation design
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED (Blocks L and A–D); Block E added after Blocks A–D had been run
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); PRE-REGISTERED (Blocks L and A–D);
+Block E added after Blocks A–D had been run
+**Final CP3 decision (author, 2026-09-14).** Approved; not redesigned. No scenario was added for the D-044 empirical-bracketing diagnostic, a
+diagnostic-only change, and `src/wp3_validation.py` is unchanged: every synthetic output regenerated byte-identically when the diagnostic was
+added. Its only synthetic evidence is the existing audit row of `synthetic_flag_check.csv` (usable T41J fits with no specimen energy below 41 J;
+D-044). The validation history stays intact.
 **CP3 decision (author, 2026-09-14).** Approved. The history is preserved: Blocks L and A–D were pre-registered; Block E was added later,
 specifically to test non-flat upper shelves; the seed (20260913) and the deterministic behaviour stay documented. The synthetic outputs needed for
 the final geometry-specific method are rerun; the validation matrix is not redesigned and no scenario is added to improve the final method's
@@ -1333,7 +1431,9 @@ summarized per synthetic data set (`synthetic_lse_strategy_per_dataset.csv`); pe
 ΔRT_NDT for base metal in [10CFR50] §50.61(c)(2)(i)(C); 10 % for USE; 25 % for C.
 
 ## D-049 — Dataset-provided USE and DBTT: a diagnostic comparison only
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14) as a diagnostic only; declared before any published curve was fitted
+**Status:** FINAL APPROVED (CP3, author 2026-09-14) as a diagnostic only. Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14) as a diagnostic
+only; declared before any published curve was fitted
+**Final CP3 decision (author, 2026-09-14).** Approved as a diagnostic only; nothing is fitted toward the dataset's undocumented USE or DBTT values.
 **CP3 decision (author, 2026-09-14).** Approved as diagnostic only. The method is not tuned to reproduce the dataset's undocumented DBTT or USE.
 **Result under the final method** (`dataset_value_comparison_summary.csv`). The dataset DBTT still behaves much more like T0 than like T41J: for 129
 of the 134 full-size curves it lies closer to our T0 (101 of 104 usable fits, 28 of 30 others); the median |T0 − DBTT| is 3.2 °C (usable fits) and
@@ -1354,7 +1454,9 @@ USE within 10 % for 94 % (flagged fits) to 97 % (unflagged fits) of full-size cu
 definition such as [Kumar1994]'s; the dataset authors' actual procedure remains undocumented (D-022).
 
 ## D-050 — Looser and stricter cohorts
-**Status:** APPROVED IN PRINCIPLE (CP3, author 2026-09-14); declared before any published curve was fitted
+**Status:** FINAL APPROVED (CP3, author 2026-09-14). Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14); declared before any published curve
+was fitted
+**Final CP3 decision (author, 2026-09-14).** Approved; the frozen CP2 memberships are not changed.
 **CP3 decision (author, 2026-09-14).** Approved. The CP2 looser, primary and stricter memberships stay frozen and are not changed because of
 WP3 fit quality. **Result under the final method** (`cohort_sensitivity_outcomes.csv`; optimizer failure / non-physical (inadmissible) /
 boundary-limited / weakly identified / usable without index / usable with index): looser 0 / 0 / 19 / 42 / 14 / 107 (182); primary
@@ -1371,8 +1473,9 @@ The stricter screen removes most weakly identified curves but not the lower shel
 primary), consistent with a model-shape cause rather than a sampling cause.
 
 ## D-051 — How the WP3 method evolved (chronological, including changes after results existed)
-**Status:** record. APPROVED IN PRINCIPLE (CP3, author 2026-09-14) and extended with step 5; no earlier step is rewritten, and no earlier
-commit is removed (`11daf72`, `0d5e548`, `20481dd`, `a2ce7f2` remain on branch `wp3`).
+**Status:** record. FINAL APPROVED (CP3, author 2026-09-14) and extended with step 6. Earlier: APPROVED IN PRINCIPLE (CP3, author 2026-09-14)
+and extended with step 5; no earlier step is rewritten, and no earlier commit is removed (`11daf72`, `0d5e548`, `20481dd`, `a2ce7f2` remain on
+branch `wp3`; so do `5bd4c2c` and `76b9f87`, the amended state reviewed at final approval).
 1. *Pre-registration* (commit `11daf72`): fitter, validation design, four lower-shelf candidates and the decision rule, committed before any
    synthetic or published-data fit.
 2. *Block L run* (synthetic only): rule 3 selected `fitted`; `LOCKED_LSE_STRATEGY` set accordingly. Inspection showed the full-size advantage
@@ -1434,4 +1537,19 @@ commit is removed (`11daf72`, `0d5e548`, `20481dd`, `a2ce7f2` remain on branch `
       bracket (13 of 15 design × scatter cells).
    i. Software: the `wp3_fit_curves.py` docstring listed a file that never existed (`fit_outcomes_by_wp2_sampling.csv`); corrected. Cohort record IDs
       are now carried with the fits (`record_ids`, not written to the fit tables) instead of being merged back in; no value changes.
+6. *Final CP3 approval and one support-diagnostic clarification* (author, 2026-09-14; every result it could concern already existed: the amended
+   fits and synthetic outputs of step 5, commits `5bd4c2c` and `76b9f87`).
+   a. Trigger: during the CP3 review, published curve 33-153 (step 5g) exposed a missing diagnostic: nothing said when a calculated T41J has
+      measured energies on one side of 41 J only. The index-position warning cannot show it (41 J lies at 16.4 % of that curve's fitted rise).
+   b. Added, and only this: the empirical-bracketing support diagnostic of D-044 (`criterion_bracketing()` in `src/wp3_fitter.py`, called after
+      `classify()`), its per-curve columns, `t41j_empirical_bracketing_by_curve.csv`, `t41j_empirical_bracketing_summary.csv`, `wp3_summary.md`
+      §3.2, a row in `fit_flags.csv`, `method_change_before_after.csv` and `method_configuration.md`, and a column in
+      `index_availability_by_geometry.csv`. The audit columns of step 5g now feed it.
+   c. Not changed because of it: no fit parameter, T41J value, fit outcome, fitting method, bound, start, weighting, cohort membership or
+      synthetic scenario; `classify()` and `src/wp3_validation.py` are unchanged. Checked on the full regeneration (`./run_all.sh`): every
+      pre-existing column of `fits_primary.csv`, `fits_looser_cohort_curves.csv` and `sensitivity_all_fitted_lse/fits_primary.csv` is identical
+      to commit `76b9f87`; apart from the additions listed in b, every output of WP0–WP3, synthetic outputs and figures included, is
+      byte-identical; the frozen-cohort check passed in WP2 and WP3; primary outcome counts 0 / 0 / 18 / 35 / 13 / 104 (170).
+   d. The author gave final approval of D-040 to D-051 (CP3 final approval record above); `wp3` is merged into `main` with an explicit merge
+      commit and kept.
 

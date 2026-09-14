@@ -2,7 +2,7 @@
 
 Analysis of published Charpy V-notch test data (Materials Cloud 2025.30). Section 2 is SYNTHETIC fitter validation; every other section concerns the published measurements of the CP2-frozen cohorts. Decisions: DECISIONS.md D-040 to D-051.
 
-**Method status (CP3 review by the author, 2026-09-14).** WP3 approved in principle, with amendments implemented here and awaiting final CP3 approval. D-042 amended: the FINAL PRIMARY method fixes the lower shelf at 2.7 J for full-size specimens and fits it (>= 0 J) for miniature specimens. It replaces the pre-registered rule's outcome (LSE fitted for every geometry), which was presented at CP3 and is kept as an explicit sensitivity case (sections 2.10 and 6, `sensitivity_all_fitted_lse/`). D-046 amended: a fitted LSE at its 0 J bound is a boundary-limited fit, not a non-physical one. D-044: exact-notch-unreported full-size curves keep T41J with an explicit flag; an index-support diagnostic and a notch-metadata sensitivity are reported.
+**Method status: FINAL APPROVED at CP3 (author, 2026-09-14).** WP3 was approved in principle at the CP3 review with amendments; after reviewing the amended results the author gave final approval of D-040 to D-051, with one additional support diagnostic (D-044: empirical bracketing of 41 J by the measured energies, section 3.2). D-042 amended at CP3: the FINAL PRIMARY method fixes the lower shelf at 2.7 J for full-size specimens and fits it (>= 0 J) for miniature specimens. It replaces the pre-registered rule's outcome (LSE fitted for every geometry), which was presented at CP3 and is kept as an explicit sensitivity case (sections 2.10 and 6, `sensitivity_all_fitted_lse/`). D-046 amended: a fitted LSE at its 0 J bound is a boundary-limited fit, not a non-physical one. D-044: exact-notch-unreported full-size curves keep T41J with an explicit flag; two index-support diagnostics (index position on the fitted rise; empirical bracketing by the measured energies) and a notch-metadata sensitivity are reported; neither diagnostic is an outcome.
 
 ## 1. Method
 
@@ -13,7 +13,8 @@ Analysis of published Charpy V-notch test data (Materials Cloud 2025.30). Sectio
 | lower shelf, sensitivity case | `fitted`: LSE fitted (>= 0 J) for every geometry; the pre-registered rule's outcome, presented at CP3 | D-042 |
 | upper shelf | fitted asymptote LSE + (USE - LSE); supported if >= 2 specimens where the fit is >= 95.3 % of the rise (x >= 1.5); residual trend test (p < 0.05) reported as a model-adequacy flag outside the outcome | D-043 |
 | index temperature, full-size 55x10x10 mm V-notch | T at 41 J, analytic; only if LSE < 41 J < USE and inside the tested range; also for full-size V-notch curves whose exact notch dimensions are unreported (flagged) | D-044 |
-| index support (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |
+| index support: position on the fitted rise (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |
+| index support: empirical bracketing (not an outcome; project diagnostic, not an ASTM requirement) | criterion_bracketed_by_measured_energy = min(measured energy) <= 41 J <= max(measured energy), with the measured energies below, at and above 41 J counted; a calculated T41J that is not bracketed carries flag_index_not_bracketed_by_measured_energy ("T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies."); the value is kept; computed outside the outcome classification (final CP3 approval) | D-044 |
 | index temperature, miniature / E23 sub-size | not calculated (no defensible criterion) | D-045 |
 | optimizer | scipy.optimize.least_squares, method trf, analytic Jacobian, scaled parameters, ftol = xtol = gtol = 1e-10, max_nfev = 2000 per start | D-041 |
 | weighting | ordinary (unweighted) least squares on energy | D-041 |
@@ -488,23 +489,24 @@ Diagnostic flags (overlapping; a curve can carry several):
 | flag_nonflat_upper_shelf | model adequacy (not an outcome): upper-shelf residual trend (p < 0.05) | 7 | 5 | 2 |
 | flag_index_unavailable | index temperature not calculated (any reason) | 36 | 0 | 36 |
 | flag_index_near_fitted_shelf | index support (not an outcome): T41J calculated, but 41 J outside the central 11.9-88.1 % of the fitted rise | 9 | 9 | 0 |
+| flag_index_not_bracketed_by_measured_energy | index support (not an outcome; project diagnostic, not an ASTM requirement): T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies (all measured energies on one side of 41 J) | 1 | 1 | 0 |
 | flag_full_size_notch_dimensions_unreported | metadata (not a fit diagnostic): full-size V-notch, exact notch dimensions unreported; T41J still calculated (D-044) | 74 | 74 | 0 |
 
 Index temperature by geometry (D-044, D-045):
 
-| geometry_group | curves | criterion | basis | index_calculated | index_calculated_and_fit_usable | index_calculated_with_index_support_warning | not_calculated | not_calculated_reasons |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| full-size 55x10x10 mm V-notch, exact notch dimensions unreported | 74 | 41 J | 10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044) | 74 | 58 | 2 | 0 |  |
-| full-size 55x10x10 mm V-notch, notch dimensions reported | 60 | 41 J | 10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044) | 60 | 46 | 7 | 0 |  |
-| miniature: 20x1.5x1.5 a=0.33 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
-| miniature: 20x2.5x2.5 a=0.38 | 5 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 5 | not calculated: no defensible criterion for this geometry (5) |
-| miniature: 20x3.33x3.33 a=0.51 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
-| miniature: 20x5x5 a=0.76 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
-| miniature: 23.6x3.33x3.33 a=0.51 | 7 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 7 | not calculated: no defensible criterion for this geometry (7) |
-| miniature: 23.6x5x5 a=0.76 | 2 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 2 | not calculated: no defensible criterion for this geometry (2) |
-| miniature: 23.6x5x5 a=0.78 | 1 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 1 | not calculated: no defensible criterion for this geometry (1) |
-| miniature: 27.5x3.33x3.33 a=0.6 | 1 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 1 | not calculated: no defensible criterion for this geometry (1) |
-| miniature: 27x3x4 a=1 | 8 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 8 | not calculated: no defensible criterion for this geometry (8) |
+| geometry_group | curves | criterion | basis | index_calculated | index_calculated_and_fit_usable | index_calculated_with_index_support_warning | index_calculated_not_bracketed_by_measured_energy | not_calculated | not_calculated_reasons |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| full-size 55x10x10 mm V-notch, exact notch dimensions unreported | 74 | 41 J | 10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044) | 74 | 58 | 2 | 0 | 0 |  |
+| full-size 55x10x10 mm V-notch, notch dimensions reported | 60 | 41 J | 10 CFR 50 App. G §II.E; ASTM E185-82 §4.15, §10.2.1 (D-044) | 60 | 46 | 7 | 1 | 0 |  |
+| miniature: 20x1.5x1.5 a=0.33 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
+| miniature: 20x2.5x2.5 a=0.38 | 5 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 5 | not calculated: no defensible criterion for this geometry (5) |
+| miniature: 20x3.33x3.33 a=0.51 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
+| miniature: 20x5x5 a=0.76 | 4 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 4 | not calculated: no defensible criterion for this geometry (4) |
+| miniature: 23.6x3.33x3.33 a=0.51 | 7 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 7 | not calculated: no defensible criterion for this geometry (7) |
+| miniature: 23.6x5x5 a=0.76 | 2 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 2 | not calculated: no defensible criterion for this geometry (2) |
+| miniature: 23.6x5x5 a=0.78 | 1 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 1 | not calculated: no defensible criterion for this geometry (1) |
+| miniature: 27.5x3.33x3.33 a=0.6 | 1 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 1 | not calculated: no defensible criterion for this geometry (1) |
+| miniature: 27x3x4 a=1 | 8 | none established | ASTM E2248-18 §1.3, §5.2; no applicable correlation (D-045) | 0 | 0 | 0 | 0 | 8 | not calculated: no defensible criterion for this geometry (8) |
 
 Where 41 J lies on the fitted rise (full-size curves with a calculated index; index-support diagnostic, D-044):
 
@@ -514,7 +516,7 @@ Where 41 J lies on the fitted rise (full-size curves with a calculated index; in
 | 11.9-88.1 % (inside T0 ± C) | 125 | 72 | 0 | 24 | 101 |
 | above 88.1 % (flat upper part) | 0 | 0 | 0 | 0 | 0 |
 
-Summary: T41J calculated for 134 of 134 full-size curves; not calculated for 0 (none). 74 of the calculated values come from full-size V-notch curves with exact notch dimensions unreported; 9 carry the index-support warning. Miniature curves with a usable fit (T0, C, LSE and USE reported, no index temperature): 13 of 36.
+Summary: T41J calculated for 134 of 134 full-size curves; not calculated for 0 (none). 74 of the calculated values come from full-size V-notch curves with exact notch dimensions unreported; 9 carry the index-support warning for the index position (41 J outside 11.9-88.1 % of the fitted rise) and 1 the empirical-bracketing warning (no measured energy on one side of 41 J; section 3.2). Miniature curves with a usable fit (T0, C, LSE and USE reported, no index temperature): 13 of 36.
 
 ### 3.1 Notch-metadata sensitivity (D-044; a diagnostic, the primary cohort is unchanged)
 
@@ -530,6 +532,48 @@ Notch fields of the full-size records, as reported (nothing filled in):
 | --- | --- | --- | --- | --- | --- | --- |
 | False | V |  |  |  | 993 | 74 |
 | True | V | 2 | 45 | 0.25 | 1066 | 60 |
+
+### 3.2 Empirical bracketing of 41 J by the measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome)
+
+Two separate index-support diagnostics are reported beside every calculated T41J. The index-position warning (`flag_index_near_fitted_shelf`, section 3) asks where 41 J lies on the fitted S-curve. The empirical-bracketing diagnostic asks whether the published measured energies themselves lie on both sides of 41 J: `criterion_bracketed_by_measured_energy` = min(measured energy) <= 41 J <= max(measured energy), with the measured energies below, exactly at and above 41 J counted. A calculated T41J that is not bracketed is kept unchanged and flagged `flag_index_not_bracketed_by_measured_energy`: "T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies." It separates a fitted crossing supported by observations on both sides of 41 J from one supplied mainly by the model because every observation lies on one side. This is a project support diagnostic, not an ASTM requirement. It is computed from the measurements after the outcome classification, so it changes no fit, T41J value, outcome or frozen WP2 cohort.
+
+Answers (primary cohort, final method). (1) Of the 134 full-size curves with a calculated T41J, 133 are empirically bracketed by their measured energies. (2) 1 is not. (3) Among the 104 usable-fit T41J values, 1 is not bracketed. (4) Not bracketed: 33-153. (5) Overlap: of the 9 T41J values with the index-position warning, 0 are not bracketed, so 0 curves carry both warnings; of the 74 from curves with exact notch dimensions unreported, 0 are not bracketed; by fit outcome, not bracketed / T41J values: boundary-limited 0 / 1; weakly identified 0 / 29; usable fit, index temperature calculated 1 / 104. Context: 0 calculated T41J values lack a measured energy above 41 J; 11 are bracketed by a single measured energy below 41 J; 0 curves have a measured energy of exactly 41 J. Under the all-fitted sensitivity case, 0 of its 132 calculated T41J values are not bracketed.
+
+| dimension | group | t41j_curves | bracketed | not_bracketed | not_bracketed_curve_ids |
+| --- | --- | --- | --- | --- | --- |
+| all | full-size curves with a calculated T41J (final method) | 134 | 133 | 1 | 33-153 |
+| fit outcome | boundary-limited | 1 | 1 | 0 |  |
+| fit outcome | weakly identified | 29 | 29 | 0 |  |
+| fit outcome | usable fit, index temperature calculated | 104 | 103 | 1 | 33-153 |
+| index-position warning | warning: 41 J outside the central 11.9-88.1 % of the fitted rise | 9 | 9 | 0 |  |
+| index-position warning | no warning: 41 J inside the central 11.9-88.1 % of the fitted rise | 125 | 124 | 1 | 33-153 |
+| notch metadata | full-size V-notch, exact notch dimensions unreported | 74 | 74 | 0 |  |
+| notch metadata | notch dimensions reported | 60 | 59 | 1 | 33-153 |
+| measured energies below 41 J | 0 | 1 | 0 | 1 | 33-153 |
+| measured energies below 41 J | 1 | 11 | 11 | 0 |  |
+| measured energies below 41 J | 2 | 30 | 30 | 0 |  |
+| measured energies below 41 J | 3 or more | 92 | 92 | 0 |  |
+| measured energies above 41 J | 0 | 0 | 0 | 0 |  |
+| measured energies above 41 J | 1 | 0 | 0 | 0 |  |
+| measured energies above 41 J | 2 | 0 | 0 | 0 |  |
+| measured energies above 41 J | 3 or more | 134 | 133 | 1 | 33-153 |
+| measured energies exactly at 41 J | 0 | 134 | 133 | 1 | 33-153 |
+| measured energies exactly at 41 J | 1 or more | 0 | 0 | 0 |  |
+| lower-shelf sensitivity case | full-size curves with a calculated T41J (all-fitted method) | 132 | 132 | 0 |  |
+
+**Curve 33-153** (ref 33; A508 forging, unirradiated, full-size 55x10x10 mm V-notch, notch dimensions reported; 7 points from -120.1 to 24.4 °C). Final method: LSE fixed at 2.7 J, USE 235.8 J, T0 -77.9 °C, C 44.9 °C; outcome 'usable fit, index temperature calculated'; T41J -114.5 °C, 5.6 °C above the lowest test temperature. 41 J lies at 16.4 % of the fitted rise ('41 J inside the central 11.9-88.1 % of the fitted rise'), so the index-position warning does not fire. But all 7 measured energies are above 41 J (lowest 42.8 J, at -120.1 °C, where the fitted curve gives 33.7 J): the crossing is placed by the fitted curve, its tanh shape and the fixed 2.7 J lower shelf, not by measurements on both sides of 41 J. Under the all-fitted sensitivity case the same measurements give LSE 31.7 J (fitted) and a 41 J crossing of the fitted curve at -123.0 °C; that method's index status is 'unsupported: crossing below the lowest test temperature'. The T41J value, fit and outcome are kept; the curve carries the empirical-bracketing warning. This is the curve whose review exposed the missing diagnostic at CP3 (D-051); nothing about its fit was changed because of it.
+
+| record_id | test temperature (°C) | measured energy (J) | side of 41 J | fitted energy, final method (J) | measured - fitted (J) |
+| --- | --- | --- | --- | --- | --- |
+| R2030 | -120.1 | 42.8 | above | 33.7 | 9.1 |
+| R2029 | -90 | 81.3 | above | 88.8 | -7.5 |
+| R2028 | -60.4 | 163.7 | above | 162.5 | 1.3 |
+| R2027 | -45.7 | 189.7 | above | 191 | -1.3 |
+| R2026 | -29.7 | 220.2 | above | 211.4 | 8.8 |
+| R2025 | -0.2 | 222.3 | above | 228.7 | -6.4 |
+| R2024 | 24.4 | 233.5 | above | 233.4 | 0.1 |
+
+SYNTHETIC context (the existing audit rows of `synthetic_flag_check.csv`, Blocks A-D with scatter, final method; no scenario was added for this diagnostic): usable fit with T41J: no specimen energy below 41 J: 78 fits, T41J P90 |error| 5.5 °C; usable fit with T41J: at least one specimen energy below 41 J: 10172 fits, T41J P90 |error| 8.5 °C. Those synthetic truths are symmetric tanh curves with true lower shelves of 2-10 J (the final method fixes 2.7 J); none has a lower transition that departs from the tanh shape, which is where a crossing without a measurement below 41 J depends most on the model. The warning therefore records missing empirical support; it is not a demonstrated loss of accuracy, and the synthetic audit does not show one.
 
 ## 4. Where fits fail or are weak, against the WP2 sampling descriptors (final method)
 
@@ -670,6 +714,7 @@ Before and after (the previous CP3 presentation is reproduced exactly from the a
 | full-size curves with T41J calculated (of 134) | 132 | 132 | 134 |
 | full-size T41J with a usable fit | 36 | 36 | 104 |
 | T41J with the index-support warning (41 J outside 11.9-88.1 % of the fitted rise) | 15 | 15 | 9 |
+| T41J not empirically bracketed by measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome) | 0 | 0 | 1 |
 | flag: fitted LSE at its 0 J bound (overlapping) | 71 | 71 | 15 |
 | flag: weak lower shelf (overlapping) | 105 | 105 | 18 |
 | miniature curves with a usable fit (of 36) | 13 | 13 | 13 |

@@ -56,6 +56,14 @@ CRITERION_J = {"full-size": FULL_SIZE_CRITERION_J, "sub-size (E23 type)": None, 
 INDEX_RISE_FRACTION_LOW = 0.5 * (1.0 + np.tanh(-X_TRANSITION))    # 0.1192
 INDEX_RISE_FRACTION_HIGH = 0.5 * (1.0 + np.tanh(X_TRANSITION))    # 0.8808
 
+# D-044, empirical-bracketing support diagnostic (added at the author's final CP3 approval, 2026-09-14, after published curve 33-153 showed
+# that the index-position diagnostic above cannot see it). A different question from the index position: not where the criterion lies on
+# the fitted curve, but whether the measured energies themselves lie on both sides of it, min(E) <= criterion <= max(E). A calculated
+# index whose criterion is not bracketed is supplied by the fitted curve (its shape and its fixed or fitted shelf) rather than by
+# observations on both sides. A project support diagnostic, not an ASTM requirement: the value is kept, and the diagnostic is computed
+# outside classify(), so it cannot change a fit outcome. Only the full-size 41 J criterion exists (CRITERION_J), hence the wording.
+INDEX_NOT_BRACKETED_TEXT = "T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies."
+
 # D-042. Lower-shelf strategies.
 # The four candidates pre-registered for synthetic Block L (commit 11daf72). fixed_convention: 2.7 J for full-size and 0.1 J for
 # sub-size specimens, Sokolov & Nanstad (1995), ASTM STP 1270, p. 7.
@@ -317,12 +325,32 @@ def index_fraction_of_rise(fit: dict, criterion_j) -> float:
     return float((criterion_j - fit["lse_j"]) / (fit["use_j"] - fit["lse_j"]))
 
 
+def criterion_bracketing(e: np.ndarray, criterion_j, index_status: str) -> dict:
+    """Empirical-bracketing support diagnostic (D-044, final CP3 approval): the measured energies below, exactly at and above the
+    criterion, whether they bracket it, min(E) <= criterion <= max(E), and for a calculated index a warning when they do not. Uses the
+    measurements only; never withholds or changes the index and is not an input to classify(), so no outcome depends on it."""
+    e = np.asarray(e, float)
+    out = dict(measured_energy_min_j=float(e.min()), measured_energy_max_j=float(e.max()))
+    calculated = index_status == "calculated"
+    if criterion_j is None:
+        return {**out, "n_points_below_criterion": np.nan, "n_points_at_criterion": np.nan, "n_points_above_criterion": np.nan,
+                "criterion_bracketed_by_measured_energy": np.nan, "flag_index_not_bracketed_by_measured_energy": False,
+                "index_empirical_bracketing": "no index calculated"}
+    bracketed = bool(e.min() <= criterion_j <= e.max())
+    return {**out, "n_points_below_criterion": int(np.sum(e < criterion_j)), "n_points_at_criterion": int(np.sum(e == criterion_j)),
+            "n_points_above_criterion": int(np.sum(e > criterion_j)), "criterion_bracketed_by_measured_energy": bracketed,
+            "flag_index_not_bracketed_by_measured_energy": calculated and not bracketed,
+            "index_empirical_bracketing": ("no index calculated" if not calculated else
+                                           f"{criterion_j:g} J bracketed by measured energies" if bracketed else INDEX_NOT_BRACKETED_TEXT)}
+
+
 OUTCOMES = ["optimizer failure", "non-physical (inadmissible)", "boundary-limited", "weakly identified",
             "usable fit, index temperature unavailable", "usable fit, index temperature calculated"]
 
 # Fit diagnostics (describe the fit) and index diagnostics (describe the index temperature). Only fit diagnostics other than
 # flag_nonflat_upper_shelf take part in the outcome; flag_nonflat_upper_shelf (model adequacy, D-043) and both index diagnostics are
-# reported beside it.
+# reported beside it. The empirical-bracketing flag (flag_index_not_bracketed_by_measured_energy, D-044) is set by criterion_bracketing(),
+# deliberately outside classify(): it needs the measured energies, and keeping it out of classify() guarantees it cannot move an outcome.
 FIT_FLAGS = ["flag_optimizer_failure", "flag_nonphysical_no_rise", "flag_nonphysical_t0_at_absolute_zero", "flag_lse_at_lower_bound",
              "flag_boundary_c_min", "flag_boundary_c_max", "flag_boundary_t0_limit", "flag_boundary_rise_max", "flag_boundary_lse_max",
              "flag_weak_transition", "flag_weak_upper_shelf", "flag_nonflat_upper_shelf", "flag_weak_lower_shelf",

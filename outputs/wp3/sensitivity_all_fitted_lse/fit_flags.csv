@@ -15,4 +15,5 @@ flag_numerically_singular,ill-conditioned: Jacobian rank-deficient,1,0,1
 flag_nonflat_upper_shelf,model adequacy (not an outcome): upper-shelf residual trend (p < 0.05),8,6,2
 flag_index_unavailable,index temperature not calculated (any reason),38,2,36
 flag_index_near_fitted_shelf,"index support (not an outcome): T41J calculated, but 41 J outside the central 11.9-88.1 % of the fitted rise",15,15,0
+flag_index_not_bracketed_by_measured_energy,"index support (not an outcome; project diagnostic, not an ASTM requirement): T41J calculated from fitted curve; 41 J not empirically bracketed by measured energies (all measured energies on one side of 41 J)",0,0,0
 flag_full_size_notch_dimensions_unreported,"metadata (not a fit diagnostic): full-size V-notch, exact notch dimensions unreported; T41J still calculated (D-044)",74,74,0

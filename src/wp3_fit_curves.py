@@ -11,7 +11,8 @@ are read only after fitting, for comparison (D-049).
 
 Outputs (outputs/wp3/): method_configuration.md, fits_primary.csv, fits_looser_cohort_curves.csv, fit_outcomes.csv,
 fit_outcome_reasons.csv, fit_flags.csv, fit_outcomes_by_group.csv, index_availability_by_geometry.csv, index_position_on_fitted_rise.csv,
-t41j_notch_metadata_sensitivity.csv, parameter_summary.csv, parameter_extremes.csv, lse_sensitivity_published.csv,
+t41j_notch_metadata_sensitivity.csv, t41j_empirical_bracketing_by_curve.csv, t41j_empirical_bracketing_summary.csv (D-044 support diagnostic,
+added at final CP3 approval), parameter_summary.csv, parameter_extremes.csv, lse_sensitivity_published.csv,
 lse_sensitivity_published_summary.csv, lse_sensitivity_outcome_changes.csv, method_change_before_after.csv,
 residual_pattern_by_lower_shelf_outcome.csv, dataset_value_comparison.csv, dataset_value_comparison_summary.csv,
 cohort_sensitivity_outcomes.csv, fits_published_examples.png, fits_outcome_by_sampling.png, wp3_summary.md.
@@ -140,9 +141,10 @@ def fit_all(curves: pd.DataFrame, rec: pd.DataFrame, strategy: str) -> pd.DataFr
                          prefit_n_T_lower_band=F.prefit_lower_band_temperatures(t, e),
                          criterion_j=np.nan if criterion is None else criterion, index_temperature_c=t41, index_status=index_status,
                          index_fraction_of_rise=fraction, index_support=index_support(index_status, fraction),
-                         # Audit only (added at the CP3 amendment, no rule attached; D-051): measured energies on each side of the criterion.
-                         n_points_below_criterion=int(np.sum(e < criterion)) if criterion else np.nan,
-                         n_points_above_criterion=int(np.sum(e > criterion)) if criterion else np.nan,
+                         # Measured energies on each side of the criterion (audit columns added at the CP3 amendment) and, since final CP3
+                         # approval, the empirical-bracketing support diagnostic built on them (D-044). Computed after classify(): no outcome
+                         # depends on it.
+                         **F.criterion_bracketing(e, criterion, index_status),
                          outcome=cls["outcome"], outcome_reason=cls["outcome_reason"], outcome_detail=outcome_detail(cls["outcome"], flags),
                          **flags,
                          **{k: v for k, v in fit.items() if k not in ("n_points",)},
@@ -181,6 +183,9 @@ FLAG_LABELS = {
     "flag_index_unavailable": "index temperature not calculated (any reason)",
     "flag_index_near_fitted_shelf": "index support (not an outcome): T41J calculated, but 41 J outside the central 11.9-88.1 % of the "
                                     "fitted rise",
+    "flag_index_not_bracketed_by_measured_energy": "index support (not an outcome; project diagnostic, not an ASTM requirement): T41J "
+                                                   "calculated from fitted curve; 41 J not empirically bracketed by measured energies "
+                                                   "(all measured energies on one side of 41 J)",
     "flag_full_size_notch_dimensions_unreported": "metadata (not a fit diagnostic): full-size V-notch, exact notch dimensions "
                                                   "unreported; T41J still calculated (D-044)",
 }
@@ -232,6 +237,7 @@ def index_availability(fits: pd.DataFrame) -> pd.DataFrame:
                          index_calculated=int(calc.sum()),
                          index_calculated_and_fit_usable=int((h["outcome"] == F.OUTCOMES[5]).sum()),
                          index_calculated_with_index_support_warning=int((calc & h["flag_index_near_fitted_shelf"]).sum()),
+                         index_calculated_not_bracketed_by_measured_energy=int((calc & h["flag_index_not_bracketed_by_measured_energy"]).sum()),
                          not_calculated=int((~calc).sum()),
                          not_calculated_reasons="; ".join(f"{k} ({v})" for k, v in h.loc[~calc, "index_status"].value_counts().items())))
     return pd.DataFrame(rows)
@@ -551,6 +557,140 @@ def notch_metadata_sensitivity(primary: pd.DataFrame, rec: pd.DataFrame) -> tupl
     return pd.DataFrame(rows), notch
 
 
+# D-044 empirical-bracketing support diagnostic (final CP3 approval). The published curve whose review exposed the missing diagnostic; named
+# only so that the summary reports on it explicitly (D-051). The diagnostic itself is the same rule for every curve.
+CURVE_THAT_EXPOSED_BRACKETING_GAP = "33-153"
+BRACKETING_COLUMNS = ["curve_id", "ref_id", "material_family", "product_form", "irradiated", "geometry_description",
+                      "flag_full_size_notch_dimensions_unreported", "n_points", "T_min_c", "T_max_c", "measured_energy_min_j",
+                      "measured_energy_max_j", "n_points_below_criterion", "n_points_at_criterion", "n_points_above_criterion",
+                      "criterion_bracketed_by_measured_energy", "flag_index_not_bracketed_by_measured_energy", "index_empirical_bracketing",
+                      "index_temperature_c", "index_status", "index_fraction_of_rise", "index_support", "flag_index_near_fitted_shelf",
+                      "outcome", "outcome_reason"]
+
+
+def empirical_bracketing(primary: pd.DataFrame, alt: pd.DataFrame) -> tuple:
+    """D-044 empirical-bracketing support diagnostic: per full-size primary curve, whether its measured energies lie on both sides of 41 J,
+    beside the index-position warning, the notch metadata and the outcome; and how many calculated T41J values are and are not bracketed,
+    with those overlaps. Describes only: no fit, T41J value, outcome or cohort depends on it."""
+    fs = primary[primary["geometry_category"] == "full-size"].copy()
+    counts = ["n_points_below_criterion", "n_points_at_criterion", "n_points_above_criterion"]
+    fs[counts] = fs[counts].astype(int)
+    fs["criterion_bracketed_by_measured_energy"] = fs["criterion_bracketed_by_measured_energy"].astype(bool)
+    by_curve = fs.sort_values(["flag_index_not_bracketed_by_measured_energy", "n_points_below_criterion", "n_points_above_criterion", "curve_id"],
+                              ascending=[False, True, True, True])[BRACKETING_COLUMNS]
+    by_curve.insert(0, "data_type", DATA_TYPE)
+    calc = fs[fs["index_status"] == "calculated"]
+    rows = []
+
+    def add(dimension, group, h):
+        nb = h[h["flag_index_not_bracketed_by_measured_energy"]]
+        rows.append(dict(dimension=dimension, group=group, t41j_curves=len(h), bracketed=len(h) - len(nb), not_bracketed=len(nb),
+                         not_bracketed_curve_ids=" ".join(sorted(nb["curve_id"]))))
+
+    add("all", "full-size curves with a calculated T41J (final method)", calc)
+    for outcome in F.OUTCOMES:
+        if (calc["outcome"] == outcome).any():
+            add("fit outcome", outcome, calc[calc["outcome"] == outcome])
+    add("index-position warning", "warning: 41 J outside the central 11.9-88.1 % of the fitted rise", calc[calc["flag_index_near_fitted_shelf"]])
+    add("index-position warning", "no warning: 41 J inside the central 11.9-88.1 % of the fitted rise", calc[~calc["flag_index_near_fitted_shelf"]])
+    add("notch metadata", "full-size V-notch, exact notch dimensions unreported", calc[~calc["notch_reported"]])
+    add("notch metadata", "notch dimensions reported", calc[calc["notch_reported"]])
+    for column, side in [("n_points_below_criterion", "below"), ("n_points_above_criterion", "above")]:
+        for label, lo, hi in [("0", 0, 0), ("1", 1, 1), ("2", 2, 2), ("3 or more", 3, np.inf)]:
+            add(f"measured energies {side} 41 J", label, calc[calc[column].between(lo, hi)])
+    add("measured energies exactly at 41 J", "0", calc[calc["n_points_at_criterion"] == 0])
+    add("measured energies exactly at 41 J", "1 or more", calc[calc["n_points_at_criterion"] > 0])
+    alt_calc = alt[(alt["geometry_category"] == "full-size") & (alt["index_status"] == "calculated")]
+    add("lower-shelf sensitivity case", "full-size curves with a calculated T41J (all-fitted method)", alt_calc)
+    return by_curve, pd.DataFrame(rows)
+
+
+def bracketing_section(summary: pd.DataFrame, primary: pd.DataFrame, alt: pd.DataFrame, rec: pd.DataFrame) -> list:
+    """Section 3.2 of wp3_summary.md: the answers, the overlap table, and the measured points of every T41J not bracketed (33-153 named)."""
+    get = lambda dim, group: summary[(summary["dimension"] == dim) & (summary["group"] == group)].iloc[0]
+    total = summary[summary["dimension"] == "all"].iloc[0]
+    usable = get("fit outcome", F.OUTCOMES[5])
+    warned = get("index-position warning", "warning: 41 J outside the central 11.9-88.1 % of the fitted rise")
+    unreported = get("notch metadata", "full-size V-notch, exact notch dimensions unreported")
+    at_41 = get("measured energies exactly at 41 J", "1 or more")
+    one_below = get("measured energies below 41 J", "1")
+    none_above = get("measured energies above 41 J", "0")
+    alt_row = summary[summary["dimension"] == "lower-shelf sensitivity case"].iloc[0]
+    by_outcome = summary[summary["dimension"] == "fit outcome"]
+    ids = total["not_bracketed_curve_ids"] or "none"
+    L = ["### 3.2 Empirical bracketing of 41 J by the measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome)", "",
+         "Two separate index-support diagnostics are reported beside every calculated T41J. The index-position warning "
+         "(`flag_index_near_fitted_shelf`, section 3) asks where 41 J lies on the fitted S-curve. The empirical-bracketing diagnostic asks "
+         "whether the published measured energies themselves lie on both sides of 41 J: `criterion_bracketed_by_measured_energy` = "
+         "min(measured energy) <= 41 J <= max(measured energy), with the measured energies below, exactly at and above 41 J counted. A "
+         "calculated T41J that is not bracketed is kept unchanged and flagged `flag_index_not_bracketed_by_measured_energy`: "
+         f"\"{F.INDEX_NOT_BRACKETED_TEXT}\" It separates a fitted crossing supported by observations on both sides of 41 J from one supplied "
+         "mainly by the model because every observation lies on one side. This is a project support diagnostic, not an ASTM requirement. It "
+         "is computed from the measurements after the outcome classification, so it changes no fit, T41J value, outcome or frozen WP2 cohort.", "",
+         f"Answers (primary cohort, final method). (1) Of the {total['t41j_curves']} full-size curves with a calculated T41J, "
+         f"{total['bracketed']} are empirically bracketed by their measured energies. (2) {total['not_bracketed']} "
+         f"{'is' if total['not_bracketed'] == 1 else 'are'} not. (3) Among the {usable['t41j_curves']} usable-fit T41J values, "
+         f"{usable['not_bracketed']} {'is' if usable['not_bracketed'] == 1 else 'are'} not bracketed. (4) Not bracketed: {ids}. "
+         f"(5) Overlap: of the {warned['t41j_curves']} T41J values with the index-position warning, {warned['not_bracketed']} "
+         f"{'is' if warned['not_bracketed'] == 1 else 'are'} not bracketed, so {warned['not_bracketed']} "
+         f"{'curve carries' if warned['not_bracketed'] == 1 else 'curves carry'} both warnings; of the {unreported['t41j_curves']} from "
+         f"curves with exact notch dimensions unreported, {unreported['not_bracketed']} "
+         f"{'is' if unreported['not_bracketed'] == 1 else 'are'} not bracketed; by fit outcome, not bracketed / T41J values: "
+         + "; ".join(f"{r.group} {r.not_bracketed} / {r.t41j_curves}" for r in by_outcome.itertuples(index=False)) + ". "
+         f"Context: {none_above['t41j_curves']} calculated T41J values lack a measured energy above 41 J; {one_below['t41j_curves']} are "
+         f"bracketed by a single measured energy below 41 J; {at_41['t41j_curves']} curves have a measured energy of exactly 41 J. Under the "
+         f"all-fitted sensitivity case, {alt_row['not_bracketed']} of its {alt_row['t41j_curves']} calculated T41J values "
+         f"{'is' if alt_row['not_bracketed'] == 1 else 'are'} not bracketed.", "",
+         md_table(summary), ""]
+    flagged = primary[primary["flag_index_not_bracketed_by_measured_energy"]].sort_values("curve_id")
+    by_id, alt_by_curve = rec.set_index("record_id"), alt.set_index("curve_id")
+    for r in flagged.itertuples(index=False):
+        s = by_id.loc[r.record_ids.split()].sort_values(["test_temp_c", "source_row"])
+        t, e = s["test_temp_c"].to_numpy(float), s["energy_j"].to_numpy(float)
+        fitted = F.tanh_energy(t, r.lse_j, r.use_j, r.t0_c, r.c_c)
+        lower = r.n_points_below_criterion == 0
+        k = int(np.argmin(e)) if lower else int(np.argmax(e))
+        shelf = (f"the fixed {r.lse_j:g} J lower shelf" if r.lse_mode == "fixed" else "its fitted lower shelf") if lower else "its fitted upper shelf"
+        a = alt_by_curve.loc[r.curve_id]
+        alt_crossing = (F.criterion_temperature(a["lse_j"], a["use_j"], a["t0_c"], a["c_c"], F.FULL_SIZE_CRITERION_J)[0]
+                        if a["optimizer_success"] else np.nan)
+        lse_txt = f"LSE fixed at {r.lse_j:g} J" if r.lse_mode == "fixed" else f"LSE {r.lse_j:.1f} J (fitted)"
+        distance = (f"{r.index_temperature_c - r.T_min_c:.1f} °C above the lowest test temperature" if lower else
+                    f"{r.T_max_c - r.index_temperature_c:.1f} °C below the highest test temperature")
+        note = (" This is the curve whose review exposed the missing diagnostic at CP3 (D-051); nothing about its fit was changed because of it."
+                if r.curve_id == CURVE_THAT_EXPOSED_BRACKETING_GAP else "")
+        L += [f"**Curve {r.curve_id}** (ref {r.ref_id}; {r.material_family} {r.product_form}, {'irradiated' if r.irradiated else 'unirradiated'}, "
+              f"{r.geometry_description}; {r.n_points} points from {r.T_min_c:.1f} to {r.T_max_c:.1f} °C). Final method: {lse_txt}, "
+              f"USE {r.use_j:.1f} J, T0 {r.t0_c:.1f} °C, C {r.c_c:.1f} °C; outcome '{r.outcome}'; T41J {r.index_temperature_c:.1f} °C, "
+              f"{distance}. 41 J lies at {100 * r.index_fraction_of_rise:.1f} % of the fitted rise ('{r.index_support}'), so the index-position "
+              f"warning {'fires' if r.flag_index_near_fitted_shelf else 'does not fire'}. But all {r.n_points} measured energies are "
+              f"{'above' if lower else 'below'} 41 J ({'lowest' if lower else 'highest'} {e[k]:.1f} J, at {t[k]:.1f} °C, where the fitted "
+              f"curve gives {fitted[k]:.1f} J): the crossing is placed by the fitted curve, its tanh shape and {shelf}, not by measurements on "
+              f"both sides of 41 J. Under the all-fitted sensitivity case the same measurements give LSE {a['lse_j']:.1f} J (fitted) and a "
+              f"41 J crossing of the fitted curve at {alt_crossing:.1f} °C; that method's index status is '{a['index_status']}'. The T41J "
+              f"value, fit and outcome are kept; the curve carries the empirical-bracketing warning.{note}", "",
+              md_table(pd.DataFrame({"record_id": s.index, "test temperature (°C)": t.round(1), "measured energy (J)": e.round(1),
+                                     "side of 41 J": np.where(e < F.FULL_SIZE_CRITERION_J, "below", np.where(e > F.FULL_SIZE_CRITERION_J, "above", "at")),
+                                     "fitted energy, final method (J)": fitted.round(1), "measured - fitted (J)": (e - fitted).round(1)})), ""]
+    if CURVE_THAT_EXPOSED_BRACKETING_GAP not in set(flagged["curve_id"]):
+        r = primary.set_index("curve_id").loc[CURVE_THAT_EXPOSED_BRACKETING_GAP]
+        L += [f"Curve {CURVE_THAT_EXPOSED_BRACKETING_GAP}, whose review exposed the missing diagnostic at CP3 (D-051), does not carry the warning: "
+              f"index status '{r['index_status']}', measured energies below / at / above 41 J: {r['n_points_below_criterion']:g} / "
+              f"{r['n_points_at_criterion']:g} / {r['n_points_above_criterion']:g}.", ""]
+    checks = pd.read_csv(OUT / "synthetic_flag_check.csv")
+    audit = checks[checks["kind"] == "audit: criterion bracketing"]
+    design = pd.read_csv(OUT / "synthetic_validation_design.csv")
+    lse_true = design.loc[design["block"].isin(["A", "B", "C", "D"]) & (design["lse_strategy"] == LSE_STRATEGY), "lse_true"]
+    L += ["SYNTHETIC context (the existing audit rows of `synthetic_flag_check.csv`, Blocks A-D with scatter, final method; no scenario was "
+          "added for this diagnostic): " + "; ".join(f"{r.group}: {r.fits} fits, T41J P90 |error| {r.t41_analytic_p90_abs:.1f} °C"
+                                                      for r in audit.itertuples(index=False)) + ". "
+          f"Those synthetic truths are symmetric tanh curves with true lower shelves of {lse_true.min():g}-{lse_true.max():g} J (the final "
+          f"method fixes {F.FIXED_LSE_CONVENTION_J['full-size']:g} J); none has a lower transition that departs from the tanh shape, which is "
+          "where a crossing without a measurement below 41 J depends most on the model. The warning therefore records missing empirical "
+          "support; it is not a demonstrated loss of accuracy, and the synthetic audit does not show one.", ""]
+    return L
+
+
 # ---------------------------------------------------------------------------
 # 5c. Lower-shelf sensitivity on published data: final primary method versus the pre-registered all-fitted method (CP3 amendment)
 # ---------------------------------------------------------------------------
@@ -634,6 +774,8 @@ def method_change_table(final: pd.DataFrame, alt: pd.DataFrame) -> pd.DataFrame:
                                              for _, f, col, outs in columns])
     put("T41J with the index-support warning (41 J outside 11.9-88.1 % of the fitted rise)",
         [int(f["flag_index_near_fitted_shelf"].sum()) for _, f, _c, _o in columns])
+    put("T41J not empirically bracketed by measured energies (D-044 support diagnostic, added at final CP3 approval; not an outcome)",
+        [int(f["flag_index_not_bracketed_by_measured_energy"].sum()) for _, f, _c, _o in columns])
     put("flag: fitted LSE at its 0 J bound (overlapping)", [int(f["flag_lse_at_lower_bound"].sum()) for _, f, _c, _o in columns])
     put("flag: weak lower shelf (overlapping)", [int(f["flag_weak_lower_shelf"].sum()) for _, f, _c, _o in columns])
     put("miniature curves with a usable fit (of 36)", [int(((f["geometry_category"] == "miniature") & f[col].isin(outs[4:])).sum())
@@ -653,7 +795,8 @@ def method_configuration() -> str:
          f"| lower shelf, sensitivity case | `{SENSITIVITY_STRATEGY}`: LSE fitted (>= 0 J) for every geometry; the pre-registered rule's outcome, presented at CP3 | D-042 |",
          "| upper shelf | fitted asymptote LSE + (USE - LSE); supported if >= 2 specimens where the fit is >= 95.3 % of the rise (x >= 1.5); residual trend test (p < 0.05) reported as a model-adequacy flag outside the outcome | D-043 |",
          f"| index temperature, full-size 55x10x10 mm V-notch | T at {F.FULL_SIZE_CRITERION_J:g} J, analytic; only if LSE < 41 J < USE and inside the tested range; also for full-size V-notch curves whose exact notch dimensions are unreported (flagged) | D-044 |",
-         "| index support (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |",
+         "| index support: position on the fitted rise (not an outcome) | calculated T41J with 41 J outside the central 11.9-88.1 % of the fitted rise (x = -1...+1): flag_index_near_fitted_shelf; the value is kept | D-044 |",
+         "| index support: empirical bracketing (not an outcome; project diagnostic, not an ASTM requirement) | criterion_bracketed_by_measured_energy = min(measured energy) <= 41 J <= max(measured energy), with the measured energies below, at and above 41 J counted; a calculated T41J that is not bracketed carries flag_index_not_bracketed_by_measured_energy (\"" + F.INDEX_NOT_BRACKETED_TEXT + "\"); the value is kept; computed outside the outcome classification (final CP3 approval) | D-044 |",
          "| index temperature, miniature / E23 sub-size | not calculated (no defensible criterion) | D-045 |",
          f"| optimizer | scipy.optimize.least_squares, method trf, analytic Jacobian, scaled parameters, ftol = xtol = gtol = {F.TOLERANCE:g}, max_nfev = {F.MAX_NFEV} per start | D-041 |",
          "| weighting | ordinary (unweighted) least squares on energy | D-041 |",
@@ -891,7 +1034,7 @@ def synthetic_sections() -> list:
 
 def summary_markdown(primary, outcomes, reasons, flags, availability, by_group, params, extremes, comparison_summary, cohorts,
                      examples, sens_summary, sens_changes, before_after, residuals, residuals_alt, positions, notch, notch_records,
-                     pre_cp3) -> str:
+                     pre_cp3, bracketing_summary, alt, rec) -> str:
     geo = primary.groupby("geometry_category").size()
     fs = primary[primary["geometry_category"] == "full-size"]
     mini = primary[primary["geometry_category"] == "miniature"]
@@ -904,13 +1047,16 @@ def summary_markdown(primary, outcomes, reasons, flags, availability, by_group, 
     L = ["# WP3 summary: transition-curve fitting (q4x6v-dyt25)", "",
          "Analysis of published Charpy V-notch test data (Materials Cloud 2025.30). Section 2 is SYNTHETIC fitter validation; every other "
          "section concerns the published measurements of the CP2-frozen cohorts. Decisions: DECISIONS.md D-040 to D-051.", "",
-         "**Method status (CP3 review by the author, 2026-09-14).** WP3 approved in principle, with amendments implemented here and awaiting "
-         f"final CP3 approval. D-042 amended: the FINAL PRIMARY method fixes the lower shelf at {F.FIXED_LSE_CONVENTION_J['full-size']:g} J "
+         "**Method status: FINAL APPROVED at CP3 (author, 2026-09-14).** WP3 was approved in principle at the CP3 review with amendments; "
+         "after reviewing the amended results the author gave final approval of D-040 to D-051, with one additional support diagnostic "
+         "(D-044: empirical bracketing of 41 J by the measured energies, section 3.2). D-042 amended at CP3: the FINAL PRIMARY method fixes "
+         f"the lower shelf at {F.FIXED_LSE_CONVENTION_J['full-size']:g} J "
          "for full-size specimens and fits it (>= 0 J) for miniature specimens. It replaces the pre-registered rule's outcome (LSE fitted "
          "for every geometry), which was presented at CP3 and is kept as an explicit sensitivity case (sections 2.10 and 6, "
          "`sensitivity_all_fitted_lse/`). D-046 amended: a fitted LSE at its 0 J bound is a boundary-limited fit, not a non-physical one. "
-         "D-044: exact-notch-unreported full-size curves keep T41J with an explicit flag; an index-support diagnostic and a notch-metadata "
-         "sensitivity are reported.", "",
+         "D-044: exact-notch-unreported full-size curves keep T41J with an explicit flag; two index-support diagnostics (index position on the "
+         "fitted rise; empirical bracketing by the measured energies) and a notch-metadata sensitivity are reported; neither diagnostic is an "
+         "outcome.", "",
          "## 1. Method", "", method_configuration().split("\n", 2)[2], ""]
     L += synthetic_sections()
     L += ["## 3. Published data: primary cohort outcomes (final primary method)", "",
@@ -926,10 +1072,14 @@ def summary_markdown(primary, outcomes, reasons, flags, availability, by_group, 
           f"Summary: T41J calculated for {int(calc.sum())} of {len(fs)} full-size curves; not calculated for {int((~calc).sum())} ("
           + ("; ".join(f"{k}: {v}" for k, v in fs.loc[~calc, "index_status"].value_counts().items()) or "none") + "). "
           f"{int((calc & ~fs['notch_reported']).sum())} of the calculated values come from full-size V-notch curves with exact notch "
-          f"dimensions unreported; {int(fs['flag_index_near_fitted_shelf'].sum())} carry the index-support warning. "
+          f"dimensions unreported; {int(fs['flag_index_near_fitted_shelf'].sum())} carry the index-support warning for the index position "
+          f"(41 J outside 11.9-88.1 % of the fitted rise) and {int(fs['flag_index_not_bracketed_by_measured_energy'].sum())} the "
+          "empirical-bracketing warning (no measured energy on one side of 41 J; section 3.2). "
           f"Miniature curves with a usable fit (T0, C, LSE and USE reported, no index temperature): {int(mini_usable.sum())} of {len(mini)}.", "",
           "### 3.1 Notch-metadata sensitivity (D-044; a diagnostic, the primary cohort is unchanged)", "",
-          md_table(notch), "", "Notch fields of the full-size records, as reported (nothing filled in):", "", md_table(notch_records), "",
+          md_table(notch), "", "Notch fields of the full-size records, as reported (nothing filled in):", "", md_table(notch_records), ""]
+    L += bracketing_section(bracketing_summary, primary, alt, rec)
+    L += [
           "## 4. Where fits fail or are weak, against the WP2 sampling descriptors (final method)", "", md_table(by_group), "",
           "Residual pattern by lower-shelf treatment (measured minus fitted, % of fitted USE), final method:", "",
           md_table(residuals.round(2)), "",
@@ -998,6 +1148,9 @@ def main():
     positions.to_csv(OUT / "index_position_on_fitted_rise.csv", index=False)
     notch, notch_records = notch_metadata_sensitivity(primary, rec)
     notch.to_csv(OUT / "t41j_notch_metadata_sensitivity.csv", index=False)
+    bracketing_by_curve, bracketing_summary = empirical_bracketing(primary, alt)
+    bracketing_by_curve.to_csv(OUT / "t41j_empirical_bracketing_by_curve.csv", index=False)
+    bracketing_summary.to_csv(OUT / "t41j_empirical_bracketing_summary.csv", index=False)
     by_group = outcomes_by_group(primary)
     by_group.to_csv(OUT / "fit_outcomes_by_group.csv", index=False)
     params, extremes = parameter_summary(primary)
@@ -1027,7 +1180,8 @@ def main():
     sampling_figure(fits)
     write_text(OUT / "wp3_summary.md", summary_markdown(primary, outcomes, reasons, flags, availability, by_group, params, extremes,
                                                        comparison_summary, cohorts, examples, sens_summary, sens_changes, before_after,
-                                                       residuals, residuals_alt, positions, notch, notch_records, pre_cp3))
+                                                       residuals, residuals_alt, positions, notch, notch_records, pre_cp3,
+                                                       bracketing_summary, alt, rec))
     print(f"WP3 fits: {len(fits)} curves fitted (final primary method); primary cohort {len(primary)} curves -> {OUT}")
     print(outcomes.to_string(index=False))
     print(f"All-fitted sensitivity case: {len(alt)} curves -> {SENSITIVITY_OUT}; pre-CP3 classification reproduced: {got}")
