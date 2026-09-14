@@ -55,6 +55,13 @@
   with the full-size shelf fixed, lower-shelf diagnostics cannot fire for full-size curves (D-042, D-047).
 - Method evolution, including every change after results existed: D-051 (step 5 = the CP3 amendment). Pre-CP3 commits `11daf72`, `0d5e548`,
   `20481dd`, `a2ce7f2` are kept.
+- Reproducibility check of the revised CP3 state: a fresh clone of commit `5bd4c2c` with a newly created `.venv` (from `requirements.txt`: CPython
+  3.9.6, numpy 2.0.2, pandas 2.2.3, scipy 1.13.1, matplotlib 3.9.4, openpyxl 3.1.5) ran `./run_all.sh` in 6 min 29 s (exit 0; frozen-cohort check
+  passed in WP2 and WP3; raw-data checksums verified) and left 0 tracked files changed and 0 untracked files; its `outputs/` were identical to those
+  of a separate full run in the working tree, whose WP3 outputs were in turn byte-identical to an earlier WP3-only run (44 files). Synthetic scenarios
+  rerun in a single process matched the 8-worker results exactly (4 scenarios, 2 per lower-shelf method, 200 replicates each, exact float parsing).
+  The regenerated all-fitted outputs reproduce commit `a2ce7f2` (scratch comparison; differences only the documented renaming, relabelling and the
+  27 two-bound reason strings, D-048).
 - Reproducibility check of the original CP3 state (kept for the record): a fresh clone of commit `20481dd` with a newly created `.venv` ran
   `./run_all.sh` in 6 min 9 s and left 0 tracked files changed; single-process synthetic reruns matched the 8-worker results bit for bit (4 scenarios).
 
