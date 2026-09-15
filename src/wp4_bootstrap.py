@@ -267,21 +267,47 @@ def run_task(task) -> tuple:
 
 
 def run_tasks(tasks: list, workers: int) -> dict:
-    """Run tasks in worker processes (or in this process if workers == 1) and reassemble each run's chunks in replicate order."""
-    if workers <= 1:
-        results = [run_task(task) for task in tasks]
-    else:
-        from concurrent.futures import ProcessPoolExecutor
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            results = list(pool.map(run_task, tasks, chunksize=1))
+    """Run tasks in worker processes (or in this process if workers == 1) and reassemble each run's chunks in replicate order. Keeps every
+    result in memory: only for small jobs (the determinism checks). Large jobs use stream_map()."""
     parts = {}
-    for key, part in results:
+    for key, part in stream_map(run_task, tasks, workers):
         parts.setdefault(key, []).append(part)
     merged = {}
     for key, chunks in parts.items():
         chunks.sort(key=lambda p: int(p["replicate"][0]))
         merged[key] = concatenate(chunks)
     return merged
+
+
+# ---------------------------------------------------------------------------
+# 7. Memory-bounded parallel execution (systems choice only; results do not depend on it, D-055, D-067)
+# ---------------------------------------------------------------------------
+# The first synthetic validation run (8 worker processes, every task submitted at once, every replicate array kept by the parent) was
+# stopped by the operating environment for low memory on the 8 GB project machine. Each spawned worker imports numpy, scipy and pandas
+# (about 110 MB), so the worker count is kept small, workers are recycled, tasks are fed lazily and results are consumed one at a time.
+DEFAULT_WORKERS = 3              # conservative for the project machine (Apple M1, 4 performance cores, 8 GB); override with WP4_WORKERS
+MAX_TASKS_PER_CHILD = 200        # recycle worker processes so that no allocator growth accumulates over a long run
+
+
+def worker_count() -> int:
+    import os
+    env = os.environ.get("WP4_WORKERS", "").strip()
+    return max(1, int(env)) if env else max(1, min(DEFAULT_WORKERS, os.cpu_count() or 1))
+
+
+def stream_map(func, tasks, workers: int):
+    """Yield func(task) for each task, in task order, while holding only a few results in memory. `tasks` may be a generator; func must be a
+    top-level (picklable) function. With workers <= 1 everything runs in this process. Per-replicate seeds make the results identical for
+    any worker count, chunking or order (checked in src/wp4_validation.py)."""
+    if workers <= 1:
+        for task in tasks:
+            yield func(task)
+        return
+    import multiprocessing
+    ctx = multiprocessing.get_context("spawn")
+    with ctx.Pool(processes=workers, maxtasksperchild=MAX_TASKS_PER_CHILD) as pool:
+        for result in pool.imap(func, tasks, chunksize=1):
+            yield result
 
 
 # ---------------------------------------------------------------------------
@@ -355,6 +381,14 @@ def summarise_target(reps: dict, target: str, original_value: float, original_ou
     d["interval_reportable"] = bool(fraction >= REPORTABLE_FINITE_FRACTION)
     d["interval_label"] = interval_label(original_outcome, fraction)
     return d
+
+
+def summarise_run(reps: dict, category: str, originals: dict, original_outcome: str, targets=None) -> dict:
+    """Everything later steps need from one bootstrap run except the replicate arrays: the accounting and one summary per target
+    (original values by target; targets default to the geometry's list). Used by workers so that replicate arrays need not be kept."""
+    targets = targets or TARGETS[category]
+    return dict(accounting=accounting(reps, category), errors=sorted(set(reps["errors"])),
+                targets={tg: summarise_target(reps, tg, originals.get(tg, np.nan), original_outcome) for tg in targets})
 
 
 def mean_curve_band(reps: dict, grid_t: np.ndarray, levels=(0.025, 0.975)) -> tuple:

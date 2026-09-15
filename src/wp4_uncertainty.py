@@ -15,7 +15,6 @@ Run:  .venv/bin/python src/wp4_uncertainty.py      (after src/wp3_fit_curves.py 
 """
 from __future__ import annotations
 
-import os
 import textwrap
 import time
 
@@ -26,11 +25,12 @@ from scipy import stats
 import wp3_fit_curves as W3
 import wp3_fitter as F
 import wp4_bootstrap as B
+import wp4_checkpoint as CK
 from common import DATA, OUTPUTS, PRIMARY_DATASET, md_table, write_text
 
 OUT = OUTPUTS / "wp4"
 DATA_TYPE = "published measurements (analysis of published test data)"
-WORKERS = max(1, min(8, os.cpu_count() or 1))
+WORKERS = B.worker_count()      # conservative default (3) for the 8 GB project machine; results do not depend on it (D-067)
 METHODS = [B.PAIRS, B.WILD]
 QUALITY = {F.OUTCOMES[0]: "optimizer failure", F.OUTCOMES[1]: "non-physical (inadmissible)", F.OUTCOMES[2]: "boundary-limited",
            F.OUTCOMES[3]: "weakly identified", F.OUTCOMES[4]: "usable", F.OUTCOMES[5]: "usable"}
@@ -102,15 +102,52 @@ def reproduction_check(wp3: pd.DataFrame, data: dict) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # 2. Bootstrap runs
 # ---------------------------------------------------------------------------
-def run_bootstraps(data: dict, curve_ids, n_replicates: int, seed_suffix: str = "") -> dict:
-    tasks = []
-    for cid in curve_ids:
-        d = data[cid]
-        for method in METHODS:
-            tasks += B.make_tasks((cid, method), d["t"], d["e"], d["category"], method, cid, n_replicates, seed_method=method + seed_suffix)
-    # Long curves first, so that the largest tasks start early; results are reassembled by key and replicate index.
-    tasks.sort(key=lambda task: -len(task[1]))
-    return B.run_tasks(tasks, WORKERS)
+def bootstrap_task(payload) -> tuple:
+    """Worker: one curve and one method; returns the replicate arrays (the parent saves them to a checkpoint at once)."""
+    cid, method, t, e, category, n_replicates, seed_method = payload
+    return cid, method, B.run_replicates(t, e, category, method, cid, range(n_replicates), seed_method)
+
+
+class RunStore:
+    """The replicate arrays of the bootstrap runs of the published curves, kept on disk as verified checkpoints (cache/wp4/published/, D-067)
+    and loaded one run at a time: store[(curve_id, method)] returns that run's arrays. Only summaries are held in memory."""
+
+    def __init__(self, data: dict, code_fp: str, n_replicates: int, seed_suffix: str = ""):
+        self.data, self.code_fp, self.n, self.suffix = data, code_fp, n_replicates, seed_suffix
+        self.root = CK.checkpoint_root() / "published" / f"B{n_replicates}{seed_suffix.replace('|', '_')}"
+
+    def path(self, cid: str, method: str):
+        return self.root / method / f"{cid}.npz"
+
+    def fp(self, cid: str, method: str) -> str:
+        d = self.data[cid]
+        return CK.fingerprint(self.code_fp, arrays=[d["t"], d["e"]], curve_id=cid, method=method, seed_method=method + self.suffix,
+                              replicates=self.n, category=d["category"], seed=B.WP4_SEED)
+
+    def __getitem__(self, key) -> dict:
+        cid, method = key
+        arrays = CK.load_arrays(self.path(cid, method), self.fp(cid, method))
+        if arrays is None:
+            raise KeyError(f"no verified bootstrap checkpoint for {key}")
+        arrays["errors"] = [str(x) for x in arrays.pop("errors")]
+        return arrays
+
+    def ensure(self, curve_ids) -> tuple:
+        """Compute every run that has no verified checkpoint, saving each as it arrives. Returns (computed, resumed)."""
+        keys = [(cid, m) for cid in curve_ids for m in METHODS]
+        pending = sorted([k for k in keys if not CK.has_arrays(self.path(*k), self.fp(*k))], key=lambda k: (-len(self.data[k[0]]["t"]), k))
+        print(f"bootstrap B = {self.n}{self.suffix}: {len(keys)} runs, {len(keys) - len(pending)} resumed from verified checkpoints, "
+              f"{len(pending)} to compute with {WORKERS} worker processes", flush=True)
+        payloads = ((cid, m, self.data[cid]["t"], self.data[cid]["e"], self.data[cid]["category"], self.n, m + self.suffix) for cid, m in pending)
+        t_start = time.perf_counter()
+        for k, (cid, m, r) in enumerate(B.stream_map(bootstrap_task, payloads, WORKERS), start=1):
+            if len(r["outcome_code"]) != self.n:
+                raise AssertionError(f"{cid} {m}: {len(r['outcome_code'])} replicates returned, {self.n} requested")
+            CK.save_arrays(self.path(cid, m), {**{f: r[f] for f in B.REPLICATE_FIELDS + ["replicate"]},
+                                               "errors": np.array(r["errors"], dtype=str)}, self.fp(cid, m))
+            if k % 20 == 0 or k == len(pending):
+                print(f"  {k}/{len(pending)} runs saved; {(time.perf_counter() - t_start) / 60:.1f} min", flush=True)
+        return len(pending), len(keys) - len(pending)
 
 
 def determinism_spot_check(data: dict, reps: dict) -> pd.DataFrame:
@@ -120,10 +157,12 @@ def determinism_spot_check(data: dict, reps: dict) -> pd.DataFrame:
     for cid in [ids[0], ids[-1]]:
         d = data[cid]
         for method in METHODS:
-            single = B.run_replicates(d["t"], d["e"], d["category"], method, cid, range(250), method)
-            pooled = {k: v[:250] for k, v in reps[(cid, method)].items() if k != "errors"}
+            stored = reps[(cid, method)]
+            n = min(250, len(stored["outcome_code"]))
+            single = B.run_replicates(d["t"], d["e"], d["category"], method, cid, range(n), method)
+            pooled = {k: v[:n] for k, v in stored.items() if k != "errors"}
             same = all(np.array_equal(single[k], pooled[k], equal_nan=single[k].dtype.kind == "f") for k in B.REPLICATE_FIELDS)
-            rows.append(dict(data_type=DATA_TYPE, curve_id=cid, n_points=len(d["t"]), method=method, replicates_compared=250,
+            rows.append(dict(data_type=DATA_TYPE, curve_id=cid, n_points=len(d["t"]), method=method, replicates_compared=n,
                              compared="single process, one chunk vs the pooled multi-process run", identical=same))
     out = pd.DataFrame(rows)
     if not out["identical"].all():
@@ -310,6 +349,8 @@ def stability_subset(wp3: pd.DataFrame, long_pairs: pd.DataFrame) -> pd.DataFram
     for cat, target in [("full-size", "t41j"), ("miniature", "t0")]:
         s = long_pairs[(long_pairs["geometry_category"] == cat) & (long_pairs["target"] == target) & long_pairs["interval_reportable"]]
         s = s.sort_values(["interval_width", "curve_id"])
+        if len(s) == 0:
+            continue
         picks.append((s.iloc[0]["curve_id"], f"{cat}: narrowest reportable pairs {target} interval ({s.iloc[0]['interval_width']:.3g})"))
         picks.append((s.iloc[-1]["curve_id"], f"{cat}: broadest reportable pairs {target} interval ({s.iloc[-1]['interval_width']:.3g})"))
     t = pd.DataFrame(picks, columns=["curve_id", "reason"]).groupby("curve_id", sort=False)["reason"].agg("; ".join).reset_index()
@@ -334,8 +375,9 @@ def stability_table(sub: pd.DataFrame, wp3: pd.DataFrame, data: dict, reps: dict
                         row[f"change_{k}"] = b[k] - a[k]
                 row["change_finite_target_fraction"] = b["finite_target_fraction"] - a["finite_target_fraction"]
                 scale = a["interval_width"]
+                changes = np.abs([row["change_q025"], row["change_median"], row["change_q975"]])
                 row["max_abs_endpoint_or_median_change_as_share_of_b2000_width"] = (
-                    max(abs(row["change_q025"]), abs(row["change_median"]), abs(row["change_q975"])) / scale if scale and np.isfinite(scale) and scale > 0 else np.nan)
+                    float(np.max(changes)) / scale if np.isfinite(scale) and scale > 0 and np.all(np.isfinite(changes)) else np.nan)
                 row["reportable_status_changes"] = bool(a["interval_reportable"] != b["interval_reportable"])
                 rows.append(row)
     return pd.DataFrame(rows)
@@ -901,6 +943,64 @@ def _pct(x) -> str:
     return "" if pd.isna(x) else f"{100 * x:.1f} %"
 
 
+def headline_lines(ctx: dict) -> list:
+    """Headline numbers, each read from a table generated in this run (no number is typed in by hand)."""
+    ca, t41, long = ctx["curve_accounting"], ctx["t41"], ctx["long"]
+    L = []
+    for method in METHODS:
+        for cat, target, name in [("full-size", "t41j", "full-size T41J"), ("full-size", "use", "full-size USE"), ("miniature", "t0", "miniature T0"),
+                                  ("miniature", "use", "miniature USE")]:
+            r = ca[(ca["method"] == method) & (ca["geometry_category"] == cat) & (ca["target"] == target) & (ca["original_wp3_outcome"] == "ALL")].iloc[0]
+            L.append(f"- {method}, {name}: {r['curves']} curves = {r['primary_bootstrap_ci']} primary bootstrap CIs + {r['diagnostic_bootstrap_interval']} "
+                     f"diagnostic intervals + {r['interval_unavailable']} unavailable.")
+    usable = t41["outcome"] == F.OUTCOMES[5]
+    for method in METHODS:
+        prim = t41[usable & (t41[f"{method}_interval_label"] == B.INTERVAL_PRIMARY)]
+        if len(prim):
+            L.append(f"- {method}, full-size T41J, usable fits with a primary CI ({len(prim)}): SD median {prim[f'{method}_sd'].median():.1f} °C "
+                     f"(10th-90th percentile {prim[f'{method}_sd'].quantile(0.1):.1f}-{prim[f'{method}_sd'].quantile(0.9):.1f} °C); 95 % width median "
+                     f"{prim[f'{method}_interval_width'].median():.1f} °C (10th-90th {prim[f'{method}_interval_width'].quantile(0.1):.1f}-"
+                     f"{prim[f'{method}_interval_width'].quantile(0.9):.1f} °C).")
+    for method in METHODS:
+        m = long[(long["method"] == method) & (long["geometry_category"] == "miniature") & (long["target"] == "t0") & long["interval_reportable"]]
+        u = long[(long["method"] == method) & (long["target"] == "use") & long["interval_reportable"]]
+        if len(m):
+            L.append(f"- {method}, miniature T0, reportable intervals ({len(m)}): SD median {m['sd'].median():.1f} °C, width median {m['interval_width'].median():.1f} °C.")
+        for cat in ["full-size", "miniature"]:
+            h = u[u["geometry_category"] == cat]
+            if len(h):
+                L.append(f"- {method}, {cat} USE, reportable intervals ({len(h)}): 95 % width / USE median {100 * h['relative_interval_width'].median():.1f} % "
+                         f"(10th-90th {100 * h['relative_interval_width'].quantile(0.1):.1f}-{100 * h['relative_interval_width'].quantile(0.9):.1f} %).")
+    x = ctx["crosscheck"]
+    for _, r in x[x["method"] == B.PAIRS].iterrows():
+        slope = (f"; Theil-Sen slope of log SD on log N {r['theil_sen_slope_log_sd_vs_log_n']:.2f} (95 % CI {r['slope_ci_low']:.2f} to {r['slope_ci_high']:.2f})"
+                 if pd.notna(r.get("theil_sen_slope_log_sd_vs_log_n", np.nan)) else "")
+        L.append(f"- cross-check, pairs, {r['subset']}: {r['curves']} curves, median N {r['median_specimens']:.0f}, median SD {r['median_bootstrap_sd_c']:.2f} °C "
+                 f"(Marini RCC-M sigma 3.52 °C at N = 18); median SD × sqrt(N) {r['median_sd_times_sqrt_n']:.1f} against Marini's {r['marini_best_amplitude_range']} "
+                 f"(best estimate) and <= {r['marini_upper_bound_amplitude_max']} (upper bound); below / within / above: "
+                 f"{_pct(r['share_amplitude_below_marini_best_range'])} / {_pct(r['share_amplitude_within_marini_best_range'])} / "
+                 f"{_pct(r['share_amplitude_above_marini_upper_bound_max'])}{slope}.")
+    cs = ctx["comparison_summary"]
+    for cat, target in [("full-size", "t41j"), ("miniature", "t0"), ("full-size", "use"), ("miniature", "use")]:
+        r = cs[(cs["geometry_category"] == cat) & (cs["target"] == target) & (cs["scope"] == "both methods reportable") & (cs["ratio"] == "ratio_sd_pairs_to_wild")]
+        if len(r) and r.iloc[0]["curves"]:
+            r = r.iloc[0]
+            L.append(f"- pairs / fixed-design SD, {cat} {target} ({r['curves']} curves): median {r['median']:.2f}, 10th-90th {r['p10']:.2f}-{r['p90']:.2f}, "
+                     f"pairs wider for {_pct(r['share_pairs_wider'])}.")
+    so = ctx["stability_overall"]
+    if len(so):
+        L.append(f"- Monte Carlo stability (B = 4,000 independent rerun): largest change of a 2.5th/50th/97.5th percentile = "
+                 f"{100 * so['max_share_of_width'].max():.1f} % of the B = 2,000 interval width (median over curves and targets "
+                 f"{100 * so['median_share_of_width'].median():.1f} %); reportability changed for {int(so['reportable_status_changes'].sum())} curve-target rows.")
+    rs = ctx["residual_summary"]
+    h = rs[(rs["curve_set"] == "usable WP3 fits (primary summary)") & (rs["geometry_category"] == "full-size")
+           & (rs["quantity"] == "leverage-adjusted residual / fitted USE")]
+    if len(h):
+        L.append("- empirical published-data residual scatter, full-size usable fits, leverage-adjusted residual / fitted USE, SD (robust scale) by region: "
+                 + "; ".join(f"{r['region']} {r['sd']:.3f} ({r['mad_scaled']:.3f}, n = {r['residuals']})" for _, r in h.iterrows()) + ".")
+    return L
+
+
 def summary_markdown(ctx: dict) -> str:
     long, acc, t41 = ctx["long"], ctx["acc"], ctx["t41"]
     val = ctx["validation"]
@@ -916,6 +1016,7 @@ def summary_markdown(ctx: dict) -> str:
          "Analysis of published Charpy V-notch test data (Materials Cloud 2025.30), CP2-frozen primary cohort (170 curves, 2,588 records), "
          "final approved WP3 fits (CP3). Files named `synthetic_*` are SYNTHETIC bootstrap checks; every other file concerns the published "
          "measurements. Decisions: DECISIONS.md D-052 to D-067. **Status: WP4 complete - internal review awaiting the author; WP5 not started.**", "",
+         "## Headline numbers (each read from a table below)", "", *headline_lines(ctx), "",
          "## 1. Method", "", method_configuration().split("\n", 2)[2], "",
          "## 2. SYNTHETIC checks of the bootstrap implementation (not published data)", "",
          "Zero scatter (data exactly on the approved model):", "",
@@ -986,17 +1087,20 @@ def main():
     primary, rec, wp3, data = load_primary()
     reproduction = reproduction_check(wp3, data)
     print(f"WP3 point fits reproduced for {len(data)} curves")
-    reps = run_bootstraps(data, list(data), B.B_REPLICATES)
-    print(f"Bootstraps: {len(reps)} runs x {B.B_REPLICATES} replicates in {(time.perf_counter() - t_start) / 60:.1f} min")
+    code_fp = CK.code_fingerprint()
+    print(f"WP4 published-data bootstrap: {WORKERS} worker processes; checkpoints in {CK.checkpoint_root()} (code fingerprint {code_fp[:12]})")
+    reps = RunStore(data, code_fp, B.B_REPLICATES)
+    computed, resumed = reps.ensure(list(data))
+    print(f"Bootstraps: {computed} runs computed, {resumed} resumed, {B.B_REPLICATES} replicates each; {(time.perf_counter() - t_start) / 60:.1f} min")
     determinism_spot = determinism_spot_check(data, reps)
     longs, accs = zip(*[summarise_method(wp3, data, reps, m) for m in METHODS])
     long, acc = pd.concat(longs, ignore_index=True), pd.concat(accs, ignore_index=True)
     long[long["method"] == B.PAIRS].to_csv(OUT / "bootstrap_summary_pairs.csv", index=False)
     long[long["method"] == B.WILD].to_csv(OUT / "bootstrap_summary_fixed_design.csv", index=False)
     acc.to_csv(OUT / "bootstrap_replicate_accounting.csv", index=False)
+    outcome_columns = [f"replicates_{o}" for o in F.OUTCOMES] + ["replicate_evaluation_errors"]
     denominator = (acc.groupby("method").agg(curves=("curve_id", "size"), replicates_requested=("replicates_requested", "sum"))
-                   .assign(replicates_in_outcome_categories=acc.groupby("method").apply(
-                       lambda h: int(h[[f"replicates_{o}" for o in F.OUTCOMES] + ["replicate_evaluation_errors"]].sum().sum())))
+                   .join(acc.groupby("method")[outcome_columns].sum().sum(axis=1).rename("replicates_in_outcome_categories"))
                    .reset_index())
     denominator["all_replicates_accounted"] = denominator["replicates_requested"] == denominator["replicates_in_outcome_categories"]
     t41 = wide(long, "t41j", ["index_fraction_of_rise", "flag_index_near_fitted_shelf", "criterion_bracketed_by_measured_energy",
@@ -1064,7 +1168,8 @@ def main():
 
     # Monte Carlo stability (predeclared subset rule; D-055).
     sub = stability_subset(wp3, long[long["method"] == B.PAIRS])
-    reps_4000 = run_bootstraps(data, list(sub["curve_id"]), B.B_STABILITY, STABILITY_SEED_SUFFIX)
+    reps_4000 = RunStore(data, code_fp, B.B_STABILITY, STABILITY_SEED_SUFFIX)
+    reps_4000.ensure(list(sub["curve_id"]))
     stability = stability_table(sub, wp3, data, reps, reps_4000)
     stability.to_csv(OUT / "bootstrap_mc_stability.csv", index=False)
     stability_overall = (stability.groupby(["method", "target"])
@@ -1134,6 +1239,9 @@ def main():
                reproduction=reproduction, determinism_spot=determinism_spot, worked_example=worked, worked_pool=pool_size)
     write_text(OUT / "wp4_summary.md", summary_markdown(ctx))
     print(curve_acc.to_string(index=False))
+    import resource
+    print(f"peak RSS: main process {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 ** 2:.0f} MB, largest worker "
+          f"{resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024 ** 2:.0f} MB")
     print(f"WP4 complete in {(time.perf_counter() - t_start) / 60:.1f} min -> {OUT}")
 
 

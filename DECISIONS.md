@@ -1703,7 +1703,8 @@ estimator from the one reported; sampling and model uncertainty mixed; extrapola
 [EfronTibshirani1986] §9 (B = 1,000 a rough minimum for BC/BCa intervals, about 250 useful for a percentile interval); [NIST-TN2158] A.4 uses
 1,000; 2,000 leaves about 50 replicates beyond each 2.5 % tail. Benchmarked before the choice (timings only): about 6 ms per refit on one core,
 1.85 ms of wall time with 8 worker processes on the project machine, so both methods take about 21 min; no reduction was needed, and no curve
-receives fewer replicates.
+receives fewer replicates. [After the low-memory stop (D-067 steps 3-4) runs use 3 worker processes by default; B is unchanged and results do not
+depend on the worker count.]
 **Seeds.** `numpy.random.SeedSequence([20260914, h(curve ID), h(method name), replicate index])`, h = the integer of the first 15 hex digits of
 SHA-256 (WP3's construction). One independent stream per replicate: results do not depend on the number of worker processes, the chunking or
 the execution order (checked, D-060, and on two published curves). Pairs: `rng.integers(0, N, N)`, sorted; wild signs: `rng.integers(0, 2, N)`.
@@ -1773,7 +1774,8 @@ and seed 20260913; WP3's validation is not redesigned and no scenario is added t
    Pass: wild, every replicate admissible and within 0.001 °C (key target: T41J or T0) and 1e-5 (USE ratio) of the original; pairs, at least 95 %
    of replicates within those tolerances (a replicate that loses every transition temperature cannot pin T0 and C even on exact data).
 2. *Determinism.* WP3 Block A uniform n = 12, moderate scatter, replicate 0: two single-process runs and one run with 8 worker processes and
-   chunks of 97 must give identical per-replicate arrays and summaries.
+   chunks of 97 must give identical per-replicate arrays and summaries. [Changed with the memory fix, D-067 step 4: the multi-process runs use
+   3 workers with chunks of 97 and 2 workers with chunks of 333; the 8-worker run of the stopped first run also passed.]
 3. *Failure accounting.* WP3 Block B "x -0.5..3, n=12 (lower shelf missing)", "shelves + 1 transition point (n=7)" and "clustered cold side:
    x -3..-0.5, n=12", moderate scatter, replicate 0, both methods, B = 2,000: outcome counts, T41J status counts and finite + unavailable must
    each equal the replicates requested; the finite fraction must use all requested replicates; the reportable flag and the label must follow
@@ -1789,7 +1791,8 @@ and seed 20260913; WP3's validation is not redesigned and no scenario is added t
 **Coverage replicates (benchmark before any coverage result).** 1.85 ms of wall time per refit with 8 worker processes: 1,000 replicates per data
 set would take about 49 min, 500 about 25 min; 500 chosen. The Monte Carlo noise of a 2.5 % endpoint from 500 replicates is about ±0.7
 percentage points of tail probability, small beside the coverage Monte Carlo SE of about 1.5 points at 200 data sets; [EfronTibshirani1986] §9
-finds about 250 useful for percentile intervals. The published curves keep B = 2,000 (D-055).
+finds about 250 useful for percentile intervals. The published curves keep B = 2,000 (D-055). [With 3 worker processes after the memory fix the
+coverage study takes longer (about 32 min measured from its first block); the replicate count was not changed.]
 
 ## D-061 — Empirical published-data residual scatter (characterization only)
 **Status:** PRE-REGISTERED (WP4) for the definitions; provisional pending the author's internal WP4 review. WP6 candidates: D-066.
@@ -1867,3 +1870,39 @@ solid hairline grid; a non-reportable interval is drawn grey and named a conditi
 2. *Pre-registration commit.* D-052 to D-065, D-067, the WP4 sources, the citation check on [Miura2025] in D-042, and `src/wp4_bootstrap.py`,
    `src/wp4_validation.py`, `src/wp4_uncertainty.py`, committed before either script had been run (no synthetic coverage result and no
    published-data bootstrap result existed).
+3. *First synthetic validation run, stopped for low memory (2026-09-14; code of the pre-registration commit).* With 8 worker processes it
+   completed and wrote the zero-scatter, determinism and failure-accounting checks (all passed) and was stopped by the operating
+   environment, which reported the system running low on memory, during the coverage study; no coverage result existed. Its three
+   completed outputs were kept aside for comparison; they are not final results. Diagnosis (measured): on the 8 GB project machine about
+   2.2 GB was wired by a virtual machine and simulator runtimes; every spawned worker imports numpy, scipy and pandas (about 110 MB); the
+   coverage stage submitted all 1,600 bootstrap runs at once and the parent kept every replicate array (about 100 MB), so 9 Python processes
+   of roughly 1.2-1.4 GB competed with the rest of the system.
+4. *Systems fix, no statistical change (before any coverage or published-data result).* `wp4_bootstrap.stream_map` (a spawn-context worker
+   pool, 3 workers by default for this machine, `WP4_WORKERS` to override, workers recycled after 200 tasks, tasks fed lazily, results
+   consumed one at a time); coverage runs summarised inside the workers, so replicate arrays never reach the parent; `src/wp4_checkpoint.py`
+   with fingerprinted, atomically written checkpoints (validation steps, coverage blocks of 25 data sets, and one file per published-data run)
+   in the git-ignored `cache/wp4/`, reused only when code, package versions, parameters and input data are identical; the determinism check
+   now compares single-process runs with 3-worker and 2-worker runs (8 workers before); run-dependent timings removed from
+   `synthetic_bootstrap_validation.md` so that it regenerates byte-identically. Unchanged: B, seeds and seed streams, scenarios, data sets,
+   targets, rules and checks. Smoke test before the rerun (scratch script; SYNTHETIC): streamed coverage rows identical to the first
+   implementation's for the same seeds; the failure-accounting table identical to the pre-crash output (24 rows, 32 columns); a checkpointed
+   run interrupted by deleting one block recomputed only that block and gave identical rows; peak memory of the Python process tree 414 MB.
+   Also before any published-data result: three robustness fixes in `src/wp4_uncertainty.py` from a static review (an order-dependent maximum
+   over missing values, an empty-pool guard in the stability subset, a pandas group-apply deprecation) and the published-data runs moved to the
+   same streamed, checkpointed execution.
+5. *Synthetic validation rerun with the memory-safe code (completed; SYNTHETIC only; no published-data bootstrap result existed).* 46.8 min
+   with 3 worker processes; peak memory of the Python process tree 316 MB (sampled every 2 s; main process 116 MB, largest worker 114 MB),
+   against about 1.2-1.4 GB estimated for the stopped run. Nothing statistical changed: the zero-scatter and failure-accounting outputs are
+   byte-identical to the stopped run's; the determinism check gives identical replicates and summaries for single-process runs and for 3- and
+   2-worker runs, and the same T41J SD and interval endpoints as the stopped run's 8-worker run. All checks passed; the failure-accounting check
+   switched the interval off in 4 rows (T41J finite in 0-36 % of replicates) with every replicate still in the denominator; all 4,400 coverage
+   rows account for their 500 replicates. **What coverage showed (reported; no method, rule or B changed because of it).** Pairs percentile
+   intervals covered the truth in 89.5 % (T41J), 89.5 % (T0), 90.5 % (USE) of 200 data sets for the well-sampled design (Monte Carlo SE about
+   1.5 points), 93 % / 93 % / 90 % at high scatter, 97 % / 96 % / 86 % for the weakly sampled 8-specimen design and 96.5 % (T0) / 91.5 % (USE)
+   for the miniature case; the median pairs SD was 0.91 (T41J) to 1.1 (T0) of the actual spread of the estimate in well-sampled and high-scatter
+   designs, 2-3 times it for T41J and T0 in the weak design (design fragility counted), and dominated by extreme replicates for USE there (19
+   times; percentile coverage 86 %), which is why the robust spread (q84 - q16)/2 is reported beside the SD. Fixed-design wild intervals
+   under-covered everywhere: T41J 80 % (well sampled), 75 % (high scatter), 38.5 % (weak design); miniature T0 75.5 %; median SD 0.67-0.87 of the
+   actual spread in well-sampled designs and 0.31 in the weak design — the anti-conservative behaviour D-053 anticipated. The pairs bootstrap
+   stays the primary method as pre-registered (D-052); in the method comparison (D-064), "pairs wider" must be read with this demonstrated
+   under-coverage of the fixed-design method in mind.

@@ -19,7 +19,6 @@ Run:  .venv/bin/python src/wp4_validation.py
 from __future__ import annotations
 
 import hashlib
-import os
 import time
 
 import numpy as np
@@ -28,11 +27,13 @@ import pandas as pd
 import wp3_fitter as F
 import wp3_validation as V
 import wp4_bootstrap as B
+import wp4_checkpoint as CK
 from common import OUTPUTS, md_table, write_text
 
 OUT = OUTPUTS / "wp4"
 DATA_TYPE = "SYNTHETIC (WP4 bootstrap validation; not published measurements)"
-WORKERS = max(1, min(8, os.cpu_count() or 1))
+WORKERS = B.worker_count()      # conservative default (3) for the 8 GB project machine; results do not depend on it (D-067)
+METHODS = [B.PAIRS, B.WILD]
 
 # D-060. Zero scatter: truths the final method can represent exactly (full-size LSE equal to the fixed 2.7 J; miniature LSE fitted), on the
 # WP3 Block A / Block L design uniform over x = -3...3 with 12 specimens.
@@ -58,6 +59,7 @@ COVERAGE_DATASETS = 200           # WP3's replicate count per scenario
 # replicates per data set would take about 49 min, 500 about 25 min. 500 is recorded in D-060 with that reason; Efron & Tibshirani (1986) §9
 # find about 250 replicates useful for a percentile interval. The published curves keep B = 2,000 (D-055).
 COVERAGE_REPLICATES = 500
+COVERAGE_BLOCK = 25               # data sets per checkpoint block (systems choice; no effect on any result)
 
 
 def scenarios() -> list:
@@ -143,6 +145,9 @@ def zero_scatter_check() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # 2. Determinism
 # ---------------------------------------------------------------------------
+# Two multi-process configurations with different worker counts and chunk sizes (the run before the memory fix used 8 workers, D-067).
+DETERMINISM_CONFIGS = [(max(WORKERS, 2), 97), (2 if WORKERS != 2 else 3, 333)]
+
 def determinism_check(all_sc) -> pd.DataFrame:
     sc = find_scenario(all_sc, "A", "uniform x -3..3, n=12", "moderate")
     t, e = wp3_datasets(sc, 1)[0]
@@ -152,9 +157,10 @@ def determinism_check(all_sc) -> pd.DataFrame:
         runs = {"single process, one chunk (run 1)": B.run_tasks(B.make_tasks("k", t, e, "full-size", method, stream, B.B_REPLICATES,
                                                                                chunk=B.B_REPLICATES), 1)["k"],
                 "single process, one chunk (run 2)": B.run_tasks(B.make_tasks("k", t, e, "full-size", method, stream, B.B_REPLICATES,
-                                                                               chunk=B.B_REPLICATES), 1)["k"],
-                f"{WORKERS} worker processes, chunks of 97": B.run_tasks(B.make_tasks("k", t, e, "full-size", method, stream,
-                                                                                      B.B_REPLICATES, chunk=97), WORKERS)["k"]}
+                                                                               chunk=B.B_REPLICATES), 1)["k"]}
+        for workers, chunk in DETERMINISM_CONFIGS:
+            runs[f"{workers} worker processes, chunks of {chunk}"] = B.run_tasks(
+                B.make_tasks("k", t, e, "full-size", method, stream, B.B_REPLICATES, chunk=chunk), workers)["k"]
         ref_name = "single process, one chunk (run 1)"
         ref = runs[ref_name]
         est = B.wp3_estimate(t, e, "full-size")
@@ -183,7 +189,7 @@ def failure_accounting_check(all_sc) -> pd.DataFrame:
         data[design] = (sc, t, e, B.wp3_estimate(t, e, "full-size"))
         for method in [B.PAIRS, B.WILD]:
             tasks += B.make_tasks((design, method), t, e, "full-size", method, f"failure-accounting|{V.data_key(sc)}", B.B_REPLICATES)
-    reps = B.run_tasks(tasks, WORKERS)
+    reps = B.run_tasks(tasks, WORKERS)   # 6 runs x 2,000 replicates: small enough to hold
     rows = []
     for block, design in FAILURE_CANDIDATES:
         sc, t, e, est = data[design]
@@ -227,40 +233,67 @@ def failure_accounting_check(all_sc) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # 4. Coverage
 # ---------------------------------------------------------------------------
-def coverage_study(all_sc) -> tuple:
-    tasks, meta = [], {}
+def coverage_task(payload) -> list:
+    """Worker: one synthetic data set and one method. Refits the data set with the approved method, runs the bootstrap and returns only the
+    per-target summary rows (replicate arrays never leave the worker). Same seeds and calls as the first implementation."""
+    label, wp3_scenario, scale, i, method, t, e, tv, stream, n_replicates = payload
+    est = B.wp3_estimate(t, e, scale)
+    r = B.run_replicates(t, e, scale, method, stream, range(n_replicates), method, original=est)
+    rows = []
+    for target in (["t41j", "t0", "use"] if scale == "full-size" else ["t0", "use"]):
+        original = est["t41"] if target == "t41j" else est["fit"][B.ORIGINAL_COLUMN[target]]
+        s = B.summarise_target(r, target, original, est["cls"]["outcome"])
+        rows.append(dict(data_type=DATA_TYPE, scenario=label, wp3_scenario=wp3_scenario, scale=scale, dataset=i, method=method, target=target,
+                         truth=tv[target], original_estimate=original, original_outcome=est["cls"]["outcome"],
+                         finite_target_fraction=s["finite_target_fraction"], interval_reportable=s["interval_reportable"], q025=s["q025"],
+                         q975=s["q975"], sd=s["sd"], interval_width=s["interval_width"],
+                         truth_below_interval=bool(tv[target] < s["q025"]) if np.isfinite(s["q025"]) else np.nan,
+                         truth_above_interval=bool(tv[target] > s["q975"]) if np.isfinite(s["q975"]) else np.nan,
+                         covered=bool(s["q025"] <= tv[target] <= s["q975"]) if np.isfinite(s["q025"]) else np.nan,
+                         replicates_requested=s["replicates_requested"], finite_target_values=s["finite_target_values"],
+                         target_unavailable=s["target_unavailable"]))
+    return rows
+
+
+def coverage_study(all_sc, code_fp: str) -> tuple:
+    blocks = []
     for label, block, design, noise, scale, truth_sel in COVERAGE_SCENARIOS:
         sc = find_scenario(all_sc, block, design, noise, scale, truth_sel)
-        truth = dict(lse=sc["lse_true"], use=sc["use_true"], t0=sc["t0_true"], c=sc["c_true"])
-        for i, (t, e) in enumerate(wp3_datasets(sc, COVERAGE_DATASETS)):
-            meta[(label, i)] = (sc, scale, truth, t, e, B.wp3_estimate(t, e, scale))
-            for method in [B.PAIRS, B.WILD]:
-                tasks += B.make_tasks((label, i, method), t, e, scale, method, f"coverage|{V.data_key(sc)}|dataset={i}",
-                                      COVERAGE_REPLICATES, chunk=COVERAGE_REPLICATES)
-    t_start = time.perf_counter()
-    reps = B.run_tasks(tasks, WORKERS)
-    elapsed = time.perf_counter() - t_start
-    rows = []
-    for (label, i), (sc, scale, truth, t, e, est) in meta.items():
-        tv = truth_values(truth, scale)
-        targets = ["t41j", "t0", "use"] if scale == "full-size" else ["t0", "use"]
-        for method in [B.PAIRS, B.WILD]:
-            r = reps[(label, i, method)]
-            for target in targets:
-                original = est["t41"] if target == "t41j" else est["fit"][B.ORIGINAL_COLUMN[target]]
-                s = B.summarise_target(r, target, original, est["cls"]["outcome"])
-                rows.append(dict(data_type=DATA_TYPE, scenario=label, wp3_scenario=f"{sc['block']}: {sc['design']} [{sc['noise']}]",
-                                 scale=scale, dataset=i, method=method, target=target, truth=tv[target], original_estimate=original,
-                                 original_outcome=est["cls"]["outcome"], finite_target_fraction=s["finite_target_fraction"],
-                                 interval_reportable=s["interval_reportable"], q025=s["q025"], q975=s["q975"], sd=s["sd"],
-                                 interval_width=s["interval_width"],
-                                 truth_below_interval=bool(tv[target] < s["q025"]) if np.isfinite(s["q025"]) else np.nan,
-                                 truth_above_interval=bool(tv[target] > s["q975"]) if np.isfinite(s["q975"]) else np.nan,
-                                 covered=bool(s["q025"] <= tv[target] <= s["q975"]) if np.isfinite(s["q025"]) else np.nan))
-    per = pd.DataFrame(rows)
+        tv = truth_values(dict(lse=sc["lse_true"], use=sc["use_true"], t0=sc["t0_true"], c=sc["c_true"]), scale)
+        datasets = wp3_datasets(sc, COVERAGE_DATASETS)
+        for first in range(0, COVERAGE_DATASETS, COVERAGE_BLOCK):
+            items = [(i, *datasets[i]) for i in range(first, min(first + COVERAGE_BLOCK, COVERAGE_DATASETS))]
+            key = V.data_key(sc)
+            path = CK.checkpoint_root() / "validation" / "coverage" / f"{CK.slug(key)}_{items[0][0]:03d}-{items[-1][0]:03d}.csv"
+            fp = CK.fingerprint(code_fp, arrays=[a for _, t, e in items for a in (t, e)], step="coverage", data_key=key, label=label,
+                                datasets=[i for i, _, _ in items], replicates=COVERAGE_REPLICATES, methods=METHODS, truth=tv, seed=B.WP4_SEED)
+            payloads = [(label, f"{sc['block']}: {sc['design']} [{sc['noise']}]", scale, i, method, t, e, tv, f"coverage|{key}|dataset={i}",
+                         COVERAGE_REPLICATES) for i, t, e in items for method in METHODS]
+            blocks.append(dict(label=label, path=path, fp=fp, payloads=payloads, table=CK.load_table(path, fp)))
+    pending = [b for b in blocks if b["table"] is None]
+    print(f"coverage: {len(blocks)} blocks, {len(blocks) - len(pending)} resumed from verified checkpoints, {len(pending)} to compute "
+          f"with {WORKERS} worker processes")
+    if pending:
+        results = B.stream_map(coverage_task, (p for b in pending for p in b["payloads"]), WORKERS)
+        t_start = time.perf_counter()
+        for k, b in enumerate(pending):
+            rows = [row for _ in b["payloads"] for row in next(results)]
+            expected_rows = len(b["payloads"]) * (3 if b["payloads"][0][2] == "full-size" else 2)
+            if len(rows) != expected_rows or any(r["replicates_requested"] != COVERAGE_REPLICATES for r in rows):
+                raise AssertionError("coverage block incomplete")
+            CK.save_table(b["path"], pd.DataFrame(rows), b["fp"])
+            b["table"] = CK.load_table(b["path"], b["fp"])
+            print(f"  block {k + 1}/{len(pending)} ({b['label']}) written; {(time.perf_counter() - t_start) / 60:.1f} min", flush=True)
+        for _ in results:      # exhaust the generator so that the worker pool closes cleanly
+            raise AssertionError("more coverage results than tasks")
+    per = pd.concat([b["table"] for b in blocks], ignore_index=True)
+    if len(per) != sum(len(b["payloads"]) * (3 if b["payloads"][0][2] == "full-size" else 2) for b in blocks):
+        raise AssertionError("coverage rows do not cover every data set, method and target")
+    if not (per["finite_target_values"] + per["target_unavailable"] == per["replicates_requested"]).all():
+        raise AssertionError("coverage accounting: finite + unavailable replicates differ from the replicates requested")
     summary = []
     for (label, method, target), g in per.groupby(["scenario", "method", "target"], sort=False):
-        rep = g[g["interval_reportable"]]
+        rep = g[g["interval_reportable"].astype(bool)]
         est_ok = g["original_estimate"].dropna()
         n_rep = len(rep)
         cov = float(rep["covered"].astype(bool).mean()) if n_rep else np.nan
@@ -279,10 +312,23 @@ def coverage_study(all_sc) -> tuple:
                             ratio_median_bootstrap_sd_to_empirical_sd=float(rep["sd"].median()) / emp_sd if n_rep and emp_sd > 0 else np.nan,
                             original_estimate_bias=float(est_ok.mean() - g["truth"].iloc[0]) if len(est_ok) else np.nan,
                             original_estimate_rmse=float(np.sqrt(np.mean((est_ok - g["truth"].iloc[0]) ** 2))) if len(est_ok) else np.nan))
-    return per, pd.DataFrame(summary), elapsed, len(tasks)
+    return per, pd.DataFrame(summary), len(pending), len(blocks) - len(pending)
 
 
-def summary_markdown(zero, det, fail, cov_summary, elapsed, n_tasks) -> str:
+def cached_step(name: str, code_fp: str, compute, **fields) -> pd.DataFrame:
+    """Run a validation step, or reuse its checkpoint when code, parameters and data are unchanged. The returned table is always the one
+    read back from the checkpoint, so a fresh run and a resumed run write identical outputs."""
+    path = CK.checkpoint_root() / "validation" / f"{name}.csv"
+    fp = CK.fingerprint(code_fp, step=name, seed=B.WP4_SEED, replicates=B.B_REPLICATES, **fields)
+    table = CK.load_table(path, fp)
+    if table is not None:
+        print(f"{name}: resumed from a verified checkpoint")
+        return table
+    CK.save_table(path, compute(), fp)
+    return CK.load_table(path, fp)
+
+
+def summary_markdown(zero, det, fail, cov_summary) -> str:
     fmt = lambda d: d.drop(columns=["data_type"]).round(4)
     cov_t = cov_summary.drop(columns=["data_type", "wp3_scenario"]).copy()
     for c in ["share_datasets_with_original_estimate", "share_datasets_interval_reportable", "coverage_of_reportable_intervals",
@@ -298,7 +344,7 @@ def summary_markdown(zero, det, fail, cov_summary, elapsed, n_tasks) -> str:
          "## 3. Failure accounting (failed and target-unavailable replicates stay in the denominator)", "", md_table(fmt(fail)), "",
          "## 4. Coverage of 95 % percentile intervals (WP3 scenarios, final method)", "",
          f"{COVERAGE_DATASETS} synthetic data sets per scenario (WP3 replicates 0-{COVERAGE_DATASETS - 1}); {COVERAGE_REPLICATES} bootstrap "
-         f"replicates per data set and method ({n_tasks} bootstrap runs, {elapsed / 60:.1f} min with {WORKERS} worker processes). Coverage "
+         f"replicates per data set and method ({len(COVERAGE_SCENARIOS) * COVERAGE_DATASETS * len(METHODS)} bootstrap runs). Coverage "
          "counts only reportable intervals (finite-target fraction >= 95 %); the nominal level is 95 %, and the Monte Carlo standard error of "
          "an estimated coverage of 95 % is shown. The empirical SD is the spread of the original estimate over the synthetic data sets (the "
          "actual sampling SD for this fixed design); the ratio compares the median bootstrap SD with it. Full-size truths have LSE 5 J while "
@@ -308,28 +354,37 @@ def summary_markdown(zero, det, fail, cov_summary, elapsed, n_tasks) -> str:
 
 
 def main():
+    import resource
     OUT.mkdir(parents=True, exist_ok=True)
     all_sc = scenarios()
+    code_fp = CK.code_fingerprint()
     t0 = time.perf_counter()
-    zero = zero_scatter_check()
+    print(f"WP4 synthetic validation: {WORKERS} worker processes; checkpoints in {CK.checkpoint_root()} (code fingerprint {code_fp[:12]})")
+    zero = cached_step("zero_scatter", code_fp, zero_scatter_check, design=EXACT_DESIGN[0], truths=EXACT_TRUTHS,
+                       tolerances=[EXACT_TOLERANCE_C, EXACT_TOLERANCE_USE_REL, PAIRS_EXACT_MIN_SHARE])
     zero.to_csv(OUT / "synthetic_bootstrap_zero_scatter_check.csv", index=False)
     print(zero[["scale", "method", "share_key_target_within_tolerance", "max_abs_key_target_deviation_c", "passed"]].to_string(index=False))
     if not zero["passed"].all():
         raise AssertionError("zero-scatter check failed")
-    det = determinism_check(all_sc)
+    det = cached_step("determinism", code_fp, lambda: determinism_check(all_sc), configs=DETERMINISM_CONFIGS)
     det.to_csv(OUT / "synthetic_bootstrap_determinism_check.csv", index=False)
     print(det[["method", "run", "per_replicate_arrays_identical", "summaries_identical"]].to_string(index=False))
     if not det["passed"].all():
         raise AssertionError("determinism check failed")
-    fail = failure_accounting_check(all_sc)
+    fail = cached_step("failure_accounting", code_fp, lambda: failure_accounting_check(all_sc), candidates=FAILURE_CANDIDATES)
     fail.to_csv(OUT / "synthetic_bootstrap_failure_accounting_check.csv", index=False)
     print(fail[["data_set", "method", "target", "finite_target_fraction", "interval_label", "passed"]].to_string(index=False))
-    per, cov_summary, elapsed, n_tasks = coverage_study(all_sc)
+    if not (fail["passed"].all() and fail["exercises_switch_off"].any()):
+        raise AssertionError("failure accounting check failed")
+    per, cov_summary, computed, resumed = coverage_study(all_sc, code_fp)
     per.to_csv(OUT / "synthetic_bootstrap_coverage_by_dataset.csv", index=False)
     cov_summary.to_csv(OUT / "synthetic_bootstrap_coverage_summary.csv", index=False)
     print(cov_summary[["scenario", "method", "target", "share_datasets_interval_reportable", "coverage_of_reportable_intervals",
                        "ratio_median_bootstrap_sd_to_empirical_sd"]].to_string(index=False))
-    write_text(OUT / "synthetic_bootstrap_validation.md", summary_markdown(zero, det, fail, cov_summary, elapsed, n_tasks))
+    write_text(OUT / "synthetic_bootstrap_validation.md", summary_markdown(zero, det, fail, cov_summary))
+    self_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 ** 2
+    child_mb = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024 ** 2
+    print(f"coverage blocks computed {computed}, resumed {resumed}; peak RSS: main process {self_mb:.0f} MB, largest worker {child_mb:.0f} MB")
     print(f"WP4 synthetic bootstrap validation complete in {(time.perf_counter() - t0) / 60:.1f} min -> {OUT}")
 
 
