@@ -31,7 +31,7 @@ EOF
 .venv/bin/python src/wp3_fit_curves.py                           # WP3 fits to the published data of the CP2-frozen cohorts: final primary method
                                                                  # (full-size LSE 2.7 J, miniature LSE fitted; D-042) and all-fitted sensitivity case
 .venv/bin/python src/wp4_validation.py                           # WP4 SYNTHETIC checks of the bootstrap: zero scatter, determinism, failure
-                                                                 # accounting, coverage of WP3 scenarios (D-060); about 30 min
+                                                                 # accounting, coverage of WP3 scenarios (D-060); 47-60 min measured with 3 workers
 .venv/bin/python src/wp4_uncertainty.py                          # WP4 per-curve bootstrap uncertainty of the 170 primary curves: pairs (primary) and
-                                                                 # fixed-design wild (sensitivity), B = 2,000 each; stability, scatter, cross-check; about 30 min
+                                                                 # fixed-design wild (sensitivity), B = 2,000 each; stability, scatter, cross-check; 41-76 min measured
 echo "All outputs regenerated."
