@@ -7,8 +7,8 @@
 - **WP3 (transition curve fitting) complete — CP3 approved and merged.** Approved in principle at the CP3 review with amendments to D-042, D-044
   and D-046; final approval of D-040 to D-051 by the author on 2026-09-14, with one additional support diagnostic (D-044: empirical bracketing
   of 41 J by the measured energies). Merged into `main` with an explicit merge commit; branch `wp3` is kept.
-- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) is the next permitted work package.**
-- **WP4 has NOT started.**
+- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) is in progress on branch `wp4`** (authorized by the author, 2026-09-14): method
+  pre-registered in DECISIONS.md D-052 to D-065 before any bootstrap result existed. Internal WP4 review stop before WP5 (set by the author).
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
