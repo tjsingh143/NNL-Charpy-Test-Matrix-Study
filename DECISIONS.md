@@ -1861,6 +1861,33 @@ interval), T41J with its 95 % bootstrap CI, the empirical-bracketing status and 
 figure:* curve 33-153 with both methods. Grayscale-legible: dark points, black fit line, grey band, orange-and-black diamond, black error bar,
 solid hairline grid; a non-reportable interval is drawn grey and named a conditional range.
 
+## D-066 — Candidate scatter models for WP6, from the WP4 residual characterization
+**Status:** PROPOSED (WP4 review), written after the WP4 results existed. Not chosen, not calibrated, not run: the WP6 scatter model is decided in
+WP6, with the sensitivity analysis the brief requires (brief §5 WP6, "the scatter model is the weak link").
+**Evidence** (`published_residual_scatter_summary.csv`, `published_residual_scatter_strata.csv`; usable WP3 fits; leverage-adjusted residual /
+fitted USE, SD with the robust scale 1.4826 × MAD in brackets). *Full-size* (1,685 residuals, 104 curves, 42 references): lower shelf 0.036
+(0.023); lower transition 0.073 (0.054); central transition 0.105 (0.099); upper transition 0.100 (0.085); upper shelf 0.062 (0.051); in joules
+(raw residuals) 6.9, 14.3, 20.2, 18.1 and 10.9 J. The scatter is not constant: largest through the transition, about three times the lower
+shelf and 1.7 times the upper shelf; on the shelves the SD exceeds the robust scale (heavier tails). The lower-shelf mean residual is +0.015 USE
+(+2.8 J): many measured lower shelves lie above the fixed 2.7 J convention, a model-convention error rather than scatter. *Miniature* (179
+residuals, 13 curves, 6 references): larger relative scatter (central transition 0.167 (0.116)) from few curves. *Strata* (full-size): forging and
+plate transition 0.084 and 0.095 (robust 0.074 and 0.090); unirradiated and irradiated 0.096 and 0.091 (14 irradiated curves); HAZ, weld metal and
+"not determinable" have fewer than 10 curves, so no product-form-specific scatter is supported. The pool mixes specimen-to-specimen material
+scatter, between-study machine, calibration and reporting differences, digitization error and model-shape error; the leverage adjustment
+corrects the shrinkage of fitted residuals only approximately. It is an *empirical published-data residual scatter*, not a material-scatter
+distribution.
+**Candidates.**
+- *C1, region-wise normal scatter scaled by USE:* sd = USE × s(region) with the five full-size values above; a lower variant from the robust
+  scale; a separate, weakly supported miniature table. Simplest and directly traceable; steps at region edges.
+- *C2, the WP3 synthetic generator's form* sd(T) = σ_T·|dE/dT| + cv·E(T) + 3·cv·LSE (D-048), with σ_T and cv calibrated in WP6 so that it
+  reproduces the C1 profile. Smooth and physically readable (transition scatter as specimen-to-specimen shifts of the local transition
+  temperature, plus a proportional part); already implemented; its calibration is WP6 work.
+- *C3, empirical resampling of the leverage-adjusted residuals by region* (nonparametric), keeping skew and heavy tails and, with them, the
+  between-study heterogeneity of the pool (an upper-bracket flavour).
+**Proposal for the WP6 review.** C2 as the central model calibrated to the C1 profile, bracketed by the C1 robust variant (lower scatter) and C3
+(empirical tails); no stratification by product form or irradiation; miniature scatter handled separately with its larger uncertainty stated.
+The author decides at WP6; nothing in WP4 depends on the choice.
+
 ## D-067 — How the WP4 method evolved (chronological, including changes after results existed)
 **Status:** record; provisional pending the author's internal WP4 review. No step is rewritten later; later steps are appended.
 1. *Before any WP4 code.* Literature read (WP4 sources). Runtime benchmark of the approved fitter on pairs resamples of 8 published primary
@@ -1906,3 +1933,27 @@ solid hairline grid; a non-reportable interval is drawn grey and named a conditi
    actual spread in well-sampled designs and 0.31 in the weak design — the anti-conservative behaviour D-053 anticipated. The pairs bootstrap
    stays the primary method as pre-registered (D-052); in the method comparison (D-064), "pairs wider" must be read with this demonstrated
    under-coverage of the fixed-design method in mind.
+6. *Software dry run of the published-data script, then layout fixes (before the real run).* After the synthetic validation was committed,
+   `src/wp4_uncertainty.py` ran once with B = 40 (stability rerun B = 80), writing its outputs and checkpoints to a scratch directory outside the
+   repository, to exercise every code path before the long run; it finished in 1 min with a 327 MB peak. Its numbers were not used and are not
+   in the repository. What it made visible, recorded because results were then partly visible: with only 40 replicates many full-size T41J
+   intervals fell below the 95 % finite-target rule, mostly because pairs replicates that lose a curve's coldest temperatures place the 41 J
+   crossing below their own tested range, where the approved estimator declines to report T41J (D-054). This is a consequence of the
+   pre-registered rules, reported by reason in `t41j_support_bootstrap.csv` (D-059); no rule was changed. Changes made after the dry run,
+   presentation only: figure layout (panel titles and legends that overlapped data, replicate counts read from the run instead of typed,
+   line styles that stay distinguishable in grayscale, a plural label). No estimator, rule, B, seed or selection rule changed.
+7. *Published-data run with the pre-registered rules (results now exist).* 40.5 min with 3 worker processes (the 340 bootstrap runs 33.1 min, the
+   B = 4,000 stability rerun 7.1 min); peak memory of the Python process tree 300 MB. The WP4 refits reproduced `outputs/wp3/fits_primary.csv` for
+   all 170 curves; the published-data determinism spot check (replicates 0-249 of two curves, single process against the pooled run) was
+   identical. Changes after the results were visible, recorded as such: (i) figure layout only (legends of the two curve figures moved above
+   the panels, comparison-figure legends moved off the points); (ii) one descriptive addition to explain the unavailable full-size T41J
+   intervals (all 54 arise from replicates whose 41 J crossing falls below their own tested range): the WP3 audit count of measured energies below
+   41 J (D-044, pre-existing) added to the sampling correlations and bins (Spearman ρ 0.89 with the finite-T41J fraction; reportable pairs
+   intervals 0 of 1 curve with no measured energy below 41 J, 0 of 11 with one, 3 of 30 with two, 47 of 61 with three or four, 30 of 31 with
+   five or more). No estimator, rule, B, seed, subset rule or label changed. Regenerated from the verified checkpoints in 17 s: all other outputs
+   byte-identical to the first run (33 of 36 files; the three that changed are the two extended tables and the summary).
+   **Observations for the author's review, no action taken:** the 95 % rule together with the tested-range rule leaves 54 of 134 full-size
+   T41J intervals unavailable under the primary method (8 under the fixed-design method); the pairs percentile intervals covered about 90 % of
+   synthetic truths in well-sampled designs (slightly below nominal) and the fixed-design intervals clearly under-covered; T41J endpoints were
+   stable between B = 2,000 and 4,000 (largest change 5.9 % of the interval width), whereas the SD of heavy-tailed USE distributions and one
+   multimodal T0 distribution (curve 104-none.3, 51 % of its width) were not, so percentiles, not SDs, are the reportable quantities there.

@@ -4,11 +4,13 @@
 - WP0 (acquisition and data dictionary) complete — CP1 approved.
 - WP1 (cleaning and normalization) complete — CP1 approved. The WP1 corrections surfaced during WP2 were approved at CP2 (D-019, D-029, D-031).
 - WP2 (curve grouping and inclusion criteria) complete — CP2 approved (author, 2026-09-13). Merged into `main`; branch `wp2` is kept.
-- **WP3 (transition curve fitting) complete — CP3 approved and merged.** Approved in principle at the CP3 review with amendments to D-042, D-044
-  and D-046; final approval of D-040 to D-051 by the author on 2026-09-14, with one additional support diagnostic (D-044: empirical bracketing
-  of 41 J by the measured energies). Merged into `main` with an explicit merge commit; branch `wp3` is kept.
-- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) is in progress on branch `wp4`** (authorized by the author, 2026-09-14): method
-  pre-registered in DECISIONS.md D-052 to D-065 before any bootstrap result existed. Internal WP4 review stop before WP5 (set by the author).
+- WP3 (transition curve fitting) complete — CP3 approved (final approval of D-040 to D-051 by the author, 2026-09-14) and merged into `main`
+  (merge commit `b47d08e`); branch `wp3` is kept.
+- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) complete — INTERNAL REVIEW awaiting the author.** Work on branch `wp4`, not merged. The
+  internal review stop before WP5 was set by the author because the WP4 uncertainty and scatter decisions affect WP6; every WP4 decision
+  (D-052 to D-067) is provisional until that review.
+- **WP5 (specimen size effect) NOT started.**
+- The official checkpoint CP4 (PROJECT_BRIEF.md §9) will occur after WP5.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -75,19 +77,62 @@
   files; single-process synthetic reruns matched the 8-worker results exactly (4 scenarios). A fresh clone of `20481dd` ran in 6 min 9 s and left
   0 tracked files changed.
 
-## Next permitted work package
-- WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5). Not started.
+## WP4 results (internal review; regenerate with `./run_all.sh`; summary `outputs/wp4/wp4_summary.md`)
+- Methods (D-052 to D-056): PRIMARY nonparametric pairs (case) bootstrap and a fixed-design wild bootstrap SENSITIVITY (Rademacher signs, HC2
+  leverage-adjusted residuals); every replicate refitted with the unchanged approved WP3 functions (full-size LSE fixed at 2.7 J, miniature LSE
+  fitted); B = 2,000 per curve and method for all 170 primary curves; per-replicate seeds from 20260914; 95 % percentile intervals; a reportable
+  interval needs finite target values in >= 95 % of the replicates requested (project rule); primary CI for usable original fits, diagnostic
+  interval for weakly identified or boundary-limited ones (D-057, D-058).
+- SYNTHETIC checks (`synthetic_bootstrap_validation.md`): zero scatter, determinism (1, 2, 3 and 8 worker processes) and failure accounting all
+  pass. Coverage of 95 % intervals over 200 WP3 data sets per scenario: pairs 89.5 % (T41J) well sampled, 93 % high scatter, 97 % weakly sampled,
+  96.5 % (T0) miniature; fixed-design 80 %, 75 %, 38.5 % and 75.5 % (anti-conservative).
+- Curve accounting, pairs (D-058): full-size T41J 66 primary CIs + 14 diagnostic + 54 unavailable (134); full-size USE and T0 104 + 30 + 0;
+  miniature T0 and USE 13 + 23 + 0 (36). Fixed-design: full-size T41J 97 + 29 + 8. No miniature index criterion. Every unavailable T41J interval
+  comes from replicates whose 41 J crossing falls below their own tested range; availability follows the number of measured energies below 41 J
+  (Spearman 0.89; reportable 0 of 12 curves with 0-1 such energies, 3 of 30 with 2, 47 of 61 with 3-4, 30 of 31 with 5 or more).
+- Full-size T41J, pairs, usable fits with a primary CI (66): SD median 4.9 °C (10th-90th percentile 2.9-9.1 °C), 95 % width median 19.4 °C
+  (11.7-35.7 °C). Index-position-warned curves larger (SD median 8.3 °C, 4 reportable of 9). Curve 33-153: T41J finite in 44 % of pairs
+  replicates (interval unavailable), no replicate energy bracketing 41 J; fixed-design 76 % finite, synthetic energies bracket 41 J in 51 %.
+- Miniature T0, pairs (36 reportable): SD median 12.2 °C (10th-90th 3.9-51 °C); USE 95 % width / USE median 20 % (full-size) and 30 %
+  (miniature), heavy upper tails where upper-shelf specimens are few.
+- Drivers (Spearman, association only): full-size T41J SD with specimens inside T0 ± C (-0.32), upper-shelf specimens (-0.30), N (-0.28);
+  availability with lower-shelf specimens (0.57) and N (0.46); USE width with upper-shelf specimens (-0.70); miniature T0 SD with N (-0.57).
+- Published cross-check (D-063): pairs SD of usable full-size T41J with a primary CI, median 4.87 °C at median N 14 (4.43 °C for the 23 curves
+  with 15-25 specimens) against Marini's (2020) sigma(T41) 3.52 °C for the 18-specimen RCC-M matrix; median SD × sqrt(N) 20.4 against his Eq. 6
+  best-estimate amplitude 12.4-19.6 (12 % below, 35 % within, 41 % above his upper-bound maximum 23.1); Theil-Sen slope of log SD on log N
+  -0.32 (95 % CI -0.59 to -0.10). Broadly comparable, typically 25-40 % larger, and far more heterogeneous.
+- Pairs against fixed-design SD (both reportable): full-size T41J median ratio 1.06 (10th-90th 0.93-1.48); miniature T0 1.56 (1.13-4.30); USE
+  about 2-2.5; largest where 1-4 influential transition specimens carry the fit.
+- Monte Carlo stability (16 predeclared curves, independent B = 4,000): T41J percentiles moved by at most 5.9 % of the interval width; one
+  multimodal T0 (104-none.3) by 51 %; no reportability change.
+- Empirical published-data residual scatter (D-061, D-066): full-size SD / fitted USE 0.036 (lower shelf), 0.073, 0.105, 0.100, 0.062 (upper
+  shelf); no product-form stratification supported; WP6 candidates C1-C3 proposed, not chosen.
+- Worked example (D-065): curve 3-17, A533B plate, irradiated, 18 specimens: T41J 120.4 °C, pairs 95 % CI 112.0-129.7 °C, SD 4.4 °C.
+- Execution: the first synthetic validation run was stopped by the environment for low memory (8 GB machine); rerun with a memory-safe,
+  checkpointed implementation and identical results (D-067 steps 3-5). Published-data run 40.5 min, peak 300 MB.
 
-## Open decisions WP4 inherits from WP3 (listed only; none is decided)
-- Which fit outcomes make a curve eligible for a WP4 confidence interval (whether boundary-limited and weakly identified fits are included).
-- The resampling scheme, given that Charpy scatter is not constant along the curve (D-041), and whether the fixed 2.7 J full-size lower shelf
-  stays fixed inside it or is varied as a sensitivity (D-042).
-- How T41J values carrying either index-support warning are treated: index position (9 curves) and empirical bracketing (33-153) (D-044).
-- Whether miniature curves get intervals on T0 and USE only (no index temperature, D-045).
-- Which published uncertainty estimates the brief's WP4 cross-check uses, and on which comparable quantity.
+## Open decisions WP4 inherited from WP3 (resolved provisionally in WP4, for the author's review)
+- Eligibility for intervals: all 170 curves bootstrapped; primary CI for usable fits, diagnostic interval otherwise (D-058).
+- Resampling scheme: pairs bootstrap primary, fixed-design wild bootstrap sensitivity (D-052, D-053); the 2.7 J full-size shelf held fixed (D-054).
+- T41J support warnings carried into the replicates (D-059); miniature curves: T0 and USE intervals only, LSE and C diagnostic (D-056).
+- Published cross-check: Marini (2020) sigma(T41) and Eq. 6 amplitudes against the bootstrap SD (D-063).
+
+## Decisions awaiting the author's internal WP4 review (none is final)
+- D-052 to D-065 as pre-registered, and D-067 (method history, including the memory fix).
+- Whether the 54 unavailable full-size T41J intervals under the 95 % rule stay the reported result, or a clearly labelled sensitivity (for example
+  intervals from the analytic crossing that ignore the tested-range rule) is added; nothing of the kind was run.
+- How WP5 and WP6 treat the fixed-design sensitivity, given its demonstrated under-coverage.
+- D-066: which WP6 scatter-model candidates are carried into WP6.
+
+## Next permitted work package
+- None until the author completes the internal WP4 review. WP5 (specimen size effect) has NOT started.
 
 ## Unresolved data issues carried forward
-- WP3 sources read only in part: Wallin & Baer (2023) and Miura et al. (2025), abstracts only (full texts not accessible). The accessible
+- WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and
+  Switzner et al. (2023) were read from Internet Archive copies of the publishers' open-access PDFs; the scanned Efron & Tibshirani (1986) pages
+  were read as images. Freedman (1981), Wu (1986), Liu (1988), Mammen (1993) are cited only through MacKinnon (2012) and Davidson & Flachaire
+  (2001).
+- WP3 sources read only in part: Wallin & Baer (2023) and Miura et al. (2025), abstracts only (full texts not accessible) [WP4: the Miura preprint's full text was read]. The accessible
   Wallin & Baer abstract does not contain the statements attributed to it before CP3, nor the author's CP3 reading on a fixed lower shelf, which
   remains the author's basis and is not verified in this repository (DECISIONS.md, WP3 sources). The CVGRAPH lower-shelf convention of US
   surveillance reports could not be retrieved and is not used.

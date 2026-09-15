@@ -465,7 +465,10 @@ SAMPLING_PROPERTIES = [("n_points", "specimens (N)"), ("n_temperatures", "distin
                        ("n_points_upper_shelf_fit", "specimens on the fitted upper shelf (x >= 1.5)"),
                        ("wp2_n_T_lower_band", "WP2 lower-band temperatures"), ("wp2_n_T_transition_band", "WP2 transition-band temperatures"),
                        ("wp2_n_T_upper_band", "WP2 upper-band temperatures"), ("span_over_c", "tested span / fitted C"),
-                       ("c_c", "fitted transition half-width C (°C; curve shape, not sampling)")]
+                       ("c_c", "fitted transition half-width C (°C; curve shape, not sampling)"),
+                       # Added after the published results were visible (D-067 step 7), to show the mechanism behind unavailable T41J
+                       # intervals; a pre-existing WP3 audit count (D-044), full-size curves only.
+                       ("n_points_below_criterion", "measured energies below 41 J (WP3 audit count; full-size only)")]
 
 
 def sampling_table(wp3: pd.DataFrame, data: dict, long: pd.DataFrame) -> pd.DataFrame:
@@ -522,7 +525,8 @@ BINS = [("n_points", [0, 8, 11, 14, 19, 1000], ["6-8", "9-11", "12-14", "15-19",
         ("T_span_c", [0, 150, 250, 350, 10000], ["<=150", "150-250", "250-350", ">350"]),
         ("n_points_transition_fit", [-1, 2, 4, 6, 1000], ["0-2", "3-4", "5-6", "7+"]),
         ("n_points_upper_shelf_fit", [-1, 1, 3, 1000], ["0-1", "2-3", "4+"]),
-        ("n_points_lower_shelf_fit", [-1, 1, 3, 1000], ["0-1", "2-3", "4+"])]
+        ("n_points_lower_shelf_fit", [-1, 1, 3, 1000], ["0-1", "2-3", "4+"]),
+        ("n_points_below_criterion", [-1, 0, 1, 2, 4, 1000], ["0", "1", "2", "3-4", "5+"])]    # added after results (D-067 step 7)
 
 
 def binned_table(samp: pd.DataFrame) -> pd.DataFrame:
@@ -533,6 +537,8 @@ def binned_table(samp: pd.DataFrame) -> pd.DataFrame:
             b = pd.cut(g[prop], edges, labels=labels)
             for label in labels:
                 h = g[b == label]
+                if prop == "n_points_below_criterion" and cat != "full-size":
+                    continue
                 rep = h[h["pairs_key_reportable"]]
                 rows.append(dict(geometry_category=cat, key_target="T41J" if cat == "full-size" else "T0", sampling_property=prop, bin=label,
                                  curves=len(h), curves_with_reportable_pairs_interval=len(rep),
@@ -734,30 +740,30 @@ def worked_example_figure(cid: str, d: dict, w: pd.Series, reps: dict, t41: pd.D
     handles = _curve_panel(axes[0], d, w, {B.PAIRS: r}, [B.PAIRS], s,
                            f"curve {cid}: {w['material_family']} {w['product_form']}, {'irradiated' if w['irradiated'] else 'unirradiated'}, "
                            f"full-size V-notch, {int(w['n_points'])} specimens")
-    axes[0].legend(handles=handles, loc="upper left", fontsize=7.2, frameon=False)
+    fig.legend(handles=handles, loc="upper center", ncol=2, fontsize=7.4, frameon=False, bbox_to_anchor=(0.5, 0.935))
     ax = axes[1]
     W3._style(ax)
     vals = r["t41j"][B.target_available(r, "t41j")]
     ax.hist(vals, bins=40, color=LIGHT, edgecolor="white", linewidth=0.6, zorder=2)
     for x, lab, ls in [(row["pairs_q025"], "2.5th percentile", "-"), (row["pairs_q975"], "97.5th percentile", "-")]:
         ax.axvline(x, color=INK, lw=1.2, ls=ls, zorder=3)
-    ax.axvline(d["est"]["t41"], color=ORANGE, lw=2.0, zorder=4)
+    ax.axvline(d["est"]["t41"], color=ORANGE, lw=2.0, ls="--", zorder=4)
     ax.set_xlabel("T41J of the bootstrap replicate fits (°C)", fontsize=9, color=INK)
     ax.set_ylabel("Replicates", fontsize=9, color=INK)
-    ax.set_title("pairs bootstrap distribution of T41J (B = 2,000)", fontsize=9, color=INK)
+    ax.set_title(f"pairs bootstrap distribution of T41J (B = {len(r['outcome_code']):,})", fontsize=9, color=INK)
     lines = [f"T41J {d['est']['t41']:.1f} °C (approved WP3 fit, outcome: {w['outcome']})",
              f"pairs bootstrap (primary): 95 % CI {row['pairs_q025']:.1f} to {row['pairs_q975']:.1f} °C, SD {row['pairs_sd']:.1f} °C; "
-             f"finite T41J in {100 * row['pairs_finite_target_fraction']:.1f} % of 2,000 replicates; label: {row['pairs_interval_label']}",
+             f"finite T41J in {100 * row['pairs_finite_target_fraction']:.1f} % of {len(r['outcome_code']):,} replicates; label: {row['pairs_interval_label']}",
              f"fixed-design wild bootstrap (sensitivity): 95 % interval {row['wild_q025']:.1f} to {row['wild_q975']:.1f} °C, SD {row['wild_sd']:.1f} °C",
              f"empirical bracketing: 41 J bracketed by the measured energies ({int(w['n_points_below_criterion'])} below, "
              f"{int(w['n_points_above_criterion'])} above); 41 J at {100 * w['index_fraction_of_rise']:.0f} % of the fitted rise (no index-position warning)",
-             "vertical lines: orange = WP3 estimate; black = 2.5th and 97.5th percentiles. The band is a confidence band for the fitted mean curve, "
+             "vertical lines: orange dashed = WP3 estimate; black = 2.5th and 97.5th percentiles. The band is a confidence band for the fitted mean curve, "
              "not a prediction interval for a new specimen.",
              f"Selection (declared before results, D-065): SD closest to the median ({pool_median:.1f} °C) of {pool_size} eligible curves."]
     fig.text(0.01, 0.02, "\n".join(textwrap.fill(x, 150) for x in lines), fontsize=7.4, color=INK2, va="bottom")
     fig.suptitle("WP4 worked example: published Charpy V-notch data, approved tanh fit and bootstrap uncertainty of T41J (analysis of published test data)",
                  fontsize=10, color=INK)
-    fig.tight_layout(rect=(0, 0.2, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.2, 1, 0.86))
     fig.savefig(OUT / "worked_example_t41j_bootstrap.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
 
@@ -773,16 +779,17 @@ def diagnostic_figure(cid: str, d: dict, w: pd.Series, reps: dict, t41: pd.DataF
     handles = _curve_panel(axes[0], d, w, {m: reps[(cid, m)] for m in METHODS}, METHODS, s,
                            f"DIAGNOSTIC: curve {cid} ({w['material_family']} {w['product_form']}, {int(w['n_points'])} specimens) - "
                            "41 J not bracketed by the measured energies")
-    axes[0].legend(handles=handles, loc="lower right", fontsize=7.0, frameon=False)
+    fig.legend(handles=handles, loc="upper center", ncol=2, fontsize=7.4, frameon=False, bbox_to_anchor=(0.5, 0.935))
     ax = axes[1]
     W3._style(ax)
     edges = np.histogram_bin_edges(np.concatenate([reps[(cid, m)]["t41j"][B.target_available(reps[(cid, m)], "t41j")] for m in METHODS]), bins=40)
     for m, color, lw in [(B.PAIRS, NAVY, 1.8), (B.WILD, MUTED, 1.4)]:
         v = reps[(cid, m)]["t41j"][B.target_available(reps[(cid, m)], "t41j")]
-        ax.hist(v, bins=edges, histtype="step", color=color, lw=lw, label=f"{m}: finite T41J in {100 * len(v) / B.B_REPLICATES:.1f} % of replicates")
+        ax.hist(v, bins=edges, histtype="step", color=color, lw=lw, ls="-" if m == B.PAIRS else "--",
+                label=f"{m}: finite T41J in {100 * len(v) / len(reps[(cid, m)]['outcome_code']):.1f} % of replicates")
     ax.axvline(d["t"].min(), color=INK, lw=1.0)
     ax.text(d["t"].min(), ax.get_ylim()[1] * 0.97, " lowest test\n temperature", fontsize=7, color=INK2, va="top")
-    ax.axvline(d["est"]["t41"], color=ORANGE, lw=2.0)
+    ax.axvline(d["est"]["t41"], color=ORANGE, lw=2.0, ls=":")
     ax.set_xlabel("T41J of the bootstrap replicate fits (°C)", fontsize=9, color=INK)
     ax.set_ylabel("Replicates", fontsize=9, color=INK)
     ax.legend(fontsize=7.2, frameon=False, loc="upper right")
@@ -798,7 +805,7 @@ def diagnostic_figure(cid: str, d: dict, w: pd.Series, reps: dict, t41: pd.DataF
     fig.text(0.01, 0.02, "\n".join(textwrap.fill(x, 150) for x in lines), fontsize=7.4, color=INK2, va="bottom")
     fig.suptitle(f"WP4 diagnostic: bootstrap T41J of curve {cid}, the one full-size curve whose measured energies do not bracket 41 J "
                  "(analysis of published test data)", fontsize=10, color=INK)
-    fig.tight_layout(rect=(0, 0.2, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.2, 1, 0.86))
     fig.savefig(OUT / f"diagnostic_{cid}_bootstrap.png", dpi=150, metadata={"Software": None})
     plt.close(fig)
 
@@ -828,7 +835,8 @@ def sampling_figure(samp: pd.DataFrame) -> None:
         for quality, st in styles.items():
             h = rep[rep["quality"] == quality]
             if len(h):
-                ax.scatter(h[col], h["pairs_key_sd"], zorder=3, linewidth=0.9, label=f"WP3 outcome {quality} ({len(h)} curves)", **st)
+                ax.scatter(h[col], h["pairs_key_sd"], zorder=3, linewidth=0.9,
+                           label=f"WP3 outcome {quality} ({len(h)} curve{'s' if len(h) != 1 else ''})", **st)
         ax.set_yscale("log")
         if logx:
             ax.set_xscale("log")
@@ -883,9 +891,9 @@ def comparison_figure(per: pd.DataFrame) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5.0))
     for ax, (cat, target, label) in zip(axes, [("full-size", "t41j", "full-size T41J (°C)"), ("miniature", "t0", "miniature T0 (°C)"),
-                                              ("all", "use", "USE relative to fitted USE (both geometries)")]):
+                                              ("all", "use", "USE / fitted USE")]):
         W3._style(ax)
         h = per[(per["target"] == target) & per["both_reportable"]]
         if cat != "all":
@@ -902,10 +910,11 @@ def comparison_figure(per: pd.DataFrame) -> None:
             ax.plot(lim, lim, color=INK2, lw=1.0, zorder=2)
             ax.set_xscale("log")
             ax.set_yscale("log")
-        ax.set_xlabel(f"fixed-design wild bootstrap SD, {label}", fontsize=8.3, color=INK)
-        ax.set_ylabel(f"pairs bootstrap SD, {label}", fontsize=8.3, color=INK)
-        ax.set_title(f"{label}: {len(h)} curves with both intervals reportable", fontsize=8.8, color=INK)
-        ax.legend(fontsize=7, frameon=False, loc="upper left")
+        ax.set_xlabel(f"fixed-design wild bootstrap SD: {label}", fontsize=8.3, color=INK)
+        ax.set_ylabel(f"pairs bootstrap SD: {label}", fontsize=8.3, color=INK)
+        ax.set_title(f"{label}\n{len(h)} curves with both intervals reportable" + (" (both geometries)" if cat == "all" else ""),
+                     fontsize=8.8, color=INK)
+        ax.legend(fontsize=7, frameon=False, loc="lower right")
     fig.suptitle("Pairs (primary) against fixed-design wild (sensitivity) bootstrap SD; line: equal SD (analysis of published test data)",
                  fontsize=9.5, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
@@ -987,6 +996,12 @@ def headline_lines(ctx: dict) -> list:
             r = r.iloc[0]
             L.append(f"- pairs / fixed-design SD, {cat} {target} ({r['curves']} curves): median {r['median']:.2f}, 10th-90th {r['p10']:.2f}-{r['p90']:.2f}, "
                      f"pairs wider for {_pct(r['share_pairs_wider'])}.")
+    bn = ctx["binned"]
+    below = bn[(bn["geometry_category"] == "full-size") & (bn["sampling_property"] == "n_points_below_criterion")]
+    if len(below):
+        L.append("- full-size T41J, pairs: curves with a reportable interval / curves, by measured energies below 41 J: "
+                 + "; ".join(f"{r['bin']}: {r['curves_with_reportable_pairs_interval']} / {r['curves']}" for _, r in below.iterrows())
+                 + " (unavailable intervals arise when replicates lose every specimen below 41 J and the crossing falls below their tested range).")
     so = ctx["stability_overall"]
     if len(so):
         L.append(f"- Monte Carlo stability (B = 4,000 independent rerun): largest change of a 2.5th/50th/97.5th percentile = "
