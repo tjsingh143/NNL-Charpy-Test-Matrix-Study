@@ -1,0 +1,51 @@
+method,group,quantity,curves,minimum,p10,p25,median,p75,p90,maximum
+pairs,all full-size curves,share_replicate_energies_bracket_41j,134,0.0,0.8751,0.89675,0.9735,0.99475,1.0,1.0
+pairs,all full-size curves,share_of_finite_t41j_not_bracketed,134,0.0,0.0,0.0,0.0,0.004511278195488722,0.021358902434490193,1.0
+pairs,all full-size curves,share_of_finite_t41j_with_index_position_warning,134,0.0,0.0,0.0,0.001529701360176521,0.01572302768802912,0.07492763662452687,0.9993846153846154
+pairs,all full-size curves,share_t41j_unsupported_below_lowest_temperature,134,0.0,0.0,0.0055,0.035250000000000004,0.10275,0.2454,0.556
+pairs,all full-size curves,t41j_finite_fraction,134,0.444,0.7546,0.89725,0.96475,0.99375,0.99985,1.0
+pairs,original T41J bracketed,share_replicate_energies_bracket_41j,133,0.6195,0.8765999999999999,0.899,0.9735,0.995,1.0,1.0
+pairs,original T41J bracketed,share_of_finite_t41j_not_bracketed,133,0.0,0.0,0.0,0.0,0.004511278195488722,0.021217948320317263,0.273972602739726
+pairs,original T41J bracketed,share_of_finite_t41j_with_index_position_warning,133,0.0,0.0,0.0,0.001519756838905775,0.01603206412825651,0.07544799320485225,0.9993846153846154
+pairs,original T41J bracketed,share_t41j_unsupported_below_lowest_temperature,133,0.0,0.0,0.0055,0.035,0.102,0.24339999999999998,0.416
+pairs,original T41J bracketed,t41j_finite_fraction,133,0.584,0.7566,0.898,0.965,0.9945,0.9999,1.0
+pairs,original T41J not bracketed (33-153),share_replicate_energies_bracket_41j,1,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+pairs,original T41J not bracketed (33-153),share_of_finite_t41j_not_bracketed,1,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+pairs,original T41J not bracketed (33-153),share_of_finite_t41j_with_index_position_warning,1,0.006756756756756757,0.006756756756756757,0.006756756756756757,0.006756756756756757,0.006756756756756757,0.006756756756756757,0.006756756756756757
+pairs,original T41J not bracketed (33-153),share_t41j_unsupported_below_lowest_temperature,1,0.556,0.556,0.556,0.556,0.556,0.556,0.556
+pairs,original T41J not bracketed (33-153),t41j_finite_fraction,1,0.444,0.444,0.444,0.444,0.444,0.444,0.444
+pairs,original index-position warning,share_replicate_energies_bracket_41j,9,0.8875,0.8935,0.9615,0.9815,0.9965,0.9984,1.0
+pairs,original index-position warning,share_of_finite_t41j_not_bracketed,9,0.0,0.0,0.0,0.001507537688442211,0.008615384615384615,0.0137310617637556,0.015143603133159269
+pairs,original index-position warning,share_of_finite_t41j_with_index_position_warning,9,0.39587973273942095,0.5884632035673227,0.9638084632516704,0.978,0.991644908616188,0.9986708929261693,0.9993846153846154
+pairs,original index-position warning,share_t41j_unsupported_below_lowest_temperature,9,0.0,0.004,0.0385,0.074,0.102,0.1199,0.1875
+pairs,original index-position warning,t41j_finite_fraction,9,0.8125,0.8801,0.898,0.926,0.9615,0.996,1.0
+pairs,no original index-position warning,share_replicate_energies_bracket_41j,125,0.0,0.8685,0.896,0.9735,0.994,1.0,1.0
+pairs,no original index-position warning,share_of_finite_t41j_not_bracketed,125,0.0,0.0,0.0,0.0,0.004,0.023986551377642495,1.0
+pairs,no original index-position warning,share_of_finite_t41j_with_index_position_warning,125,0.0,0.0,0.0,0.0010025062656641604,0.009782608695652175,0.03167757916186443,0.33607907742998355
+pairs,no original index-position warning,share_t41j_unsupported_below_lowest_temperature,125,0.0,0.0,0.0055,0.035,0.106,0.2718000000000004,0.556
+pairs,no original index-position warning,t41j_finite_fraction,125,0.444,0.7282,0.894,0.965,0.9945,0.9998,1.0
+wild,all full-size curves,share_replicate_energies_bracket_41j,134,0.5065,1.0,1.0,1.0,1.0,1.0,1.0
+wild,all full-size curves,share_of_finite_t41j_not_bracketed,134,0.0,0.0,0.0,0.0,0.0,0.0,0.33311389071757735
+wild,all full-size curves,share_of_finite_t41j_with_index_position_warning,134,0.0,0.0,0.0,0.0,0.0,0.030650000000000045,1.0
+wild,all full-size curves,share_t41j_unsupported_below_lowest_temperature,134,0.0,0.0,0.0,0.0,0.0,0.0017500000000000072,0.306
+wild,all full-size curves,t41j_finite_fraction,134,0.694,0.9982500000000001,1.0,1.0,1.0,1.0,1.0
+wild,original T41J bracketed,share_replicate_energies_bracket_41j,133,0.7515,1.0,1.0,1.0,1.0,1.0,1.0
+wild,original T41J bracketed,share_of_finite_t41j_not_bracketed,133,0.0,0.0,0.0,0.0,0.0,0.0,0.12968299711815562
+wild,original T41J bracketed,share_of_finite_t41j_with_index_position_warning,133,0.0,0.0,0.0,0.0,0.0,0.03209999999999996,1.0
+wild,original T41J bracketed,share_t41j_unsupported_below_lowest_temperature,133,0.0,0.0,0.0,0.0,0.0,0.0,0.306
+wild,original T41J bracketed,t41j_finite_fraction,133,0.694,1.0,1.0,1.0,1.0,1.0,1.0
+wild,original T41J not bracketed (33-153),share_replicate_energies_bracket_41j,1,0.5065,0.5065,0.5065,0.5065,0.5065,0.5065,0.5065
+wild,original T41J not bracketed (33-153),share_of_finite_t41j_not_bracketed,1,0.33311389071757735,0.33311389071757735,0.33311389071757735,0.33311389071757735,0.33311389071757735,0.33311389071757735,0.33311389071757735
+wild,original T41J not bracketed (33-153),share_of_finite_t41j_with_index_position_warning,1,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+wild,original T41J not bracketed (33-153),share_t41j_unsupported_below_lowest_temperature,1,0.2405,0.2405,0.2405,0.2405,0.2405,0.2405,0.2405
+wild,original T41J not bracketed (33-153),t41j_finite_fraction,1,0.7595,0.7595,0.7595,0.7595,0.7595,0.7595,0.7595
+wild,original index-position warning,share_replicate_energies_bracket_41j,9,0.9955,0.9991,1.0,1.0,1.0,1.0,1.0
+wild,original index-position warning,share_of_finite_t41j_not_bracketed,9,0.0,0.0,0.0,0.0,0.0,0.00011242270938729633,0.0005621135469364812
+wild,original index-position warning,share_of_finite_t41j_with_index_position_warning,9,0.4131534569983137,0.6610306913996628,0.73,0.9915,1.0,1.0,1.0
+wild,original index-position warning,share_t41j_unsupported_below_lowest_temperature,9,0.0,0.0,0.0,0.0,0.0025,0.02450000000000002,0.1105
+wild,original index-position warning,t41j_finite_fraction,9,0.8895,0.9755,0.9975,1.0,1.0,1.0,1.0
+wild,no original index-position warning,share_replicate_energies_bracket_41j,125,0.5065,1.0,1.0,1.0,1.0,1.0,1.0
+wild,no original index-position warning,share_of_finite_t41j_not_bracketed,125,0.0,0.0,0.0,0.0,0.0,0.0,0.33311389071757735
+wild,no original index-position warning,share_of_finite_t41j_with_index_position_warning,125,0.0,0.0,0.0,0.0,0.0,0.0,0.37474541751527496
+wild,no original index-position warning,share_t41j_unsupported_below_lowest_temperature,125,0.0,0.0,0.0,0.0,0.0,0.0,0.306
+wild,no original index-position warning,t41j_finite_fraction,125,0.694,1.0,1.0,1.0,1.0,1.0,1.0

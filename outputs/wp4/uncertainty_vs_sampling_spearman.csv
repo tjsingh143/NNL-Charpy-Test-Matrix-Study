@@ -1,0 +1,105 @@
+geometry_category,key_target,metric,curves_in_analysis,curve_scope,sampling_property,spearman_rho,p_value_descriptive
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,specimens (N),-0.2752487839673833,0.01347034446638571
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,distinct test temperatures,-0.16394473732709364,0.14618486829975333
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,tested temperature span (°C),-0.049345960952542595,0.6637930790377323
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),-0.2397702827843899,0.03217961815261279
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),-0.31760005966734495,0.00409541592311956
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),0.15358876232878665,0.17376509559658793
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.29592863700108757,0.007694560396408451
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,WP2 lower-band temperatures,-0.023633478355646543,0.835161490688043
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,WP2 transition-band temperatures,-0.10908916088453258,0.3354244396531697
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,WP2 upper-band temperatures,-0.1668821797617571,0.13899482631961632
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,tested span / fitted C,0.06425222691045476,0.5712372928271326
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",-0.10218002812939522,0.36710692465549455
+full-size,T41J,bootstrap SD of the key target,80,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),-0.18644683677940233,0.09773393808671958
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,specimens (N),-0.2755427024535948,0.013367266684522108
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,distinct test temperatures,-0.17964685291571483,0.11081888400944115
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,tested temperature span (°C),-0.06969384413867417,0.5390187094600417
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),-0.22868826357810423,0.04131228609505063
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),-0.3019803846017378,0.0064818756966850966
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),0.13682991666969777,0.2261697785272995
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.30086933368691454,0.006690981405668534
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,WP2 lower-band temperatures,-0.03939319342209882,0.7286418196083355
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,WP2 transition-band temperatures,-0.09427031173014239,0.4055424816872688
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,WP2 upper-band temperatures,-0.20570386090953943,0.06716863423174702
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,tested span / fitted C,0.04399906235349274,0.6983612058093953
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",-0.08206751054852322,0.4692477250410856
+full-size,T41J,95 % interval width of the key target,80,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),-0.1786691888031984,0.11280674804403795
+full-size,T41J,finite key-target fraction,134,all curves,specimens (N),0.4561724954525741,3.038176960363852e-08
+full-size,T41J,finite key-target fraction,134,all curves,distinct test temperatures,0.4401149089883604,1.0313713170593256e-07
+full-size,T41J,finite key-target fraction,134,all curves,tested temperature span (°C),0.13890690242571027,0.109450200627663
+full-size,T41J,finite key-target fraction,134,all curves,distinct temperatures inside T0 ± C (WP3 fit),0.16211640709088485,0.061282571454913
+full-size,T41J,finite key-target fraction,134,all curves,specimens inside T0 ± C (WP3 fit),0.2568047708640016,0.0027419297970354495
+full-size,T41J,finite key-target fraction,134,all curves,specimens on the fitted lower shelf (x <= -1.5),0.5658359255168209,1.046928081547384e-12
+full-size,T41J,finite key-target fraction,134,all curves,specimens on the fitted upper shelf (x >= 1.5),0.21118669945551202,0.014307366360385263
+full-size,T41J,finite key-target fraction,134,all curves,WP2 lower-band temperatures,0.538596897014365,1.912129182473352e-11
+full-size,T41J,finite key-target fraction,134,all curves,WP2 transition-band temperatures,0.33392971512506586,8.043466045519967e-05
+full-size,T41J,finite key-target fraction,134,all curves,WP2 upper-band temperatures,0.06785466127977327,0.4359714148376441
+full-size,T41J,finite key-target fraction,134,all curves,tested span / fitted C,0.14220873119670965,0.10119156105077598
+full-size,T41J,finite key-target fraction,134,all curves,"fitted transition half-width C (°C; curve shape, not sampling)",0.02085382032692103,0.8109777673649752
+full-size,T41J,finite key-target fraction,134,all curves,measured energies below 41 J (WP3 audit count; full-size only),0.8857389147191432,7.865260466725033e-46
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,specimens (N),-0.23803232569853577,0.005613678255727697
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,distinct test temperatures,-0.3033415171588393,0.000366832380908128
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,tested temperature span (°C),-0.4364521910371229,1.35116110735151e-07
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),0.03420509547283245,0.6947937721405113
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),-0.04539023029475567,0.6025229106059717
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),-0.03532748152159279,0.6853007781518461
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.6957435054672786,1.0631469465328019e-20
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,WP2 lower-band temperatures,0.043653671264869645,0.6164890800232845
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,WP2 transition-band temperatures,-0.009994210765371518,0.9087539833368434
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,WP2 upper-band temperatures,-0.5787017370093038,2.4148056810122506e-13
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,tested span / fitted C,-0.3602413995186973,1.907265215006603e-05
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",0.00033666255190214345,0.9969196628611119
+full-size,T41J,USE 95 % width / USE,134,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),0.035949180976427415,0.6800634730419032
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,specimens (N),-0.5728780366949342,0.0002606865205462899
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,distinct test temperatures,-0.08426430351826364,0.6251154425415034
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,tested temperature span (°C),0.12034236462270857,0.4844777501516381
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),0.1135111841482091,0.5097887382223767
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),-0.16247288140829444,0.34376900290132284
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),-0.007645331337351941,0.9647022048871831
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.5199781395661474,0.0011522185448931143
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,WP2 lower-band temperatures,-0.24724848041564418,0.1459967397923726
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,WP2 transition-band temperatures,-0.025215125071160298,0.883941537836274
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,WP2 upper-band temperatures,-0.3820544526492712,0.02148048222830229
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,tested span / fitted C,-0.33564993564993567,0.04535930263669667
+miniature,T0,bootstrap SD of the key target,36,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",0.47438867438867444,0.0034657267073245836
+miniature,T0,bootstrap SD of the key target,0,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),,
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,specimens (N),-0.5640804516689054,0.0003396487147776843
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,distinct test temperatures,-0.10520034189240014,0.5414484962503492
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,tested temperature span (°C),0.14209408614274893,0.4084168363855083
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),0.10026388348102681,0.5606867997066132
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),-0.15845960704681464,0.3559789647287007
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),-0.01449976632946058,0.9331100523453125
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.5115073177436412,0.0014303159925976269
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,WP2 lower-band temperatures,-0.2692952541069735,0.11223039175968738
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,WP2 transition-band temperatures,-0.05173673330662941,0.764432053628168
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,WP2 upper-band temperatures,-0.3807260296567494,0.02197656979300321
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,tested span / fitted C,-0.3191763191763192,0.05777025593768469
+miniature,T0,95 % interval width of the key target,36,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",0.4710424710424711,0.0037359506856181448
+miniature,T0,95 % interval width of the key target,0,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),,
+miniature,T0,finite key-target fraction,36,all curves,specimens (N),0.23631627112145118,0.16525813891829907
+miniature,T0,finite key-target fraction,36,all curves,distinct test temperatures,-0.06491590956795575,0.7068078698841989
+miniature,T0,finite key-target fraction,36,all curves,tested temperature span (°C),-0.3941409635364695,0.01737984412101526
+miniature,T0,finite key-target fraction,36,all curves,distinct temperatures inside T0 ± C (WP3 fit),0.21531634532310776,0.20725138791844655
+miniature,T0,finite key-target fraction,36,all curves,specimens inside T0 ± C (WP3 fit),0.29760723619359597,0.07793188896490921
+miniature,T0,finite key-target fraction,36,all curves,specimens on the fitted lower shelf (x <= -1.5),0.2649414497677199,0.1183819822025699
+miniature,T0,finite key-target fraction,36,all curves,specimens on the fitted upper shelf (x >= 1.5),-0.446966379338831,0.006277208727758683
+miniature,T0,finite key-target fraction,36,all curves,WP2 lower-band temperatures,0.4080445991400116,0.01349412442567894
+miniature,T0,finite key-target fraction,36,all curves,WP2 transition-band temperatures,0.2926885485197976,0.0832168564869133
+miniature,T0,finite key-target fraction,36,all curves,WP2 upper-band temperatures,-0.4428236324547618,0.006838563169654544
+miniature,T0,finite key-target fraction,36,all curves,tested span / fitted C,-0.411070006655518,0.012753717423318049
+miniature,T0,finite key-target fraction,36,all curves,"fitted transition half-width C (°C; curve shape, not sampling)",0.2113847694620271,0.2158680263299413
+miniature,T0,finite key-target fraction,0,all curves,measured energies below 41 J (WP3 audit count; full-size only),,
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,specimens (N),-0.17957423553129376,0.2946527212702466
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,distinct test temperatures,-0.0921965913494582,0.5927894136896323
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,tested temperature span (°C),-0.13244095529066005,0.4412983705438688
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,distinct temperatures inside T0 ± C (WP3 fit),0.22325597889104284,0.19058401266062097
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,specimens inside T0 ± C (WP3 fit),0.1588479884366353,0.3547860761502831
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,specimens on the fitted lower shelf (x <= -1.5),0.16648368067371555,0.3318252128605197
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,specimens on the fitted upper shelf (x >= 1.5),-0.7258842700209125,5.444484246278924e-07
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,WP2 lower-band temperatures,0.15013447114954323,0.38212668680922657
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,WP2 transition-band temperatures,0.21047443777015148,0.21789776837454833
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,WP2 upper-band temperatures,-0.5398711041608617,0.0006779870335053761
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,tested span / fitted C,-0.4947232947232947,0.002160358069573196
+miniature,T0,USE 95 % width / USE,36,reportable pairs intervals only,"fitted transition half-width C (°C; curve shape, not sampling)",0.46537966537966546,0.004234995344020444
+miniature,T0,USE 95 % width / USE,0,reportable pairs intervals only,measured energies below 41 J (WP3 audit count; full-size only),,

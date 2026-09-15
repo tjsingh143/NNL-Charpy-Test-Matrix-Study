@@ -20,10 +20,12 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP1 Cleaning and normalization | done (CP1 approved; corrections surfaced in WP2 approved at CP2) |
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
 | WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
-| WP4 Per-curve uncertainty | next permitted work package; not started |
-| WP5–WP7 | not started |
+| WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
+| WP5 Specimen size effect | next permitted work package; NOT started; the official checkpoint CP4 follows WP5 |
+| WP6–WP7 | not started |
 
-Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
+Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
+not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
 
 A plain-language summary of the findings will be added when the analysis is complete.
 
@@ -49,9 +51,9 @@ Which release is primary, and why, is decision D-001 (approved at CP1); see also
 
 Creates `.venv/` with the pinned packages if it does not exist, verifies the raw-data checksums, and regenerates everything in
 `outputs/` and `data/processed/` from `data/raw/` (WP0, WP1 for both dataset releases, WP2 including `outputs/wp2/example_curves.png`,
-WP3 synthetic fitter validation and fits to the published curves, each with the final primary method and the all-fitted lower-shelf sensitivity case). WP2 ends by checking that every cohort still has the membership frozen
+WP3 synthetic fitter validation and fits to the published curves, each with the final primary method and the all-fitted lower-shelf sensitivity case, WP4 bootstrap checks and per-curve uncertainty). WP2 ends by checking that every cohort still has the membership frozen
 at checkpoint CP2 (`data/FROZEN_COHORTS_CP2.csv`) and stops if it does not; WP3 repeats that check before fitting anything.
-WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers.
+WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers. WP4 (bootstrap uncertainty) adds 1.5-2.5 hours with the default 3 worker processes on the 8 GB development Mac (87 min measured for its two scripts; 2 h 15 min while other applications loaded the machine heavily): its SYNTHETIC checks and the 2,000-replicate bootstraps of every primary curve use per-replicate seeds, so their results do not depend on the number of worker processes either.
 
 ## Repository layout
 
@@ -76,3 +78,7 @@ WP3's synthetic validation uses a fixed seed and runs in parallel worker process
 | `src/wp3_validation.py` | WP3: fitter validation on SYNTHETIC curves with known truth (lower-shelf decision rule, error vs sampling and scatter) |
 | `src/wp3_fit_curves.py` | WP3: fits to the published curves of the frozen cohorts, outcome accounting, comparisons, `wp3_summary.md` |
 | `outputs/wp3/` | `synthetic_*` = SYNTHETIC validation outputs; all other files = fits to published data (`wp3_summary.md` collects them); final primary method. `sensitivity_all_fitted_lse/` = the pre-registered all-fitted lower-shelf method, kept as a sensitivity case |
+| `src/wp4_bootstrap.py` | WP4: pairs (primary) and fixed-design wild (sensitivity) bootstrap, refitting every replicate with the approved WP3 functions; failure-aware summaries |
+| `src/wp4_validation.py` | WP4: SYNTHETIC checks of the bootstrap (zero scatter, determinism, failure accounting, coverage on WP3 scenarios) |
+| `src/wp4_uncertainty.py` | WP4: per-curve bootstrap uncertainty of the published primary curves, residual scatter, sampling analysis, published cross-check, figures, `wp4_summary.md` |
+| `outputs/wp4/` | `synthetic_*` = SYNTHETIC bootstrap checks; all other files = uncertainty of the published curves (`wp4_summary.md` collects them) |

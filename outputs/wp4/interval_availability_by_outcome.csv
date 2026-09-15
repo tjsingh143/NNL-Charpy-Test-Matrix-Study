@@ -1,0 +1,53 @@
+method,geometry_category,target,target_role,quality,outcome,interval_label,curves
+pairs,full-size,c,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+pairs,full-size,c,diagnostic,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+pairs,full-size,c,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,29
+pairs,full-size,t0,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+pairs,full-size,t0,target,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+pairs,full-size,t0,target,weakly identified,weakly identified,diagnostic bootstrap interval,29
+pairs,full-size,t41j,primary target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+pairs,full-size,t41j,primary target,usable,"usable fit, index temperature calculated",interval unavailable: bootstrap-unstable (finite-target fraction below 95 %),38
+pairs,full-size,t41j,primary target,usable,"usable fit, index temperature calculated",primary bootstrap CI,66
+pairs,full-size,t41j,primary target,weakly identified,weakly identified,diagnostic bootstrap interval,13
+pairs,full-size,t41j,primary target,weakly identified,weakly identified,interval unavailable: bootstrap-unstable (finite-target fraction below 95 %),16
+pairs,full-size,use,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+pairs,full-size,use,target,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+pairs,full-size,use,target,weakly identified,weakly identified,diagnostic bootstrap interval,29
+pairs,miniature,c,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+pairs,miniature,c,diagnostic,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+pairs,miniature,c,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,6
+pairs,miniature,lse,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+pairs,miniature,lse,diagnostic,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+pairs,miniature,lse,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,6
+pairs,miniature,t0,primary target,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+pairs,miniature,t0,primary target,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+pairs,miniature,t0,primary target,weakly identified,weakly identified,diagnostic bootstrap interval,6
+pairs,miniature,use,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+pairs,miniature,use,target,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+pairs,miniature,use,target,weakly identified,weakly identified,diagnostic bootstrap interval,6
+wild,full-size,c,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+wild,full-size,c,diagnostic,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+wild,full-size,c,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,29
+wild,full-size,t0,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+wild,full-size,t0,target,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+wild,full-size,t0,target,weakly identified,weakly identified,diagnostic bootstrap interval,29
+wild,full-size,t41j,primary target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+wild,full-size,t41j,primary target,usable,"usable fit, index temperature calculated",interval unavailable: bootstrap-unstable (finite-target fraction below 95 %),7
+wild,full-size,t41j,primary target,usable,"usable fit, index temperature calculated",primary bootstrap CI,97
+wild,full-size,t41j,primary target,weakly identified,weakly identified,diagnostic bootstrap interval,28
+wild,full-size,t41j,primary target,weakly identified,weakly identified,interval unavailable: bootstrap-unstable (finite-target fraction below 95 %),1
+wild,full-size,use,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,1
+wild,full-size,use,target,usable,"usable fit, index temperature calculated",primary bootstrap CI,104
+wild,full-size,use,target,weakly identified,weakly identified,diagnostic bootstrap interval,29
+wild,miniature,c,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+wild,miniature,c,diagnostic,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+wild,miniature,c,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,6
+wild,miniature,lse,diagnostic,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+wild,miniature,lse,diagnostic,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+wild,miniature,lse,diagnostic,weakly identified,weakly identified,diagnostic bootstrap interval,6
+wild,miniature,t0,primary target,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+wild,miniature,t0,primary target,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+wild,miniature,t0,primary target,weakly identified,weakly identified,diagnostic bootstrap interval,6
+wild,miniature,use,target,boundary-limited,boundary-limited,diagnostic bootstrap interval,17
+wild,miniature,use,target,usable,"usable fit, index temperature unavailable",primary bootstrap CI,13
+wild,miniature,use,target,weakly identified,weakly identified,diagnostic bootstrap interval,6

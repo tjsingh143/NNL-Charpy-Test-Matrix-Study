@@ -1,0 +1,41 @@
+method,geometry_category,target,original_wp3_outcome,curves,primary_bootstrap_ci,diagnostic_bootstrap_interval,interval_unavailable
+pairs,full-size,t41j,boundary-limited,1,0,1,0
+pairs,full-size,t41j,weakly identified,29,0,13,16
+pairs,full-size,t41j,"usable fit, index temperature calculated",104,66,0,38
+pairs,full-size,t41j,ALL,134,66,14,54
+pairs,full-size,use,boundary-limited,1,0,1,0
+pairs,full-size,use,weakly identified,29,0,29,0
+pairs,full-size,use,"usable fit, index temperature calculated",104,104,0,0
+pairs,full-size,use,ALL,134,104,30,0
+pairs,full-size,t0,boundary-limited,1,0,1,0
+pairs,full-size,t0,weakly identified,29,0,29,0
+pairs,full-size,t0,"usable fit, index temperature calculated",104,104,0,0
+pairs,full-size,t0,ALL,134,104,30,0
+pairs,miniature,t0,boundary-limited,17,0,17,0
+pairs,miniature,t0,weakly identified,6,0,6,0
+pairs,miniature,t0,"usable fit, index temperature unavailable",13,13,0,0
+pairs,miniature,t0,ALL,36,13,23,0
+pairs,miniature,use,boundary-limited,17,0,17,0
+pairs,miniature,use,weakly identified,6,0,6,0
+pairs,miniature,use,"usable fit, index temperature unavailable",13,13,0,0
+pairs,miniature,use,ALL,36,13,23,0
+wild,full-size,t41j,boundary-limited,1,0,1,0
+wild,full-size,t41j,weakly identified,29,0,28,1
+wild,full-size,t41j,"usable fit, index temperature calculated",104,97,0,7
+wild,full-size,t41j,ALL,134,97,29,8
+wild,full-size,use,boundary-limited,1,0,1,0
+wild,full-size,use,weakly identified,29,0,29,0
+wild,full-size,use,"usable fit, index temperature calculated",104,104,0,0
+wild,full-size,use,ALL,134,104,30,0
+wild,full-size,t0,boundary-limited,1,0,1,0
+wild,full-size,t0,weakly identified,29,0,29,0
+wild,full-size,t0,"usable fit, index temperature calculated",104,104,0,0
+wild,full-size,t0,ALL,134,104,30,0
+wild,miniature,t0,boundary-limited,17,0,17,0
+wild,miniature,t0,weakly identified,6,0,6,0
+wild,miniature,t0,"usable fit, index temperature unavailable",13,13,0,0
+wild,miniature,t0,ALL,36,13,23,0
+wild,miniature,use,boundary-limited,17,0,17,0
+wild,miniature,use,weakly identified,6,0,6,0
+wild,miniature,use,"usable fit, index temperature unavailable",13,13,0,0
+wild,miniature,use,ALL,36,13,23,0

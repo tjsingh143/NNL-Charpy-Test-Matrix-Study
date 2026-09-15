@@ -889,7 +889,7 @@ bootstrap uncertainty, a scatter model or WP5.
   finding that asymmetric sigmoids fit large data sets better are not supported by the abstract text; they are left in place and marked.
 - [Miura2025] Miura N., Shinko T., Nomoto A. (2025). *Variation of ductile-brittle transition temperature for Charpy curve provided by
   hyperbolic tangent function.* Int. J. Pres. Ves. Pip. (ScienceDirect S0308016125000651); preprint SSRN doi:10.2139/ssrn.4917170.
-  **Abstract only** (Crossref record of the preprint).
+  **Abstract only** (Crossref record of the preprint). [WP4, 2026-09-14: the full text of the SSRN preprint was read; see WP4 sources.]
 - [SokolovNanstad1995] Sokolov M.A., Nanstad R.K. (1995). *On Impact Testing of Subsize Charpy V-Notch Type Specimens.* ASTM STP 1270
   (ORNL paper CONF-940657-12, OSTI 207586, full scanned text): Eq. 1 and p. 7 (fixed lower shelves), Fig. 1 (specimen types 1–5), Eqs 11, 16–21.
 - [NUREG/CR-6379] Sokolov M.A., Alexander D.J. (1997). *An Improved Correlation Procedure for Subsize and Full-Size Charpy Impact Specimen
@@ -1107,7 +1107,9 @@ decide how many of them are classed non-physical. The choice is the author's at 
 programme) fixed the lower shelf at 2.7 J for every full-size fit and 0.1 J for every sub-size fit (p. 7). [Switzner2023] fits all four
 parameters without constraints; its free shear-area curve went below 0 % shear, "physically impossible" (§3.1), and four-parameter fits can fail to converge (§4.1).
 [PR-EDB] restrains both shelves with penalties to avoid unphysical fits. [Miura2025]'s abstract makes the scatter of T41J depend on LSE and on
-the number of lower- and upper-shelf points. No source gives a lower shelf for 1.5–5 mm miniature specimens of 20–27.5 mm length.
+the number of lower- and upper-shelf points. [WP4 citation check 2026-09-14: the abstract does not say this; the full preprint, read in WP4, reports
+that the SD of T41J rises with LSE, that more lower-shelf specimens do not reduce it and that more than 2 upper-shelf specimens barely do, the
+number of transition specimens dominating (WP4 sources).] No source gives a lower shelf for 1.5–5 mm miniature specimens of 20–27.5 mm length.
 **Pre-fit evidence from this cohort (WP2 descriptors only; no fit).** Full-size curves whose coldest test is at or below −150 °C have a median
 lowest energy of 5.2 J (quartiles 3.7–7.8 J; 41 curves), above 2.7 J; 17 of 134 full-size curves have measured energies below 2.7 J. Among the
 36 miniature curves, 4 have energies below 0.1 J (20 × 1.5 × 1.5 mm, 27.5 × 3.33 × 3.33 mm) and 23 have lowest energies above 0.3 J (KLST-type
@@ -1553,3 +1555,591 @@ branch `wp3`; so do `5bd4c2c` and `76b9f87`, the amended state reviewed at final
    d. The author gave final approval of D-040 to D-051 (CP3 final approval record above); `wp3` is merged into `main` with an explicit merge
       commit and kept.
 
+
+---
+
+# WP4 — Per-curve uncertainty
+
+All numbers regenerate with `src/wp4_validation.py` (SYNTHETIC checks of the bootstrap) and `src/wp4_uncertainty.py` (published curves)
+into `outputs/wp4/`. Both call `src/wp4_bootstrap.py`, which refits every replicate with the approved WP3 functions of `src/wp3_fitter.py`,
+unchanged. Synthetic results live only in files named `synthetic_*` with a `data_type` column saying SYNTHETIC. WP4 does not normalize
+specimen size, does not compare fixed material volumes and does not simulate test matrices (WP5, WP6).
+**Status legend for this section:** `PRE-REGISTERED (WP4)` = written and committed before the published-data bootstrap results it governs
+existed (commits named in D-067). Every WP4 entry is **provisional until the author's internal WP4 review** (an internal stop the author
+set before WP5; the official CP4 follows WP5). `PROPOSED (WP4 review)` = written after results, for the author to decide.
+`FINAL APPROVED (WP4 internal review)` = approved by the author at the internal WP4 review (2026-09-15), after reviewing the completed WP4
+results; the earlier statuses follow it as history, and the pre-registered text below each final decision is kept unchanged as the record.
+`APPROVED AS CANDIDATE SET ONLY (WP4 internal review)` = approved as candidates to carry into a later decision; nothing is chosen (D-066).
+
+**WP4 internal-review approval record (author, 2026-09-15).** The author reviewed the completed WP4 state (branch `wp4`, commit `a806d93`) and
+approved WP4 subject to the clarifications below; `wp4` is merged into `main` once they are recorded and verified. This review is the internal
+stop the author set before WP5; the official checkpoint CP4 still follows WP5. Each item is recorded in full in the entry named.
+1. D-052 pairs (case) bootstrap: FINAL APPROVED as the PRIMARY WP4 uncertainty method; not replaced after seeing the results.
+2. D-053 fixed-design wild bootstrap: FINAL APPROVED AS SENSITIVITY ONLY; never promoted to primary; never a silent replacement because it is
+   narrower.
+3. D-054 approved WP3 fitter inside every replicate: FINAL APPROVED; the 2.7 J full-size shelf is not varied inside the bootstrap; model-choice
+   uncertainty and sampling uncertainty stay separate.
+4. D-055 replicates, seeds, stability subset and memory-safe execution: FINAL APPROVED; the change from 8 to 3 worker processes is an execution
+   (systems) change only.
+5. D-056 targets and percentile interval: FINAL APPROVED WITH A TERMINOLOGY CLARIFICATION (below); the endpoints are neither relabelled nor
+   recomputed.
+6. D-057 95 % finite-target reporting rule: FINAL APPROVED EXACTLY AS PRE-REGISTERED; not lowered; the 54 unavailable full-size T41J intervals
+   stay the primary result (below).
+7. D-058 primary / diagnostic / unavailable labels: FINAL APPROVED; a narrow diagnostic interval never upgrades a weak WP3 fit.
+8. D-059 T41J support diagnostics: FINAL APPROVED; curve 33-153 stays retained and explicitly warned; the warning is not an exclusion rule.
+9. D-060 SYNTHETIC bootstrap validation: FINAL APPROVED with its complete history; no new bootstrap method is selected; the coverage
+   limitations are part of the result.
+10. D-061 residual scatter: FINAL APPROVED AS CHARACTERIZATION ONLY; empirical published-data residual scatter, never pure material scatter.
+11. D-062 uncertainty against sampling properties: FINAL APPROVED; descriptive associations, not causal claims.
+12. D-063 published cross-check: FINAL APPROVED; bootstrap SD against Marini's (2020) SD, never a 95 % width against a one-sigma value; the
+    conclusion stays nuanced.
+13. D-064 pairs against fixed design: FINAL APPROVED as diagnostic evidence; the method giving the smaller interval is never chosen for that reason.
+14. D-065 worked-example and diagnostic figures: FINAL APPROVED; mean-curve confidence band, T41J interval and new-specimen prediction
+    uncertainty stay distinct.
+15. D-066 WP6 scatter-model candidates C1-C3: APPROVED AS CANDIDATE SET ONLY; the final WP6 scatter model is NOT chosen.
+16. D-067 method and system history: FINAL APPROVED AS A CHRONOLOGICAL RECORD; step 9 records this approval session.
+
+**Final author decision: the 54 unavailable full-size T41J intervals stay the primary result (2026-09-15).** Under the primary pairs bootstrap,
+54 of the 134 full-size T41J intervals are unavailable under the pre-registered 95 % finite-target rule (38 from usable WP3 fits, 16 from weakly
+identified fits; `interval_curve_accounting.csv`). They are KEPT AS THE PRIMARY RESULT under the original rule. No alternative reporting
+threshold is added, and their conditional finite-target quantiles are not promoted: those stay in the tables for audit only, under the label
+"interval unavailable: bootstrap-unstable", and are never presented as equivalent to a primary CI. Interpretation: *the pairs bootstrap revealed
+that, for these curves, enough resampled test matrices lose support for an in-range 41 J crossing that a nominal 95 % interval cannot honestly be
+reported under the pre-registered rule.* (In each of the 54 curves, every replicate without a T41J is one whose 41 J crossing lies below that
+replicate's own lowest test temperature; `t41j_support_bootstrap.csv`, D-067 step 7.) The fixed-design wild result is preserved as a separate sensitivity:
+keeping the test temperatures fixed leaves only 8 full-size T41J intervals unavailable (97 primary + 29 diagnostic + 8), and that difference is
+scientifically informative. Changing the rule after observing the count would be post-hoc tuning; the number of unavailable intervals is itself
+a result about test-matrix fragility.
+
+**Interval terminology and calibration caveat (D-056; applies to every WP4 interval).** Every WP4 interval is a *nominal 95 % percentile
+bootstrap interval* (the 2.5th to 97.5th percentile of the finite replicate values; where space is limited, *95 % percentile bootstrap CI*). It
+was not empirically calibrated to exactly 95 % frequentist coverage, and nothing may imply that it was. **SYNTHETIC coverage of the primary pairs
+intervals was not exactly 95 %:** about 89.5 % for well-sampled full-size T41J, about 93 % for high-scatter full-size T41J, about 97 % for the
+weakly sampled full-size design and about 96.5 % for miniature T0 (200 synthetic data sets per scenario, Monte Carlo SE about 1.5 percentage
+points; `synthetic_bootstrap_coverage_summary.csv`, D-060): below nominal in some well-sampled or high-scatter designs, above nominal in some
+weak designs. This is a reporting calibration caveat only: the estimator, the interval endpoints and the validation numbers are unchanged and
+not reinterpreted.
+
+**Use of WP4 in later work packages (author, 2026-09-15).**
+- *WP5* may consume the approved WP3 fits and the WP4 uncertainty labels where relevant. It must not treat a bootstrap interval width as
+  specimen-size correction uncertainty, and it must determine the size effect independently, from genuinely comparable specimen-size pairs.
+- *WP6* (later): primary uncertainty and scatter basis = the pairs-bootstrap results where appropriate, with the empirical published-data residual
+  profile as calibration evidence; sensitivities = the fixed-design bootstrap and the C1, C2 and C3 scatter-model alternatives (D-066).
+- Never treated as pure material scatter without qualification: between-curve spread, bootstrap interval widths, conditional ranges, SYNTHETIC
+  validation outputs, the published residual scatter.
+Not authorized by this approval: WP5 work, specimen-size normalization, WP6 work, calibrating or recalibrating any scatter model, and any change
+to WP4 code, data or generated outputs.
+
+**Sources cited in WP4** (what was actually read is stated; nothing below is cited from memory)
+- [Marini2020] (listed under WP3). WP4 read the full text again, from the Internet Archive copy of the publisher's open-access PDF (CC BY;
+  the publisher site and HAL refused automated access on 2026-09-14): §2, §3.1–3.5, §4.1–4.3, §5, Tables 2–14, Eqs 1–6. Facts used: one
+  16MND5 forging, 142 tests from −196 to +300 °C; tanh with LSE = 0 (Eq. 1); scatter represented per test temperature by a mixture of two
+  Weibull distributions (Eq. 2); 10,000 simulated data sets per test matrix; *precision* σ = standard deviation of the transition temperature
+  over those data sets, *accuracy* ε = mean minus the reference value, *uncertainty* u = (σ² + ε²)^½ (Eq. 3); "RCC-M" matrix of 18 tests,
+  3 at each of −60, −40, −20, 0, +20 °C and 3 at +100 °C (Table 6): T41 σ 3.52 °C, ε −0.13 °C, u 3.52 °C, USE σ 4.44 J (Table 7); reference
+  case of 600 specimens: T41 σ 0.72 °C (Table 5); u = a·N^−β with β 0.51 (B matrices, Table 10) and 0.53 (C matrices, Table 12), "almost
+  inversely proportional to the squared root of the number of specimens"; Eq. 6, u = (a S² + b S + c)/√N with the test-matrix shift S of
+  Eq. 4, for T41 a 3.1, b 1.2, c 12.5 (best estimate) and 16.0 (upper bound) (Table 13), shifts of the A matrices −0.23 to 1.33 (§4.1,
+  Table 8), RCC-M shift 0.67 with best estimate 3.46 °C and upper bound 4.28 °C (Table 14); position of the matrix matters (§4.1, Fig. 7).
+- [Switzner2023] (listed under WP3). WP4 re-read the full text (Internet Archive copy of the MDPI PDF): §1.5, §2.7, §3.1–3.2, §4.2–4.4.
+  Facts used: 12 Charpy tests of one API-5L X52 pipe with 4.5 mm bars; uncertainty by Monte Carlo of an assumed measurement error (absorbed
+  energy SD = 0.6 J + 0.026 × measured value, attributed there to ASTM E23), 1,000 data sets, "95 % quantile"; USE (EUS) 46 ± 8 J
+  (four-parameter), 46 ± 5 J (two-parameter); T85 is an 85 % shear-appearance temperature.
+- [Miura2024preprint] Miura N., Shinko T., Nomoto A. *Variation of ductile-brittle transition temperature for Charpy curve provided by
+  hyperbolic tangent function.* SSRN preprint 4917170, posted 2024-08-06, doi:10.2139/ssrn.4917170, **not peer reviewed** (full text, 11 pp.,
+  opened through SSRN's public "Open PDF in Browser" link): §2 Eqs 1–14, §3 (Monte Carlo check, 1,000 samples, interquartile-range outlier
+  exclusion), §4 (parameter survey; standard parameters LSE 3 J, USE 200 J, C 50 °C, N_LSE 2, N_USE 4, N_TT 6, CV_LSE 0.1, CV_USE 0.1,
+  CV_CVE 0.49), §5. The model propagates the uncertainty of LSE, USE and the energy at T41J into T41J with the curve's C and D treated as known
+  (§2, §5: "this model assumes that the parameters are known"). Findings: σT41J approximately ∝ 1/√N_TT; more lower-shelf specimens do not
+  reduce it; more than 2 upper-shelf specimens barely do; the scatter at 41 J dominates. The published version [Miura2025] (IJPVP 216:105495)
+  was not accessible; differences between the two versions are unknown.
+- [NIST-TN2158] Lucon E., Splett J., Koepke A., Newton D. (2021). *NIST Software Package for Obtaining Charpy Transition Curves.* NIST
+  Technical Note 2158, doi:10.6028/NIST.TN.2158 (full text): §4.2, Appendix A.1, A.3–A.6, A.9. Facts used: fixed-temperature parametric
+  bootstrap with normal errors of SD = RMSE of the original fit, truncated at 0 (A.4); 1,000 iterations "based on the results of numerical
+  simulations investigating the number of iterations needed for the bootstrap interval estimates to stabilize" (A.4); fixed shelves are
+  also varied, default u(LS) = 0.3 J for absorbed energy and u(US) = 5 % of US, "based on engineering judgement" (A.5); confidence intervals
+  from the 2.5 % and 97.5 % percentiles, chosen because the percentile bootstrap is robust "when the fitted parameters lie near their
+  boundary" (A.6); temperatures assumed known without error (A.3); only random effects covered (A.4).
+- [EfronTibshirani1986] Efron B., Tibshirani R. (1986). *Bootstrap Methods for Standard Errors, Confidence Intervals, and Other Measures of
+  Statistical Accuracy.* Statistical Science 1(1):54–77, doi:10.1214/ss/1177013815 (scanned full text; pages 54–55, 62–64, 68 and 72 read):
+  §5, regression y_i = g(β, t_i) + ε_i with covariates "considered fixed at their observed values" and residuals resampled (Eqs 5.3–5.10);
+  "another, simpler way": resampling each covariate-response pair; the two "are asymptotically equivalent, but can perform quite differently
+  in small sample situations", and the pairs method "gives a trustworthy estimate of β̂'s variability even if the regression model ... is not
+  correct"; §7, percentile method (interval between the 100·α and 100·(1 − α) percentiles, transformation-invariant; Table 6 lists standard,
+  percentile, BC, BCa); §9, "B = 1000 is a rough minimum" for BC or BCa intervals, "Somewhat smaller values, say B = 250, can give a useful
+  percentile interval"; standard errors improve little past B = 100.
+- [MacKinnon2012] MacKinnon J.G. *Thirty Years of Heteroskedasticity-Robust Inference* (published 2012 as a book chapter,
+  doi:10.1007/978-1-4614-1653-1_17, not read); read as Queen's Economics Department Working Paper No. 1268 (May 2011): §2 (HC1: residuals
+  × √(n/(n − k)); HC2: û²/(1 − h); HC3: û/(1 − h)), §3 (pairs bootstrap of Freedman 1981 resamples rows of the data matrix, "does not make sense
+  if the regressors are thought of as fixed in repeated samples", "does not condition on X"; wild bootstrap y* = Xβ̂ + f(û)v*, Eq. 8, with
+  f = û/(1 − h)^½ "a natural choice", Eq. 9; two-point distributions F1 (Mammen) and F2 (Rademacher, ±1 with probability ½); "a great deal of
+  evidence that the wild bootstrap outperforms the pairs bootstrap" for heteroskedasticity-robust tests and intervals), §5 (simulations: F2
+  and leverage-adjusted residuals favoured), §6.
+- [DavidsonFlachaire2001] Davidson R., Flachaire E. (2001). *The Wild Bootstrap, Tamed at Last.* Queen's Economics Department Working Paper
+  No. 1000 (full text; published 2008 in the Journal of Econometrics, doi:10.1016/j.jeconom.2008.08.003, not read): Abstract (the Rademacher
+  distribution "usually gives smaller ERPs, in small samples" than Mammen's distribution; a particular version is recommended), §2 (wild
+  bootstrap DGP, auxiliary variable with E(ε) = 0 and E(ε²) = 1, residual transformations as in HC0–HC3, Liu (1988) mentions Rademacher
+  variables; for a nonlinear regression a consistent estimate of the parameters should be used in the bootstrap DGP).
+- Cited only through [MacKinnon2012] and [DavidsonFlachaire2001], not read: Freedman (1981), Wu (1986), Liu (1988), Mammen (1993), MacKinnon &
+  White (1985), Flachaire (2005).
+- Citation check (2026-09-14): a statement attributed in the pre-registered D-042 text to the abstract of [Miura2025] is not in the
+  abstract; the finding it paraphrases is in the preprint's full text, with a different emphasis. Marked in place (D-042), not deleted.
+
+## D-052 — Primary resampling method: nonparametric pairs (case) bootstrap
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: the nonparametric pairs (case) bootstrap remains the PRIMARY WP4
+uncertainty method, because it was pre-registered before any published-data result existed, keeps temperature and energy paired, honestly
+exposes the fragility of an estimate to which specimens and test temperatures happen to be present, and in the SYNTHETIC validation covered the
+truth substantially better than the fixed-design wild method (D-060). It is not replaced after seeing the results.
+**Decision.** For a curve with N measured specimens, one bootstrap replicate draws N complete specimen records (test temperature and absorbed
+energy together) with replacement, each record with probability 1/N, and refits them with the approved WP3 method (D-054). The drawn records
+are kept in spreadsheet order. `src/wp4_bootstrap.py::run_replicates` (method `pairs`).
+**What it represents.** The variability of the WP3 estimate if the curve's specimens are regarded as a random sample of (temperature, energy)
+outcomes of that test programme: specimen-to-specimen scatter *and* which test temperatures happen to be present. It does **not** condition on
+the tested temperatures: a replicate can lose a temperature, a shelf or the only transition specimens. That is information about the fragility of
+the sampling plan, not a defect; but it means the spread includes finite-sample design fragility in addition to outcome scatter, and for curves
+with few distinct temperatures it is expected to exceed a fixed-design analysis.
+**Why primary (argued before results).** (i) No scatter model and no assumption that the symmetric tanh is the true curve, which WP3 showed it
+is not for every curve (D-040, D-042 residual patterns); the pairs method "gives a trustworthy estimate of β̂'s variability even if the
+regression model ... is not correct" [EfronTibshirani1986] §5. (ii) Non-constant Charpy scatter ([Marini2020] §3.1, D-041) is carried
+automatically by the resampled pairs. (iii) It exposes how fragile a sparse sampling plan is, which is WP4's question (brief Q1, Q2).
+(iv) It is simple to explain. [MacKinnon2012] §3 describes the method and its main limitation (no conditioning on the design).
+**Evidence against, weighed before results.** [MacKinnon2012] reports much evidence that the wild bootstrap outperforms the pairs bootstrap for
+heteroskedasticity-robust tests and intervals, and Charpy test temperatures are chosen, not random. Not decisive here: that evidence concerns
+studentized inference on linear-regression coefficients, whereas WP4 needs percentile intervals of a nonlinear index from a model that is
+misspecified for some curves; and a residual-based fixed-design method cannot perturb specimens the fit interpolates (leverage near 1), which
+are exactly the fragile designs WP4 must expose. The fixed-design method is therefore run on every curve as the sensitivity (D-053) so the
+consequence of the choice is measured.
+**Alternatives.** Fixed-design residual or wild bootstrap as primary; parametric bootstrap with one normal scatter [NIST-TN2158] A.4; delta
+method from the fit's Jacobian; jackknife. **Why not.** Conditional on the design and on the fitted model (residual methods); constant scatter
+imposed (parametric); linearization fails where the fit is weakly identified or rank-deficient (delta method); the jackknife is unreliable for
+non-smooth estimators such as a crossing that can disappear. **If the alternative were chosen.** Intervals conditional on the tested
+temperatures, typically narrower for sparse designs, possibly too narrow where the fit passes through isolated transition points.
+
+## D-053 — Fixed-design sensitivity: wild bootstrap, Rademacher signs, HC2 leverage-adjusted residuals
+**Status:** FINAL APPROVED AS SENSITIVITY ONLY (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the
+author's internal WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved as a sensitivity only; it is NOT promoted to primary. The SYNTHETIC
+validation showed material under-coverage, worst for weak sampling (T41J 80 % well sampled, 75 % high scatter, 38.5 % weakly sampled; miniature
+T0 75.5 %; D-060). Its purpose is diagnostic: *what happens if the original test temperatures are kept fixed and only the residual scatter is
+perturbed?* It may be carried into later stages as a sensitivity comparison, but it must never silently replace the pairs result because it
+gives narrower intervals.
+**Decision.** The tested temperatures are kept. Replicate energy E*_i = Ê(T_i) + ũ_i·v_i, where Ê is the approved WP3 fit of the curve,
+r_i = E_i − Ê(T_i) its residual, ũ_i = r_i / (1 − h_i)^½, h_i the leverage (diagonal of the linearized hat matrix J(JᵀJ)⁺Jᵀ, J = Jacobian of
+the fitted curve with respect to the parameters that are free at the WP3 solution, in WP3's scaled parameterization; a fixed LSE and
+parameters at a bound, by WP3's definition, have no column; rank tolerance as WP3's numerically-singular flag), and v_i independent
+Rademacher signs (+1 or −1, each with probability ½). Energies below 0 J are set to 0 J and counted, as in the WP3 synthetic generator (D-048).
+Where 1 − h_i ≤ 1e-8 the fit passes through the point (its residual is 0 at a least-squares solution); ũ_i is set to 0 and counted.
+`src/wp4_bootstrap.py::leverage_adjusted_residuals`, `run_replicates` (method `wild`).
+**Why a wild bootstrap, not resampling residuals as one pool.** Scatter is not constant along the curve ([Marini2020] §3.1; D-041). Pooling
+would move lower-shelf residuals of a few joules into the transition and transition residuals of tens of joules onto the shelves. The wild
+bootstrap keeps each residual at its own temperature ([DavidsonFlachaire2001] §2; [MacKinnon2012] §3, Eq. 8).
+**Why HC2 residuals.** Least-squares residuals are on average too small, most at influential points; with 6–10 specimens and 3–4 parameters the
+average leverage p/N is large. r/(1 − h)^½ has constant variance under homoskedastic errors ([MacKinnon2012] Eq. 9, "a natural choice";
+[DavidsonFlachaire2001] §2). HC3 over-compensates ([MacKinnon2012] §2, §5); a single factor √(N/(N − p)) (HC1) ignores leverage, which differs
+greatly between shelf and transition points of a tanh fit.
+**Why Rademacher signs.** Recommended by [DavidsonFlachaire2001] (Abstract) and [MacKinnon2012] §3, §5 over Mammen's two-point distribution in
+small samples. Explainable: each replicate energy is either the observed energy or its mirror image about the fitted curve (after the leverage
+adjustment).
+**Why not the NIST parametric bootstrap.** [NIST-TN2158] A.4 draws normal errors with one SD, the RMSE, at every temperature (constant scatter)
+and varies fixed shelves (A.5; see D-054).
+**What it represents.** Scatter-driven uncertainty for the actual test matrix, conditional on the fitted curve being the mean curve and on each
+curve's own residuals representing the scatter at its temperatures.
+**Limitations stated before results.** It relies on the fitted model (systematic misfit is treated as scatter about a mean curve that every
+replicate shares); it cannot perturb interpolated points, so it can understate uncertainty where designs are most fragile; with few residual
+degrees of freedom the residuals estimate the scatter poorly; mirroring a residual can place a synthetic energy on the other side of 41 J
+that was never measured (relevant to 33-153). **Role:** sensitivity only; it is never preferred for giving narrower or wider intervals.
+
+## D-054 — The approved WP3 method inside every replicate; the 2.7 J full-size lower shelf held fixed
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: every bootstrap replicate continues to use the final approved WP3 fitter:
+full-size LSE fixed at 2.7 J; miniature LSE fitted >= 0 J; the USE, T0 and C treatment unchanged. The 2.7 J shelf is not varied inside the
+bootstrap. Model-choice uncertainty (the all-fitted sensitivity case of D-042) and sampling uncertainty (WP4) remain separate.
+**Decision.** Every replicate is refitted with the exact approved functions, in the order of `wp3_fit_curves.fit_all`: `lse_setting`
+(geometry-specific), `fit_curve` (its bounds and starts derived from the replicate's own data, as the method defines them), `index_temperature`
+(the tested-range rule applied to the replicate's own lowest and highest temperature), `index_fraction_of_rise`, `classify`, and
+`criterion_bracketing` (on the replicate's energies). `src/wp3_fitter.py` is unchanged. Full-size LSE stays fixed at 2.7 J in every replicate;
+miniature LSE stays fitted with a 0 J lower bound. Before any bootstrap, `src/wp4_uncertainty.py` refits every original curve and stops unless
+it reproduces `outputs/wp3/fits_primary.csv` (LSE, USE, T0, C, SSE and T41J within 1e-9; identical outcome, index status and support flags).
+A replicate whose evaluation raises an unexpected exception is counted as a replicate evaluation error (none expected), never skipped.
+**Why the 2.7 J shelf is not varied.** WP4 estimates sampling uncertainty conditional on the approved model. Uncertainty about the lower-shelf
+convention is model uncertainty, already quantified by the approved all-fitted sensitivity case (D-042: full-size |ΔT41J| median 0.29 °C,
+90th percentile 1.89 °C). Mixing the two would make neither attributable. [NIST-TN2158] A.5 varies fixed shelves (default u(LS) = 0.3 J for
+absorbed energy, by engineering judgement): a defensible alternative not adopted, whose effect on T41J would be small because 41 J lies far
+above the shelf.
+**Why the tested-range rule is re-applied per replicate.** The bootstrap must replicate the whole estimation procedure, including when it
+declines to report: a replicate whose crossing lies outside its own tested temperatures has no T41J, and that is counted (D-057).
+**Alternatives.** A simplified or "bootstrap-friendly" fitter; varying LSE; using the original curve's tested range. **If chosen.** A different
+estimator from the one reported; sampling and model uncertainty mixed; extrapolated crossings counted as values.
+
+## D-055 — Replicates, seeds, determinism and Monte Carlo stability
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: B = 2,000 per curve per method; the deterministic per-replicate seed
+construction; the B = 4,000 Monte Carlo stability subset; the memory-safe worker and checkpoint implementation. The change from 8 to 3 worker
+processes is purely an execution (systems) change and stays documented as such (D-067 steps 3-5); results do not depend on the worker count
+(D-060 determinism check).
+**Decision.** B = 2,000 replicates per curve, both methods, all 170 primary curves, fixed before any interval existed. Basis:
+[EfronTibshirani1986] §9 (B = 1,000 a rough minimum for BC/BCa intervals, about 250 useful for a percentile interval); [NIST-TN2158] A.4 uses
+1,000; 2,000 leaves about 50 replicates beyond each 2.5 % tail. Benchmarked before the choice (timings only): about 6 ms per refit on one core,
+1.85 ms of wall time with 8 worker processes on the project machine, so both methods take about 21 min; no reduction was needed, and no curve
+receives fewer replicates. [After the low-memory stop (D-067 steps 3-4) runs use 3 worker processes by default; B is unchanged and results do not
+depend on the worker count.]
+**Seeds.** `numpy.random.SeedSequence([20260914, h(curve ID), h(method name), replicate index])`, h = the integer of the first 15 hex digits of
+SHA-256 (WP3's construction). One independent stream per replicate: results do not depend on the number of worker processes, the chunking or
+the execution order (checked, D-060, and on two published curves). Pairs: `rng.integers(0, N, N)`, sorted; wild signs: `rng.integers(0, 2, N)`.
+**Monte Carlo stability.** Predeclared subset: (a) in each stratum geometry (full-size, miniature) × original WP3 quality (usable; weakly
+identified or boundary-limited), the curves with the fewest, the median (lower median) and the most specimens (ties by curve ID); (b) after
+the B = 2,000 run, the full-size curves with the narrowest and the broadest reportable pairs T41J interval and the miniature curves with the
+narrowest and the broadest reportable pairs T0 interval; duplicates merged (at most 16 curves). Both methods rerun with B = 4,000 on an
+independent seed stream (method name + "|stability-4000"); compared at the 2.5th, 50th and 97.5th percentiles, SD, finite fraction and
+reportability, and the largest change expressed as a share of the B = 2,000 width. B is never tuned curve by curve.
+**Alternatives.** B = 1,000; a nested 4,000 that reuses the first 2,000 (it would understate the Monte Carlo change).
+
+## D-056 — Targets and interval definition
+**Status:** FINAL APPROVED WITH A TERMINOLOGY CLARIFICATION (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional
+pending the author's internal WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: the targets and the percentile method stay, 2.5th percentile to 97.5th
+percentile of the finite target values; the numerical endpoints are neither relabelled nor recomputed. Terminology: in documentation and figures
+the precise phrase is *nominal 95 % percentile bootstrap interval*, or, where space is limited, *95 % percentile bootstrap CI*. Nothing may imply
+that these intervals were empirically calibrated to exactly 95 % frequentist coverage. The SYNTHETIC validation stays visible wherever they are
+reported: the primary pairs intervals covered the truth below nominal in some well-sampled or high-scatter scenarios and over-covered some weak
+designs (about 89.5 %, 93 %, 97 % and 96.5 %; the interval terminology and calibration caveat in the WP4 internal-review approval record). They
+are therefore nominal 95 % percentile bootstrap intervals with known calibration limitations. Generated table and figure labels written before
+this decision are unchanged (D-067 step 9).
+**Decision.** Full-size: T41J (primary target), USE, T0; C diagnostic. Miniature: T0 (primary target), USE; LSE and C diagnostic. No index
+temperature, geometry-scaled or volume-scaled 41 J or other criterion for miniature curves (D-045). **Interval:** 95 % percentile bootstrap
+interval, lower = 2.5th and upper = 97.5th percentile of the finite target values ([EfronTibshirani1986] §7; [NIST-TN2158] A.6), NumPy's default
+linear interpolation. Also reported: median, mean, SD (ddof 1), width, bias = bootstrap mean − original estimate, 16th and 84th percentiles and
+(q84 − q16)/2 as a robust spread that exposes SDs dominated by a few extreme replicates, finite count and fraction; USE also relative to the
+original USE. **Band in figures:** pointwise 2.5th–97.5th percentiles of the replicate fitted mean curves over the admissible replicates: a
+confidence band for the mean curve, not a prediction interval for a new specimen.
+**BCa not used.** It needs an acceleration estimate and more replicates ([EfronTibshirani1986] §9), is harder to explain, and its advantages
+presuppose a smooth, well-identified estimator, which weak and boundary-limited fits are not. The percentile interval is transformation-invariant
+([EfronTibshirani1986] §7) and robust near bounds ([NIST-TN2158] A.6). BCa is not called better and is not run as a sensitivity.
+**Alternatives.** Normal interval ± 1.96 SD (ignores skew); bootstrap-t (needs a per-replicate variance estimate, unreliable for weak fits).
+
+## D-057 — Failed and target-unavailable replicates; the 95 % finite-target reporting rule
+**Status:** FINAL APPROVED EXACTLY AS PRE-REGISTERED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending
+the author's internal WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved exactly as pre-registered: a formal reportable interval requires at least
+95 % of all requested replicates to produce a finite target value; failed and unavailable replicates remain in the denominator; the threshold is
+not lowered. For curves below the threshold the conditional finite-replicate quantiles are kept for audit only, the formal interval is labelled
+unavailable / bootstrap-unstable, and the conditional range is never presented as equivalent to a primary CI. No new primary interval is created
+merely to recover the 54 unavailable full-size T41J intervals: they stay the primary result (author decision recorded in the WP4 internal-review
+approval record). Reason: the large number of unavailable intervals is itself a scientific result about test-matrix fragility, and changing the
+rule after observing that count would be post-hoc tuning.
+**Decision.** Every requested replicate stays in the denominator. Per curve and method the replicate outcomes are counted in the WP3 categories
+(optimizer failure; non-physical (inadmissible); boundary-limited; weakly identified; usable fit without index; usable fit with index) plus
+evaluation errors, and must sum to the replicates requested (the run stops otherwise). **Target available:** T41J when that replicate's index
+status is "calculated" (otherwise optimizer failure, 41 J outside the fitted shelves, or crossing below or above the replicate's tested range) —
+T41J from weakly identified or boundary-limited replicate fits therefore counts, as it does for the original curves (D-044), with those outcome
+counts reported beside it; T0, C, USE and LSE when the fit converged and is not non-physical, because such a fit has no admissible transition
+(D-046). **Reporting rule:** conditional quantiles of the finite values are always stored for audit; a formal "reportable 95 % bootstrap interval"
+requires finite values in at least 95 % of the replicates requested; otherwise `interval_reportable = False`, the target is described as
+bootstrap-unstable / interval unavailable, and its finite fraction is reported.
+**Why 95 %.** If more than 5 % of the bootstrap probability mass has no defined estimate, a nominal central 95 % interval built from the surviving
+estimates can hide a material failure probability: the missing mass would equal both excluded tails together. **This is a project reporting
+rule, not an ASTM requirement.** It is fixed before any result and will not be changed after seeing results.
+**Alternatives.** Intervals from successful replicates only, labelled as if unconditional; unavailable T41J treated as ±∞; a lower threshold.
+
+## D-058 — Which original fit outcomes receive primary or diagnostic intervals
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: an original WP3 usable fit receives a primary bootstrap interval if the
+finite-target rule passes; an original WP3 weakly identified or boundary-limited fit receives a diagnostic bootstrap interval only; a target
+finite in fewer than 95 % of the replicates requested has its interval unavailable. A narrow diagnostic interval is never used to upgrade a weak
+or boundary-limited WP3 fit.
+**Decision.** All 170 primary curves are bootstrapped, not only the 117 usable fits. Reportable interval and original WP3 outcome usable (either
+usable category) → **primary bootstrap CI**; reportable and original outcome boundary-limited or weakly identified → **diagnostic bootstrap
+interval**, not equivalent in evidentiary strength; not reportable → **interval unavailable: bootstrap-unstable**. A narrow interval never
+overrules a WP3 warning, and bootstrap success never upgrades a WP3 outcome. The index-position and empirical-bracketing warnings and the
+notch-metadata flag are reported beside the label, never folded into it. `src/wp4_bootstrap.py::interval_label`.
+**Why.** WP4 must show how uncertainty behaves for weakly identified and boundary-limited curves; replicates of a boundary-limited fit can pile
+up on the same bound and give a misleadingly narrow conditional distribution.
+
+## D-059 — T41J support diagnostics carried into the bootstrap
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved; carried forward: the empirical bracketing of 41 J, the fitted-rise
+(index) position, the bootstrap share of replicates that bracket 41 J, and the target-unavailable reason. Curve 33-153 remains retained but
+explicitly warned: it is not deleted, and the warning is not turned into an exclusion rule.
+**Decision.** For every full-size curve and method: the share of replicates whose (resampled or synthetic) energies bracket 41 J; among replicates
+with a finite T41J, the share not bracketed and the share with the index-position warning (41 J outside 11.9–88.1 % of that replicate's fitted
+rise); T41J unavailability by reason; beside the original curve's two diagnostics (`t41j_support_bootstrap.csv`). Curve 33-153 keeps its T41J
+and its warning and gets a diagnostic figure. Support diagnostics are neither fit failures nor interval rules. The handoff keeps apart
+mathematical bootstrap variability (SD, interval), empirical support for the index (bracketing, index position) and original WP3 fit quality.
+
+## D-060 — SYNTHETIC validation of the bootstrap implementation
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review. The coverage replicate count was set after a runtime benchmark and before any coverage result (below).
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved, with the complete validation history preserved: the first low-memory
+run, the systems-only memory fix, the successful rerun, the zero-scatter check, the deterministic worker-count checks, the failure accounting and
+the coverage results (D-067 steps 3-5). No new bootstrap method is selected at the WP4 review; the coverage limitations are part of the result.
+**Decision** (`src/wp4_validation.py`; synthetic data regenerated exactly from the approved WP3 validation: scenario definitions, scatter model
+and seed 20260913; WP3's validation is not redesigned and no scenario is added to it).
+1. *Zero scatter.* Data exactly on the model, WP3 design uniform over x = −3…3 with 12 specimens: full-size truth LSE 2.7 J (representable with
+   the fixed shelf), USE 150 J, T0 0 °C, C 30 °C; miniature truth LSE 0.48 J, USE 8 J, T0 0 °C, C 30 °C (fitted LSE); B = 2,000 per method.
+   Pass: wild, every replicate admissible and within 0.001 °C (key target: T41J or T0) and 1e-5 (USE ratio) of the original; pairs, at least 95 %
+   of replicates within those tolerances (a replicate that loses every transition temperature cannot pin T0 and C even on exact data).
+2. *Determinism.* WP3 Block A uniform n = 12, moderate scatter, replicate 0: two single-process runs and one run with 8 worker processes and
+   chunks of 97 must give identical per-replicate arrays and summaries. [Changed with the memory fix, D-067 step 4: the multi-process runs use
+   3 workers with chunks of 97 and 2 workers with chunks of 333; the 8-worker run of the stopped first run also passed.]
+3. *Failure accounting.* WP3 Block B "x -0.5..3, n=12 (lower shelf missing)", "shelves + 1 transition point (n=7)" and "clustered cold side:
+   x -3..-0.5, n=12", moderate scatter, replicate 0, both methods, B = 2,000: outcome counts, T41J status counts and finite + unavailable must
+   each equal the replicates requested; the finite fraction must use all requested replicates; the reportable flag and the label must follow
+   D-057 and D-058; at least one data set must switch the interval off, otherwise the check fails.
+4. *Coverage.* WP3 scenarios, final method: Block A uniform n = 18, moderate ("well sampled"); Block B shelves + 2 transition points (n = 8),
+   moderate ("weakly sampled"); Block A uniform n = 18, high ("high scatter"); Block L uniform n = 12 (lower shelf well sampled), miniature
+   truth USE 8 J with LSE 6 % of USE, moderate ("miniature, fitted lower shelf"). Their first 200 data sets (WP3 replicates 0–199), 500 bootstrap
+   replicates per data set and method. Reported: share of reportable intervals; coverage of the truth by reportable intervals, with its Monte
+   Carlo SE; truth below and above; median width; median bootstrap SD against the empirical SD of the original estimates over the 200 data sets
+   (the true sampling SD of that fixed design); bias and RMSE of the original estimates. No acceptance threshold, and the bootstrap is not tuned
+   on coverage. Full-size truths have LSE 5 J while the method fixes 2.7 J, so coverage is measured against the truth including WP3's small bias
+   (D-042).
+**Coverage replicates (benchmark before any coverage result).** 1.85 ms of wall time per refit with 8 worker processes: 1,000 replicates per data
+set would take about 49 min, 500 about 25 min; 500 chosen. The Monte Carlo noise of a 2.5 % endpoint from 500 replicates is about ±0.7
+percentage points of tail probability, small beside the coverage Monte Carlo SE of about 1.5 points at 200 data sets; [EfronTibshirani1986] §9
+finds about 250 useful for percentile intervals. The published curves keep B = 2,000 (D-055). [With 3 worker processes after the memory fix the
+coverage study takes longer (about 32 min measured from its first block); the replicate count was not changed.]
+
+## D-061 — Empirical published-data residual scatter (characterization only)
+**Status:** FINAL APPROVED AS CHARACTERIZATION ONLY (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4) for the definitions;
+provisional pending the author's internal WP4 review. WP6 candidates: D-066.
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved as characterization only. It keeps the name *empirical published-data
+residual scatter* (or equivalent) and is never called pure material scatter: it mixes specimen-to-specimen material variation, laboratory and
+machine differences, calibration and reporting differences, digitization error and tanh model-shape mismatch, and its leverage correction is
+approximate. These limitations are carried prominently into WP6.
+**Decision.** A dataset of all 2,588 primary records with the approved WP3 point fit (`published_residual_scatter_dataset.csv`): record ID,
+spreadsheet row, curve, reference, geometry, material, product form, irradiation, WP3 outcome and reason, temperature, measured and fitted
+energy, residual (J), residual / fitted USE, leverage, leverage-adjusted (HC2) residual in J and / fitted USE, x = (T − T0)/C, fraction of the
+fitted rise, region, fitted slope. Regions: lower shelf x ≤ −1.5; lower transition −1.5 < x ≤ −0.5; central transition −0.5 < x < 0.5; upper
+transition 0.5 ≤ x < 1.5; upper shelf x ≥ 1.5 (WP3's four regions, D-042, plus the upper shelf). Summaries by geometry and region: count,
+curves, mean, SD, median, 1.4826 × MAD, 5th/25th/75th/95th percentiles; primary summary on usable WP3 fits (the T0, C and USE of a weakly
+identified or boundary-limited fit make x and the normalization unreliable), all fits as sensitivity. Strata, full-size usable fits only:
+product form group and irradiation × three zones (lower shelf, transition |x| < 1.5, upper shelf); strata with fewer than 10 curves or 30
+residuals are shown and marked "too few to interpret". Normalization by the fitted USE, as WP3's residual-pattern table; raw joules kept.
+**Name.** *Empirical published-data residual scatter*, never "material scatter": it mixes specimen-to-specimen material scatter, between-study
+machine, calibration and reporting differences (109 source publications, brief §3), digitization error, and model-shape error (symmetric tanh,
+fixed 2.7 J shelf). Residuals also shrink by the degrees of freedom the fit uses, hence the leverage-adjusted version.
+**Alternatives.** Normalization by USE − LSE; per-curve standardization (would erase the between-curve differences WP6 needs to see).
+
+## D-062 — Uncertainty against pre-existing sampling properties
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: the descriptive Spearman and grouped analyses are kept and are not
+converted into causal claims. The observed relationship between T41J interval availability and the number of measured energies below 41 J
+(Spearman 0.89 with the finite-T41J fraction; `uncertainty_vs_sampling_spearman.csv`, `uncertainty_vs_sampling_binned.csv`) is preserved as a
+useful empirical design result.
+**Decision.** One row per curve (`uncertainty_vs_sampling_by_curve.csv`). Uncertainty: key target (full-size T41J, miniature T0) pairs bootstrap
+SD and 95 % width over reportable intervals, finite fraction over all curves; USE relative width. Properties, all existing before the bootstrap:
+N, distinct temperatures, tested span, distinct temperatures and specimens inside T0 ± C of the WP3 fit, specimens on the fitted lower
+(x ≤ −1.5) and upper (x ≥ 1.5) shelves, WP2 lower-, transition- and upper-band temperatures, span / C, stricter-cohort membership, WP3
+outcome; fitted C shown as a curve-shape covariate, not a sampling property. The WP2 sampling class is identical for all 170 primary curves
+("brackets the transition in the screening bands"), so it cannot explain differences and is only listed. Methods: Spearman rank correlations
+with curve counts (p-values descriptive only), binned medians with counts; a one-variable Theil–Sen slope of log SD against log N only for the
+published comparison (D-063). No multivariable or machine-learning model. Association, not causation: the properties are correlated with one
+another and with material and source.
+
+## D-063 — Published uncertainty cross-check: quantities compared
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: [Marini2020] stays the principal like-for-like RPV sanity check. This
+project's bootstrap SD is compared primarily with Marini's SD (precision-like) quantity; a full 95 % interval width is never compared with a
+one-sigma literature value. The conclusion stays nuanced: the typical full-size uncertainty here is somewhat larger than, but of the same
+engineering order as, the published RPV result (pairs SD median 4.87 °C at median N 14 against Marini's σ(T41) 3.52 °C at N = 18;
+`published_uncertainty_crosscheck.csv`), which is reasonable given heterogeneous multi-study data and test layouts. Agreement is not claimed more
+strongly than the evidence supports.
+**Decision.** Principal comparison [Marini2020]: the *precision* σ of T41 is the SD of T41 over repeated simulated data sets for one fixed matrix,
+a one-standard-deviation quantity for a single determination; it is compared with this project's **bootstrap SD**, never with a 95 % width.
+RCC-M matrix, N = 18: σ(T41) 3.52 °C. Normalized comparison: SD × √N against Marini's Eq. 6 amplitude for T41 over the shifts he studied:
+12.38–19.58 °C (best estimate, c = 12.5), at most 23.08 °C (upper bound, c = 16.0) — computed from Table 13 and checked against his Table 14
+(3.46 and 4.28 °C at S = 0.67, N = 18). Specimen-count trend: Theil–Sen slope of log SD against log N, against Marini's exponents 0.51 and
+0.53. Subsets: C1, usable full-size fits with a primary pairs T41J CI; C2, C1 with 15–25 specimens (Marini's 15–25-specimen A matrices and the
+18-specimen RCC-M matrix); C3, C1 in the stricter cohort; both methods shown, pairs primary. Statistics: median and quartiles of SD and of
+SD × √N; shares of C1 amplitudes below, within and above Marini's ranges. The verdict (broadly comparable / systematically larger /
+systematically smaller / too heterogeneous) is argued from these statistics, not forced to a match.
+**Secondary.** [Miura2024preprint] Eq. 13 at its standard parameters gives σT41J ≈ 6.9 °C (this project's evaluation of their equation;
+6 transition specimens at T41J, CV 0.49 at 41 J, C 50 °C, curve parameters known): order of magnitude and 1/√N_TT scaling only.
+[Switzner2023]: T85 is a shear-area index, and its USE ± 8 J comes from an assumed-measurement-error Monte Carlo on 12 sub-size pipe specimens:
+not commensurate with T41J; USE mentioned loosely only. [NIST-TN2158]: method reference only.
+**Differences to discuss, not to correct for.** Many materials and studies pooled; heterogeneous temperature layouts; the pairs bootstrap
+resamples the design while Marini simulates a fixed matrix; LSE fixed at 2.7 J here, 0 in Marini; between-study variability; irradiated and
+unirradiated curves; digitized data. Much smaller uncertainties than the literature would be a warning to investigate; much larger ones call for
+checking sampling quality, heterogeneity and the bootstrap's interpretation.
+
+## D-064 — Pairs against fixed-design comparison
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved; the comparison is preserved as diagnostic evidence, and the method giving
+the smaller interval is never chosen for that reason. When the comparison is cited later it states that the pairs bootstrap includes
+test-matrix composition fragility, that the fixed-design bootstrap conditions on the original test temperatures, and that the fixed-design wild
+intervals were anti-conservative in the SYNTHETIC validation (D-060).
+**Decision.** For each target, curves where both methods give reportable intervals (and, separately, those with a usable original WP3 fit):
+ratios of pairs to wild SD and 95 % width; median, 10th and 90th percentiles, minimum and maximum with curve IDs, share with pairs wider; the
+three lowest and three highest SD ratios for full-size T41J and miniature T0 examined against N, distinct temperatures, transition specimens,
+maximum leverage and interpolated points. **Interpretation fixed in advance.** Pairs wider: the composition of the test matrix and the placement
+of its temperatures contribute materially. Wild wider: the residual perturbation generates more variability than case resampling (for example
+large residuals at influential temperatures). Neither is "better"; the pairs bootstrap remains the primary measure (D-052).
+
+## D-065 — Worked-example figure and diagnostic figure
+**Status:** FINAL APPROVED (WP4 internal review, author 2026-09-15). Earlier: PRE-REGISTERED (WP4); provisional pending the author's internal
+WP4 review
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved: the worked-example figure (curve 3-17) and the diagnostic figure (curve
+33-153) are kept. The distinction stays explicit between the confidence band for the fitted mean curve, the uncertainty interval on T41J, and
+prediction uncertainty for a new specimen, which is NOT what the band represents. Preferred interval wording: D-056; the text drawn in the
+generated figures is unchanged (D-067 step 9).
+**Decision.** *Worked example* (`worked_example_t41j_bootstrap.png`): among usable full-size fits with a calculated T41J whose notch dimensions are
+reported, that are empirically bracketed, carry no index-position warning, have 10–20 specimens and a primary pairs T41J CI, the curve whose
+pairs bootstrap SD is closest to the median SD of that pool (ties: fewer specimens, then curve ID): representative, not the best-behaved. It shows
+the published test data (so labelled), the approved WP3 fit, the pointwise 95 % pairs-bootstrap band of the fitted mean curve (not a prediction
+interval), T41J with its 95 % bootstrap CI, the empirical-bracketing status and the method, and the replicate T41J distribution. *Diagnostic
+figure:* curve 33-153 with both methods. Grayscale-legible: dark points, black fit line, grey band, orange-and-black diamond, black error bar,
+solid hairline grid; a non-reportable interval is drawn grey and named a conditional range.
+
+## D-066 — Candidate scatter models for WP6, from the WP4 residual characterization
+**Status:** APPROVED AS CANDIDATE SET ONLY (WP4 internal review, author 2026-09-15); FINAL WP6 SCATTER MODEL NOT YET CHOSEN. Earlier: PROPOSED
+(WP4 review), written after the WP4 results existed. Not chosen, not calibrated, not run: the WP6 scatter model is decided in
+WP6, with the sensitivity analysis the brief requires (brief §5 WP6, "the scatter model is the weak link").
+**WP4 internal-review decision (author, 2026-09-15).** Approved as a candidate set only; no scatter model is marked final. All three candidates
+are carried into the future WP6 review:
+- *C1:* region-wise normal scatter scaled by USE.
+- *C2:* the smooth WP3-style form sd(T) = σ_T·|dE/dT| + cv·E(T) + 3·cv·LSE, calibrated later to reproduce the empirical profile.
+- *C3:* empirical region-wise residual resampling.
+Current planning preference only: C2 may be treated as the CENTRAL candidate, because it is smooth and physically interpretable; C1 with the
+robust scale should provide a lower-scatter sensitivity; C3 should preserve the empirical heavy tails and heterogeneity as a contrasting
+sensitivity. This is NOT the final WP6 scatter-model decision: WP6 must calibrate and test the candidates and report explicitly whether the
+headline full-size-versus-miniature conclusion changes across them. The central model is not stratified by product form or irradiation unless
+later evidence supports adequate sample counts. Miniature scatter stays separately identified as more weakly supported.
+**Evidence** (`published_residual_scatter_summary.csv`, `published_residual_scatter_strata.csv`; usable WP3 fits; leverage-adjusted residual /
+fitted USE, SD with the robust scale 1.4826 × MAD in brackets). *Full-size* (1,685 residuals, 104 curves, 42 references): lower shelf 0.036
+(0.023); lower transition 0.073 (0.054); central transition 0.105 (0.099); upper transition 0.100 (0.085); upper shelf 0.062 (0.051); in joules
+(raw residuals) 6.9, 14.3, 20.2, 18.1 and 10.9 J. The scatter is not constant: largest through the transition, about three times the lower
+shelf and 1.7 times the upper shelf; on the shelves the SD exceeds the robust scale (heavier tails). The lower-shelf mean residual is +0.015 USE
+(+2.8 J): many measured lower shelves lie above the fixed 2.7 J convention, a model-convention error rather than scatter. *Miniature* (179
+residuals, 13 curves, 6 references): larger relative scatter (central transition 0.167 (0.116)) from few curves. *Strata* (full-size): forging and
+plate transition 0.084 and 0.095 (robust 0.074 and 0.090); unirradiated and irradiated 0.096 and 0.091 (14 irradiated curves); HAZ, weld metal and
+"not determinable" have fewer than 10 curves, so no product-form-specific scatter is supported. The pool mixes specimen-to-specimen material
+scatter, between-study machine, calibration and reporting differences, digitization error and model-shape error; the leverage adjustment
+corrects the shrinkage of fitted residuals only approximately. It is an *empirical published-data residual scatter*, not a material-scatter
+distribution.
+**Candidates.**
+- *C1, region-wise normal scatter scaled by USE:* sd = USE × s(region) with the five full-size values above; a lower variant from the robust
+  scale; a separate, weakly supported miniature table. Simplest and directly traceable; steps at region edges.
+- *C2, the WP3 synthetic generator's form* sd(T) = σ_T·|dE/dT| + cv·E(T) + 3·cv·LSE (D-048), with σ_T and cv calibrated in WP6 so that it
+  reproduces the C1 profile. Smooth and physically readable (transition scatter as specimen-to-specimen shifts of the local transition
+  temperature, plus a proportional part); already implemented; its calibration is WP6 work.
+- *C3, empirical resampling of the leverage-adjusted residuals by region* (nonparametric), keeping skew and heavy tails and, with them, the
+  between-study heterogeneity of the pool (an upper-bracket flavour).
+**Proposal for the WP6 review.** C2 as the central model calibrated to the C1 profile, bracketed by the C1 robust variant (lower scatter) and C3
+(empirical tails); no stratification by product form or irradiation; miniature scatter handled separately with its larger uncertainty stated.
+The author decides at WP6; nothing in WP4 depends on the choice.
+
+## D-067 — How the WP4 method evolved (chronological, including changes after results existed)
+**Status:** record. FINAL APPROVED AS A CHRONOLOGICAL RECORD (WP4 internal review, author 2026-09-15) and extended with step 9. Earlier: record;
+provisional pending the author's internal WP4 review. No step is rewritten later; later steps are appended.
+**Final WP4 internal-review decision (author, 2026-09-15).** Approved as a chronological record. Kept: the memory crash, what caused it, the
+streaming and checkpoint fix, the proof that statistical outputs did not change, which changes occurred before and which after results existed,
+and the reproducibility tests. The chronology is not rewritten to make the development look cleaner than it was; step 9 is appended.
+1. *Before any WP4 code.* Literature read (WP4 sources). Runtime benchmark of the approved fitter on pairs resamples of 8 published primary
+   curves (60 replicates each): only milliseconds per refit were computed or viewed, no bootstrap statistic. A scratch smoke test of the new
+   code on one SYNTHETIC WP3 data set (100 replicates per method) confirmed that chunked multi-process runs equal single-process runs. A parallel
+   benchmark on SYNTHETIC coverage data sets (timings only) set the coverage replicate count (D-060).
+2. *Pre-registration commit.* D-052 to D-065, D-067, the WP4 sources, the citation check on [Miura2025] in D-042, and `src/wp4_bootstrap.py`,
+   `src/wp4_validation.py`, `src/wp4_uncertainty.py`, committed before either script had been run (no synthetic coverage result and no
+   published-data bootstrap result existed).
+3. *First synthetic validation run, stopped for low memory (2026-09-14; code of the pre-registration commit).* With 8 worker processes it
+   completed and wrote the zero-scatter, determinism and failure-accounting checks (all passed) and was stopped by the operating
+   environment, which reported the system running low on memory, during the coverage study; no coverage result existed. Its three
+   completed outputs were kept aside for comparison; they are not final results. Diagnosis (measured): on the 8 GB project machine about
+   2.2 GB was wired by a virtual machine and simulator runtimes; every spawned worker imports numpy, scipy and pandas (about 110 MB); the
+   coverage stage submitted all 1,600 bootstrap runs at once and the parent kept every replicate array (about 100 MB), so 9 Python processes
+   of roughly 1.2-1.4 GB competed with the rest of the system.
+4. *Systems fix, no statistical change (before any coverage or published-data result).* `wp4_bootstrap.stream_map` (a spawn-context worker
+   pool, 3 workers by default for this machine, `WP4_WORKERS` to override, workers recycled after 200 tasks, tasks fed lazily, results
+   consumed one at a time); coverage runs summarised inside the workers, so replicate arrays never reach the parent; `src/wp4_checkpoint.py`
+   with fingerprinted, atomically written checkpoints (validation steps, coverage blocks of 25 data sets, and one file per published-data run)
+   in the git-ignored `cache/wp4/`, reused only when code, package versions, parameters and input data are identical; the determinism check
+   now compares single-process runs with 3-worker and 2-worker runs (8 workers before); run-dependent timings removed from
+   `synthetic_bootstrap_validation.md` so that it regenerates byte-identically. Unchanged: B, seeds and seed streams, scenarios, data sets,
+   targets, rules and checks. Smoke test before the rerun (scratch script; SYNTHETIC): streamed coverage rows identical to the first
+   implementation's for the same seeds; the failure-accounting table identical to the pre-crash output (24 rows, 32 columns); a checkpointed
+   run interrupted by deleting one block recomputed only that block and gave identical rows; peak memory of the Python process tree 414 MB.
+   Also before any published-data result: three robustness fixes in `src/wp4_uncertainty.py` from a static review (an order-dependent maximum
+   over missing values, an empty-pool guard in the stability subset, a pandas group-apply deprecation) and the published-data runs moved to the
+   same streamed, checkpointed execution.
+5. *Synthetic validation rerun with the memory-safe code (completed; SYNTHETIC only; no published-data bootstrap result existed).* 46.8 min
+   with 3 worker processes; peak memory of the Python process tree 316 MB (sampled every 2 s; main process 116 MB, largest worker 114 MB),
+   against about 1.2-1.4 GB estimated for the stopped run. Nothing statistical changed: the zero-scatter and failure-accounting outputs are
+   byte-identical to the stopped run's; the determinism check gives identical replicates and summaries for single-process runs and for 3- and
+   2-worker runs, and the same T41J SD and interval endpoints as the stopped run's 8-worker run. All checks passed; the failure-accounting check
+   switched the interval off in 4 rows (T41J finite in 0-36 % of replicates) with every replicate still in the denominator; all 4,400 coverage
+   rows account for their 500 replicates. **What coverage showed (reported; no method, rule or B changed because of it).** Pairs percentile
+   intervals covered the truth in 89.5 % (T41J), 89.5 % (T0), 90.5 % (USE) of 200 data sets for the well-sampled design (Monte Carlo SE about
+   1.5 points), 93 % / 93 % / 90 % at high scatter, 97 % / 96 % / 86 % for the weakly sampled 8-specimen design and 96.5 % (T0) / 91.5 % (USE)
+   for the miniature case; the median pairs SD was 0.91 (T41J) to 1.1 (T0) of the actual spread of the estimate in well-sampled and high-scatter
+   designs, 2-3 times it for T41J and T0 in the weak design (design fragility counted), and dominated by extreme replicates for USE there (19
+   times; percentile coverage 86 %), which is why the robust spread (q84 - q16)/2 is reported beside the SD. Fixed-design wild intervals
+   under-covered everywhere: T41J 80 % (well sampled), 75 % (high scatter), 38.5 % (weak design); miniature T0 75.5 %; median SD 0.67-0.87 of the
+   actual spread in well-sampled designs and 0.31 in the weak design — the anti-conservative behaviour D-053 anticipated. The pairs bootstrap
+   stays the primary method as pre-registered (D-052); in the method comparison (D-064), "pairs wider" must be read with this demonstrated
+   under-coverage of the fixed-design method in mind.
+6. *Software dry run of the published-data script, then layout fixes (before the real run).* After the synthetic validation was committed,
+   `src/wp4_uncertainty.py` ran once with B = 40 (stability rerun B = 80), writing its outputs and checkpoints to a scratch directory outside the
+   repository, to exercise every code path before the long run; it finished in 1 min with a 327 MB peak. Its numbers were not used and are not
+   in the repository. What it made visible, recorded because results were then partly visible: with only 40 replicates many full-size T41J
+   intervals fell below the 95 % finite-target rule, mostly because pairs replicates that lose a curve's coldest temperatures place the 41 J
+   crossing below their own tested range, where the approved estimator declines to report T41J (D-054). This is a consequence of the
+   pre-registered rules, reported by reason in `t41j_support_bootstrap.csv` (D-059); no rule was changed. Changes made after the dry run,
+   presentation only: figure layout (panel titles and legends that overlapped data, replicate counts read from the run instead of typed,
+   line styles that stay distinguishable in grayscale, a plural label). No estimator, rule, B, seed or selection rule changed.
+7. *Published-data run with the pre-registered rules (results now exist).* 40.5 min with 3 worker processes (the 340 bootstrap runs 33.1 min, the
+   B = 4,000 stability rerun 7.1 min); peak memory of the Python process tree 300 MB. The WP4 refits reproduced `outputs/wp3/fits_primary.csv` for
+   all 170 curves; the published-data determinism spot check (replicates 0-249 of two curves, single process against the pooled run) was
+   identical. Changes after the results were visible, recorded as such: (i) figure layout only (legends of the two curve figures moved above
+   the panels, comparison-figure legends moved off the points); (ii) one descriptive addition to explain the unavailable full-size T41J
+   intervals (all 54 arise from replicates whose 41 J crossing falls below their own tested range): the WP3 audit count of measured energies below
+   41 J (D-044, pre-existing) added to the sampling correlations and bins (Spearman ρ 0.89 with the finite-T41J fraction; reportable pairs
+   intervals 0 of 1 curve with no measured energy below 41 J, 0 of 11 with one, 3 of 30 with two, 47 of 61 with three or four, 30 of 31 with
+   five or more). No estimator, rule, B, seed, subset rule or label changed. Regenerated from the verified checkpoints in 17 s: all other outputs
+   byte-identical to the first run (33 of 36 files; the three that changed are the two extended tables and the summary).
+   **Observations for the author's review, no action taken:** the 95 % rule together with the tested-range rule leaves 54 of 134 full-size
+   T41J intervals unavailable under the primary method (8 under the fixed-design method); the pairs percentile intervals covered about 90 % of
+   synthetic truths in well-sampled designs (slightly below nominal) and the fixed-design intervals clearly under-covered; T41J endpoints were
+   stable between B = 2,000 and 4,000 (largest change 5.9 % of the interval width), whereas the SD of heavy-tailed USE distributions and one
+   multimodal T0 distribution (curve 104-none.3, 51 % of its width) were not, so percentiles, not SDs, are the reportable quantities there.
+8. *Reproducibility runs of the committed state (no code, rule, seed or result changed).* `./run_all.sh` in the repository with the checkpoint
+   cache moved aside, so that every bootstrap was recomputed from the raw data: exit 0 in 3 h 01 min while other applications loaded the 8 GB
+   machine heavily (WP4 synthetic validation 59.6 min, published data 75.5 min; peak memory of the Python processes 813 MB); all 151 tracked
+   output and processed-data files rewritten, 0 changed. The runtime notes in `run_all.sh` and `README.md` ("about 30 min" per WP4 script)
+   were corrected to the measured times (commit `ea1ec97`, comments and README only). A fresh clone of `ea1ec97` with a newly created `.venv`
+   regenerated all 151 files with 0 tracked files changed and 0 untracked files. The environment stopped that clone's run once for low memory
+   during the synthetic coverage study, with other applications holding most of the memory (26 of 32 coverage blocks written, each
+   byte-identical to the repository run's checkpoint); the two remaining WP4 scripts were then run in the same clone, resuming from its own
+   fingerprint-verified checkpoints (6 blocks computed, 26 reused; the published-data stage computed all 340 runs).
+9. *WP4 internal-review approval (author, 2026-09-15; every result it concerns already existed, in the committed state `a806d93`).*
+   a. Decided: D-052 to D-065 and D-067 FINAL APPROVED; D-066 APPROVED AS CANDIDATE SET ONLY, the WP6 scatter model not chosen; the 54 unavailable
+      pairs full-size T41J intervals kept as the primary result under the unchanged 95 % rule, with no alternative threshold and no promoted
+      conditional quantiles; the interval wording *nominal 95 % percentile bootstrap interval* with the synthetic calibration caveat (D-056); the
+      use of WP4 in WP5 and WP6 (WP4 internal-review approval record).
+   b. Changed: documentation and status wording only, in `DECISIONS.md` (the approval record, the final decisions and statuses of D-052 to D-067,
+      this step), `PROGRESS.md` and `README.md`. The pre-registered text of every entry is unchanged.
+   c. Not changed: any code, data, cohort, estimator, rule, B, seed, label, number, generated table or generated figure. Generated text therefore
+      keeps its generated wording: labels such as "primary bootstrap CI", the "95 % percentile intervals" of the coverage tables and "95 % CI" in
+      the caption of `worked_example_t41j_bootstrap.png` denote the nominal 95 % percentile bootstrap interval of D-056, and the status line of
+      `outputs/wp4/wp4_summary.md` still reads "internal review awaiting the author". That text is written by `src/wp4_uncertainty.py` and
+      `src/wp4_validation.py`; changing it requires a code change and a regeneration, which this approval session did not make. `PROGRESS.md` is
+      the authoritative status.
+   d. Checks (lightweight; no bootstrap and no pipeline step was rerun, because no executable code changed): only `DECISIONS.md`, `PROGRESS.md`
+      and `README.md` differ from `a806d93`; the SHA-256 of each of the other 178 tracked files is identical to its value before the edits,
+      including all 41 `outputs/wp4/` files and the four WP4 source files; `data/` and every WP0-WP3 output and source file are identical to
+      `main` (`b47d08e`); the raw-data SHA-256 checksums verify (7 of 7); the CP2 membership fingerprints recomputed from
+      `outputs/wp2*/cohort_membership.csv` match `data/FROZEN_COHORTS_CP2.csv` for all 14 cohorts (primary 170 curves / 2,588 records). An
+      independent recomputation from the per-curve WP4 tables (a scratch script outside the repository that imports no project code) reproduced
+      the interval accounting (pairs full-size T41J 66 / 14 / 54, fixed-design 97 / 29 / 8; USE 104 / 30 / 0 full-size and 13 / 23 / 0 miniature;
+      miniature T0 13 / 23 / 0), confirmed that every stored label follows the pre-registered rule and that each of the 340 bootstrap runs accounts
+      for its 2,000 replicates, and confirmed that in each of the 54 curves every replicate without a T41J is one whose crossing lies below its own
+      lowest test temperature.
+   e. `wp4` is merged into `main` with an explicit merge commit and kept; no remote, no push. WP5 has not started.
