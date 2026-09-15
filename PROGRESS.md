@@ -6,11 +6,13 @@
 - WP2 (curve grouping and inclusion criteria) complete — CP2 approved (author, 2026-09-13). Merged into `main`; branch `wp2` is kept.
 - WP3 (transition curve fitting) complete — CP3 approved (final approval of D-040 to D-051 by the author, 2026-09-14) and merged into `main`
   (merge commit `b47d08e`); branch `wp3` is kept.
-- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) complete — INTERNAL REVIEW awaiting the author.** Work on branch `wp4`, not merged. The
-  internal review stop before WP5 was set by the author because the WP4 uncertainty and scatter decisions affect WP6; every WP4 decision
-  (D-052 to D-067) is provisional until that review.
-- **WP5 (specimen size effect) NOT started.**
-- The official checkpoint CP4 (PROJECT_BRIEF.md §9) will occur after WP5.
+- **WP4 (per-curve uncertainty, PROJECT_BRIEF.md §5) complete — INTERNAL REVIEW APPROVED** (author, 2026-09-15): D-052 to D-065 and D-067
+  FINAL APPROVED; D-066 APPROVED AS CANDIDATE SET ONLY (the final WP6 scatter model is not chosen). The internal review was a stop the author set
+  before WP5 because the WP4 uncertainty and scatter decisions affect WP6; it is not one of the official checkpoints. Merged into `main` with an
+  explicit merge commit; branch `wp4` is kept.
+- **WP5 (specimen size effect, PROJECT_BRIEF.md §5) is the next permitted work package.**
+- **WP5 has NOT started.**
+- The official checkpoint CP4 (PROJECT_BRIEF.md §9) remains after WP5.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -46,6 +48,33 @@
   no miniature index criterion, cross-size correlation is WP5 work (D-045); outcome precedence with zero-LSE fits boundary-limited (D-046); the
   validated identifiability flags, no condition-number threshold (D-047); synthetic validation as run (D-048); dataset USE/DBTT diagnostic only
   (D-049); frozen cohorts unchanged (D-050); method history D-051 steps 1–6.
+- WP4 (internal WP4 review, 2026-09-15: D-052 to D-065 and D-067 FINAL APPROVED, D-066 a candidate set only; approval record at the head of the
+  WP4 section of DECISIONS.md): the pairs (case) bootstrap is the PRIMARY uncertainty method (D-052); the fixed-design wild bootstrap is a
+  SENSITIVITY ONLY, never promoted and never a silent replacement because it is narrower (D-053); every replicate is refitted with the approved
+  WP3 method, the 2.7 J full-size shelf is never varied inside the bootstrap, and model-choice and sampling uncertainty stay separate (D-054);
+  B = 2,000 per curve per method, per-replicate seeds, the B = 4,000 stability subset, 3 worker processes as an execution change only (D-055);
+  nominal 95 % percentile bootstrap intervals (D-056); a reportable interval needs finite target values in >= 95 % of the replicates requested,
+  never lowered, failures kept in the denominator, conditional quantiles audit only (D-057); primary / diagnostic / unavailable labels, a narrow
+  diagnostic interval never upgrades a weak WP3 fit (D-058); T41J support diagnostics carried, 33-153 retained and warned, not excluded (D-059);
+  synthetic validation with its full history (D-060); *empirical published-data residual scatter*, characterization only, never pure material
+  scatter (D-061); sampling associations descriptive only (D-062); Marini (2020) SD comparison, nuanced (D-063); pairs against fixed design as
+  diagnostic evidence (D-064); worked-example and diagnostic figures (D-065); WP6 scatter-model candidates C1-C3, not chosen (D-066); method and
+  system history (D-067).
+- **Interval wording and calibration caveat (D-056).** Every WP4 interval is a *nominal 95 % percentile bootstrap interval* ("95 % percentile
+  bootstrap CI" where space is limited), not an interval calibrated to exactly 95 % coverage. SYNTHETIC coverage of the primary pairs intervals was
+  about 89.5 % (well-sampled full-size T41J), 93 % (high-scatter full-size T41J), 97 % (weakly sampled full-size design) and 96.5 % (miniature T0).
+  Generated tables and figures keep their generated labels (for example "primary bootstrap CI", or "95 % CI" in the worked-example caption) and are
+  read this way; the generated status line of `outputs/wp4/wp4_summary.md` still says the internal review is awaited, and this file is the
+  authoritative status (D-067 step 9).
+- **The 54 unavailable pairs full-size T41J intervals stay the primary result** (author decision, 2026-09-15): no alternative reporting threshold,
+  their conditional quantiles audit only; the fixed-design result (8 unavailable) is a separate sensitivity showing that fixing the test
+  temperatures makes many more intervals available (D-057; DECISIONS.md WP4 approval record).
+- WP5 may consume the approved WP3 fits and the WP4 uncertainty labels where relevant; it must not treat a bootstrap interval width as
+  specimen-size correction uncertainty and must determine the size effect independently, from genuinely comparable specimen-size pairs.
+- WP6 (later): primary uncertainty and scatter basis = the pairs-bootstrap results where appropriate, with the empirical published-data residual
+  profile as calibration evidence; sensitivities = the fixed-design bootstrap and scatter models C1, C2 and C3. Between-curve spread, bootstrap
+  interval widths, conditional ranges, synthetic-validation outputs and the published residual scatter are never treated as pure material scatter
+  without qualification.
 
 ## WP3 final results (CP3 approved; all regenerate with `./run_all.sh`; summary `outputs/wp3/wp3_summary.md`)
 - Final primary method: E(T) = LSE + (USE − LSE)/2 [1 + tanh((T − T0)/C)]; full-size LSE fixed at 2.7 J; miniature LSE fitted >= 0 J; USE, T0 and
@@ -77,15 +106,15 @@
   files; single-process synthetic reruns matched the 8-worker results exactly (4 scenarios). A fresh clone of `20481dd` ran in 6 min 9 s and left
   0 tracked files changed.
 
-## WP4 results (internal review; regenerate with `./run_all.sh`; summary `outputs/wp4/wp4_summary.md`)
+## WP4 final results (internal review approved 2026-09-15; regenerate with `./run_all.sh`; summary `outputs/wp4/wp4_summary.md`)
 - Methods (D-052 to D-056): PRIMARY nonparametric pairs (case) bootstrap and a fixed-design wild bootstrap SENSITIVITY (Rademacher signs, HC2
   leverage-adjusted residuals); every replicate refitted with the unchanged approved WP3 functions (full-size LSE fixed at 2.7 J, miniature LSE
-  fitted); B = 2,000 per curve and method for all 170 primary curves; per-replicate seeds from 20260914; 95 % percentile intervals; a reportable
-  interval needs finite target values in >= 95 % of the replicates requested (project rule); primary CI for usable original fits, diagnostic
-  interval for weakly identified or boundary-limited ones (D-057, D-058).
+  fitted); B = 2,000 per curve and method for all 170 primary curves; per-replicate seeds from 20260914; nominal 95 % percentile bootstrap
+  intervals; a reportable interval needs finite target values in >= 95 % of the replicates requested (project rule); primary CI for usable
+  original fits, diagnostic interval for weakly identified or boundary-limited ones (D-057, D-058).
 - SYNTHETIC checks (`synthetic_bootstrap_validation.md`): zero scatter, determinism (1, 2, 3 and 8 worker processes) and failure accounting all
-  pass. Coverage of 95 % intervals over 200 WP3 data sets per scenario: pairs 89.5 % (T41J) well sampled, 93 % high scatter, 97 % weakly sampled,
-  96.5 % (T0) miniature; fixed-design 80 %, 75 %, 38.5 % and 75.5 % (anti-conservative).
+  pass. Coverage of the nominal 95 % percentile bootstrap intervals over 200 WP3 data sets per scenario (not exactly 95 %; D-056): pairs 89.5 %
+  (T41J) well sampled, 93 % high scatter, 97 % weakly sampled, 96.5 % (T0) miniature; fixed-design 80 %, 75 %, 38.5 % and 75.5 % (anti-conservative).
 - Curve accounting, pairs (D-058): full-size T41J 66 primary CIs + 14 diagnostic + 54 unavailable (134); full-size USE and T0 104 + 30 + 0;
   miniature T0 and USE 13 + 23 + 0 (36). Fixed-design: full-size T41J 97 + 29 + 8. No miniature index criterion. Every unavailable T41J interval
   comes from replicates whose 41 J crossing falls below their own tested range; availability follows the number of measured energies below 41 J
@@ -106,8 +135,9 @@
 - Monte Carlo stability (16 predeclared curves, independent B = 4,000): T41J percentiles moved by at most 5.9 % of the interval width; one
   multimodal T0 (104-none.3) by 51 %; no reportability change.
 - Empirical published-data residual scatter (D-061, D-066): full-size SD / fitted USE 0.036 (lower shelf), 0.073, 0.105, 0.100, 0.062 (upper
-  shelf); no product-form stratification supported; WP6 candidates C1-C3 proposed, not chosen.
-- Worked example (D-065): curve 3-17, A533B plate, irradiated, 18 specimens: T41J 120.4 °C, pairs 95 % CI 112.0-129.7 °C, SD 4.4 °C.
+  shelf); no product-form stratification supported; WP6 candidates C1-C3 approved as a candidate set only, not chosen.
+- Worked example (D-065): curve 3-17, A533B plate, irradiated, 18 specimens: T41J 120.4 °C, pairs 95 % percentile bootstrap CI 112.0-129.7 °C,
+  SD 4.4 °C.
 - Execution: the first synthetic validation run was stopped by the environment for low memory (8 GB machine); rerun with a memory-safe,
   checkpointed implementation and identical results (D-067 steps 3-5). Published-data run 40.5 min, peak 300 MB.
 - Reproducibility check of the WP4 state (branch `wp4`, D-067 step 8): `./run_all.sh` in the repository with the bootstrap checkpoint cache moved
@@ -120,22 +150,30 @@
   stopped that run once for low memory during the synthetic coverage study (other applications held most of the memory; 26 of 32 coverage blocks
   written, each byte-identical to the repository run's); the two remaining WP4 scripts were resumed in the same clone from its own verified
   checkpoints (WP0–WP3 6 min 43 s including the environment set-up; WP4 about 81 min; peak 414 MB after the resume).
+- Checks of the internal-review approval (2026-09-15; documentation-only change, so no bootstrap or pipeline step was rerun): only DECISIONS.md,
+  PROGRESS.md and README.md differ from `a806d93`; the other 178 tracked files, including all 41 `outputs/wp4/` files and the WP4 code, are
+  byte-identical; data and every WP0–WP3 output and source file are identical to `main` (`b47d08e`); raw-data SHA-256 checksums verified; the 14
+  CP2 cohort fingerprints recomputed and matching (primary 170 / 2,588); an independent scratch recomputation from the per-curve WP4 tables
+  reproduced every interval count (D-067 step 9).
 
-## Open decisions WP4 inherited from WP3 (resolved provisionally in WP4, for the author's review)
+## Decisions WP4 inherited from WP3 (resolved in WP4; final approved at the internal WP4 review, 2026-09-15)
 - Eligibility for intervals: all 170 curves bootstrapped; primary CI for usable fits, diagnostic interval otherwise (D-058).
 - Resampling scheme: pairs bootstrap primary, fixed-design wild bootstrap sensitivity (D-052, D-053); the 2.7 J full-size shelf held fixed (D-054).
 - T41J support warnings carried into the replicates (D-059); miniature curves: T0 and USE intervals only, LSE and C diagnostic (D-056).
 - Published cross-check: Marini (2020) sigma(T41) and Eq. 6 amplitudes against the bootstrap SD (D-063).
 
-## Decisions awaiting the author's internal WP4 review (none is final)
-- D-052 to D-065 as pre-registered, and D-067 (method history, including the memory fix).
-- Whether the 54 unavailable full-size T41J intervals under the 95 % rule stay the reported result, or a clearly labelled sensitivity (for example
-  intervals from the analytic crossing that ignore the tested-range rule) is added; nothing of the kind was run.
-- How WP5 and WP6 treat the fixed-design sensitivity, given its demonstrated under-coverage.
-- D-066: which WP6 scatter-model candidates are carried into WP6.
+## WP4 internal-review decisions (author, 2026-09-15)
+- D-052 to D-065: FINAL APPROVED (D-053 as sensitivity only; D-056 with the terminology clarification; D-057 exactly as pre-registered; D-061 as
+  characterization only). D-067: FINAL APPROVED as a chronological record, extended with step 9 (this approval session).
+- D-066: APPROVED AS CANDIDATE SET ONLY; the final WP6 scatter model is NOT chosen. Planning preference only: C2 central, C1 (robust scale) a
+  lower-scatter sensitivity, C3 an empirical heavy-tail sensitivity; WP6 must calibrate and test all three and report whether the headline
+  full-size-versus-miniature conclusion changes across them.
+- The 54 unavailable full-size T41J intervals: kept as the primary result under the unchanged 95 % rule. No alternative threshold or
+  analytic-crossing sensitivity was added or run.
+- The fixed-design bootstrap in WP5 and WP6: a sensitivity only, always cited with its demonstrated synthetic under-coverage (D-053, D-064).
 
 ## Next permitted work package
-- None until the author completes the internal WP4 review. WP5 (specimen size effect) has NOT started.
+- WP5 (specimen size effect, PROJECT_BRIEF.md §5). It has NOT started. The official checkpoint CP4 follows WP5.
 
 ## Unresolved data issues carried forward
 - WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and

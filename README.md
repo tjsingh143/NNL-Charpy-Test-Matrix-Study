@@ -20,11 +20,12 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP1 Cleaning and normalization | done (CP1 approved; corrections surfaced in WP2 approved at CP2) |
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
 | WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
-| WP4 Per-curve uncertainty | complete on branch `wp4`; INTERNAL REVIEW awaiting the author (not merged) |
-| WP5 Specimen size effect | NOT started; the official checkpoint CP4 follows WP5 |
+| WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
+| WP5 Specimen size effect | next permitted work package; NOT started; the official checkpoint CP4 follows WP5 |
 | WP6–WP7 | not started |
 
-Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`.
+Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
+not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
 
 A plain-language summary of the findings will be added when the analysis is complete.
 
