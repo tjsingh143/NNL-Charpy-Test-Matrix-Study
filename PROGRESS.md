@@ -110,6 +110,16 @@
 - Worked example (D-065): curve 3-17, A533B plate, irradiated, 18 specimens: T41J 120.4 °C, pairs 95 % CI 112.0-129.7 °C, SD 4.4 °C.
 - Execution: the first synthetic validation run was stopped by the environment for low memory (8 GB machine); rerun with a memory-safe,
   checkpointed implementation and identical results (D-067 steps 3-5). Published-data run 40.5 min, peak 300 MB.
+- Reproducibility check of the WP4 state (branch `wp4`, D-067 step 8): `./run_all.sh` in the repository with the bootstrap checkpoint cache moved
+  aside, so every bootstrap was recomputed from the raw data: exit 0 in 3 h 01 min while other applications loaded the 8 GB machine heavily (WP4
+  synthetic validation 59.6 min, published data 75.5 min); raw-data checksums verified; frozen-cohort check passed in WP2, WP3 and WP4; the WP4
+  refits reproduced all 170 WP3 point fits; peak memory of the Python processes 813 MB. All 151 tracked output and processed-data files were
+  rewritten and 0 changed (every WP4 table and figure and the gzip audit file byte-identical); data, WP0–WP3 outputs and WP0–WP3 code are
+  identical to `main` (`b47d08e`). A fresh clone of `ea1ec97` with a newly created `.venv` (CPython 3.9.6, numpy 2.0.2, pandas 2.2.3, scipy
+  1.13.1, matplotlib 3.9.4, openpyxl 3.1.5) regenerated all 151 files with 0 tracked files changed and 0 untracked files. The environment
+  stopped that run once for low memory during the synthetic coverage study (other applications held most of the memory; 26 of 32 coverage blocks
+  written, each byte-identical to the repository run's); the two remaining WP4 scripts were resumed in the same clone from its own verified
+  checkpoints (WP0–WP3 6 min 43 s including the environment set-up; WP4 about 81 min; peak 414 MB after the resume).
 
 ## Open decisions WP4 inherited from WP3 (resolved provisionally in WP4, for the author's review)
 - Eligibility for intervals: all 170 curves bootstrapped; primary CI for usable fits, diagnostic interval otherwise (D-058).

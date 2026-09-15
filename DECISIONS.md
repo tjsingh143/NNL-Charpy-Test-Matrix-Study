@@ -1957,3 +1957,12 @@ The author decides at WP6; nothing in WP4 depends on the choice.
    synthetic truths in well-sampled designs (slightly below nominal) and the fixed-design intervals clearly under-covered; T41J endpoints were
    stable between B = 2,000 and 4,000 (largest change 5.9 % of the interval width), whereas the SD of heavy-tailed USE distributions and one
    multimodal T0 distribution (curve 104-none.3, 51 % of its width) were not, so percentiles, not SDs, are the reportable quantities there.
+8. *Reproducibility runs of the committed state (no code, rule, seed or result changed).* `./run_all.sh` in the repository with the checkpoint
+   cache moved aside, so that every bootstrap was recomputed from the raw data: exit 0 in 3 h 01 min while other applications loaded the 8 GB
+   machine heavily (WP4 synthetic validation 59.6 min, published data 75.5 min; peak memory of the Python processes 813 MB); all 151 tracked
+   output and processed-data files rewritten, 0 changed. The runtime notes in `run_all.sh` and `README.md` ("about 30 min" per WP4 script)
+   were corrected to the measured times (commit `ea1ec97`, comments and README only). A fresh clone of `ea1ec97` with a newly created `.venv`
+   regenerated all 151 files with 0 tracked files changed and 0 untracked files. The environment stopped that clone's run once for low memory
+   during the synthetic coverage study, with other applications holding most of the memory (26 of 32 coverage blocks written, each
+   byte-identical to the repository run's checkpoint); the two remaining WP4 scripts were then run in the same clone, resuming from its own
+   fingerprint-verified checkpoints (6 blocks computed, 26 reused; the published-data stage computed all 340 runs).
