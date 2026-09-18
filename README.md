@@ -21,13 +21,19 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
 | WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
 | WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
-| WP5 Specimen size effect | next permitted work package; NOT started; the official checkpoint CP4 follows WP5 |
+| WP5 Specimen size effect | done (CP4 AWAITING AUTHOR APPROVAL; on branch `wp5`, not merged) |
 | WP6–WP7 | not started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
 not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
 
-A plain-language summary of the findings will be added when the analysis is complete.
+WP5 finding, in one line: the classical ligament-volume normalization plus a published temperature correction removes most of
+the specimen-size difference (median |T0 difference| 67 → 16 °C) but leaves a residual index-temperature disagreement with a
+family-weighted standard deviation of about 11 °C, and the dataset contains too few genuinely matched families (7 in the primary
+analysis set, 10 in total) to establish a size-correction uncertainty for any individual specimen geometry
+(`outputs/wp5/wp5_summary.md`).
+
+A plain-language summary of the whole project's findings will be added when the analysis is complete.
 
 ## Data attribution (required)
 
@@ -53,7 +59,7 @@ Creates `.venv/` with the pinned packages if it does not exist, verifies the raw
 `outputs/` and `data/processed/` from `data/raw/` (WP0, WP1 for both dataset releases, WP2 including `outputs/wp2/example_curves.png`,
 WP3 synthetic fitter validation and fits to the published curves, each with the final primary method and the all-fitted lower-shelf sensitivity case, WP4 bootstrap checks and per-curve uncertainty). WP2 ends by checking that every cohort still has the membership frozen
 at checkpoint CP2 (`data/FROZEN_COHORTS_CP2.csv`) and stops if it does not; WP3 repeats that check before fitting anything.
-WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers. WP4 (bootstrap uncertainty) adds 1.5-2.5 hours with the default 3 worker processes on the 8 GB development Mac (87 min measured for its two scripts; 2 h 15 min while other applications loaded the machine heavily): its SYNTHETIC checks and the 2,000-replicate bootstraps of every primary curve use per-replicate seeds, so their results do not depend on the number of worker processes either.
+WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers. WP4 (bootstrap uncertainty) adds 1.5-2.5 hours with the default 3 worker processes on the 8 GB development Mac (87 min measured for its two scripts; 2 h 15 min while other applications loaded the machine heavily): its SYNTHETIC checks and the 2,000-replicate bootstraps of every primary curve use per-replicate seeds, so their results do not depend on the number of worker processes either. WP4 reuses fingerprinted checkpoints in the git-ignored `cache/` when the code, package versions, parameters and input data are unchanged, so a repeat run takes about a minute for WP4; delete `cache/` to force a full recomputation. WP5 (pair inventory, size normalization and its checks) adds seconds.
 
 ## Repository layout
 
@@ -82,3 +88,8 @@ WP3's synthetic validation uses a fixed seed and runs in parallel worker process
 | `src/wp4_validation.py` | WP4: SYNTHETIC checks of the bootstrap (zero scatter, determinism, failure accounting, coverage on WP3 scenarios) |
 | `src/wp4_uncertainty.py` | WP4: per-curve bootstrap uncertainty of the published primary curves, residual scatter, sampling analysis, published cross-check, figures, `wp4_summary.md` |
 | `outputs/wp4/` | `synthetic_*` = SYNTHETIC bootstrap checks; all other files = uncertainty of the published curves (`wp4_summary.md` collects them) |
+| `src/wp5_normalization.py` | WP5: the classical size-normalization equations (ligament volume B b², Sokolov Eq. 22 and the pre-declared alternatives) with their self-checks |
+| `src/wp5_pairs.py` | WP5: the specimen-size pair inventory and data-sufficiency assessment, run before any normalization exists |
+| `src/wp5_size_effect.py` | WP5: mapping the matched smaller-specimen curves into the full-size-equivalent domain, the residual ΔT_size, sensitivities, figures, `wp5_summary.md` |
+| `src/wp5_tests.py` | WP5: independent checks (pairing audit, leakage, sign convention, round trip, raw-data immutability, evidence thresholds) |
+| `outputs/wp5/` | Pair inventory and sufficiency, normalization factors and method configuration, normalized points, residuals, summaries, sensitivities, the WP6 handoff and four figures (`wp5_summary.md` collects them). No synthetic data: every row is published measured data, a fitted parameter from it, or a transformed estimate derived from it |

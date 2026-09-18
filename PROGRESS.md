@@ -10,9 +10,10 @@
   FINAL APPROVED; D-066 APPROVED AS CANDIDATE SET ONLY (the final WP6 scatter model is not chosen). The internal review was a stop the author set
   before WP5 because the WP4 uncertainty and scatter decisions affect WP6; it is not one of the official checkpoints. Merged into `main` with an
   explicit merge commit; branch `wp4` is kept.
-- **WP5 (specimen size effect, PROJECT_BRIEF.md §5) is the next permitted work package.**
-- **WP5 has NOT started.**
-- The official checkpoint CP4 (PROJECT_BRIEF.md §9) remains after WP5.
+- **WP5 (specimen size effect, PROJECT_BRIEF.md §5) complete — CP4 AWAITING AUTHOR APPROVAL.** On branch `wp5`, NOT merged into
+  `main`. D-068 to D-087 are PROVISIONAL until the author approves them at CP4.
+- **WP6 has NOT started.** No Monte Carlo simulator, no fixed-material-volume comparison, and no WP6 scatter model has been
+  chosen or calibrated.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -71,6 +72,8 @@
   temperatures makes many more intervals available (D-057; DECISIONS.md WP4 approval record).
 - WP5 may consume the approved WP3 fits and the WP4 uncertainty labels where relevant; it must not treat a bootstrap interval width as
   specimen-size correction uncertainty and must determine the size effect independently, from genuinely comparable specimen-size pairs.
+  *Implemented as D-082: the WP4 labels are carried on every comparison for reporting only, no interval width is used as a size
+  penalty, and no variance deconvolution is attempted.*
 - WP6 (later): primary uncertainty and scatter basis = the pairs-bootstrap results where appropriate, with the empirical published-data residual
   profile as calibration evidence; sensitivities = the fixed-design bootstrap and scatter models C1, C2 and C3. Between-curve spread, bootstrap
   interval widths, conditional ranges, synthetic-validation outputs and the published residual scatter are never treated as pure material scatter
@@ -172,8 +175,45 @@
   analytic-crossing sensitivity was added or run.
 - The fixed-design bootstrap in WP5 and WP6: a sensitivity only, always cited with its demonstrated synthetic under-coverage (D-053, D-064).
 
+## WP5 final results (CP4 awaiting approval; regenerate with `./run_all.sh`; summary `outputs/wp5/wp5_summary.md`)
+- Method, pre-registered and committed (`e160fe3`) before any residual existed: PRIMARY energy normalization = the ligament
+  (nominal fracture) volume B b² of Lucas et al., NF_E = 640 mm³ / (B_s b_s²), the convention PROJECT_BRIEF.md §5 and §6.4 name
+  and the descriptor writes B(W−A)² (D-073); PRIMARY temperature correction = M = 98 − 15.1 ln(B b²) °C, Sokolov & Alexander
+  NUREG/CR-6379 Eq. 22 (D-074). Both depend only on the smaller specimen's own published dimensions, so no full-size answer
+  enters its own correction. Transformed points are refitted with the unchanged WP3 fitter under the full-size convention
+  (LSE fixed 2.7 J, D-077). ΔT_size = T41J(normalized) − T41J(measured full-size), positive = warmer = conservative (D-078).
+- Matched evidence: 4,824 candidate pairs enumerated; **18 STRICT comparisons, 10 independent material-condition families,
+  5 publications** (refs 53, 55, 59, 60, 107); 0 PARTIAL, 0 cross-study. **10 comparisons from 7 families** reach the
+  pre-registered primary analysis set (D-079).
+- Residual: family-weighted mean **−3.5 °C**, SD **11.4 °C**, MAE 9.5, range of individual comparisons −33.8 to +18.3 °C;
+  over all 17 STRICT residuals, family-weighted mean −10.8 °C, SD 21.1 °C.
+- **No geometry class reaches the D-079 evidence threshold**: 0 DIRECTLY SUPPORTED, 7 WEAKLY SUPPORTED, 2 UNSUPPORTED. Only
+  plate (4 families, 3 publications) and unirradiated (5 families, 4 publications) meet it as strata; forging (2), weld metal
+  (1) and irradiated (2) do not.
+- Before/after: median |T0 difference| 66.9 → 16.2 °C, median |relative USE difference| 0.96 → 0.24, median curve-level RMS
+  energy difference 0.46 → 0.26 of the full-size USE; 8 of 10 improved on T0, 9 of 10 on USE, 8 of 10 on the curve metric. The
+  two that worsen are both ref 55, where the measured shift runs the wrong way.
+- Sensitivity: the central bias moves from −3.5 to −23.2 °C across the four published temperature corrections while the
+  family-weighted SD stays 11.1–11.9 °C; fracture-area energy scaling is far worse (mean +42.9 °C, SD 42.1 °C).
+- Sokolov & Alexander's shear-weighted Eq. (11), the procedure that report actually recommends, **cannot be run**: the dataset
+  has no shear-fracture column at all, for any record. Nothing is imputed (D-076).
+- Checks: 12 normalization self-checks (including reproducing NUREG/CR-6379's Table 2 ratios for all four of its specimen types
+  to 0.3 %) and 9 independent checks in `src/wp5_tests.py`, all passing.
+
+- Reproducibility check of the WP5 state (branch `wp5`): `./run_all.sh` exit 0 in **10 min 18 s** (WP4's two scripts reused their
+  fingerprint-verified checkpoints in the git-ignored `cache/`, 0.4 min; the last full WP4 recomputation from raw data was the
+  3 h 01 min run recorded under WP4, and no WP4 code, parameter or input has changed since). Raw-data SHA-256 checksums verified
+  (7 of 7); the 14 CP2 cohort fingerprints recomputed and matching (primary 170 curves / 2,588 records); the frozen-cohort check
+  passed in WP2, WP3, WP4 and both WP5 scripts. **0 tracked output or processed-data files changed by the run.** Every file in
+  `data/`, `outputs/wp0`–`outputs/wp4` and every WP0–WP4 source file is byte-identical to `main` (`0b5dad6`); the only tracked
+  differences from `main` are `DECISIONS.md`, `PROGRESS.md`, `run_all.sh` and the new WP5 sources and outputs. An independent
+  recomputation that imports no project code reproduced the cohort counts and the WP3 outcome counts (0 / 0 / 18 / 35 / 13 / 104).
+- Untracked file: `AGENTS.md` (inherited from earlier work, a near-copy of `CLAUDE.md`). It was not modified, not deleted, not
+  committed and not added to `.gitignore`; it is the only untracked file in the tree.
+
 ## Next permitted work package
-- WP5 (specimen size effect, PROJECT_BRIEF.md §5). It has NOT started. The official checkpoint CP4 follows WP5.
+- **WP6 (Monte Carlo test matrix study, PROJECT_BRIEF.md §5) — only after the author approves CP4 and merges `wp5`.** It has
+  NOT started.
 
 ## Unresolved data issues carried forward
 - WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and
