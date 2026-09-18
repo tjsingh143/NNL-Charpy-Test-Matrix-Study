@@ -224,10 +224,19 @@ _CORRECTION_CACHE: dict = {}
 _ARCHETYPES_FOR_C2 = [(u, c, TRUE_LSE_J) for u in (100.0, 200.0, 270.0) for c in (28.0, 46.0, 60.0)]
 
 
-def build_scatter(name: str, cohort_key: str = "primary"):
+def build_scatter(name: str, cohort_key: str = "primary", is_full_size: bool = False):
+    """The scatter model for one cell.
+
+    Two rules the approved plan fixes:
+      - the WP4 MINIATURE profile is a property of miniature specimens, so the 'miniature-inflated' sensitivity
+        applies to the miniature arms only; the full-size arms of that variant keep C1 as the reference (D-096);
+      - a WP2 cohort variant re-derives BOTH the archetypes and the scatter profile (D-110).
+    """
+    if name == "miniature-inflated" and is_full_size:
+        name = "C1"
     key = (name, cohort_key)
     if key not in _SCATTER_CACHE:
-        _SCATTER_CACHE[key] = S.build_scatter_model(name, archetypes=_ARCHETYPES_FOR_C2)
+        _SCATTER_CACHE[key] = S.build_scatter_model(name, archetypes=_ARCHETYPES_FOR_C2, cohort=cohort_key)
     return _SCATTER_CACHE[key]
 
 
@@ -273,7 +282,7 @@ def run_cell(task: dict) -> dict:
     """
     truth = truth_from_t0(task["use_j"], task["c_c"], task["t0_c"], task.get("lse_j", TRUE_LSE_J))
     geom = D.geometry_info(task["geom_code"], task.get("klst_reading", True))
-    scatter = build_scatter(task["scatter"], task.get("cohort_key", "primary"))
+    scatter = build_scatter(task["scatter"], task.get("cohort_key", "primary"), geom["is_full_size"])
     correction = build_correction(task["correction"])
     n = int(task["n"])
     r = int(task["replicates"])

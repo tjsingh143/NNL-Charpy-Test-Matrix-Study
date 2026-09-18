@@ -162,7 +162,9 @@ def test_06_determinism():
     ref = None
     for workers, reverse in ((1, False), (2, False), (3, False), (2, True)):
         g = sub.iloc[::-1].copy() if reverse else sub
-        res = E.run_grid(g, workers=workers, progress_every=10**9)
+        # use_cache=False: every configuration is COMPUTED, never read back from a checkpoint (otherwise the
+        # comparison would be of one computation with itself).
+        res = E.run_grid(g, workers=workers, progress_every=10**9, use_cache=False)
         key = {c: (np.nan_to_num(res[c]["errors"], nan=-999.0).tobytes(), res[c]["outcome_counts"].tobytes())
                for c in sub.cell_id}
         if ref is None:
@@ -171,7 +173,8 @@ def test_06_determinism():
             record("06 determinism", False, f"worker count {workers} (reversed={reverse}) changed a cell summary")
     record("06 determinism", True,
            "identical per-cell error arrays and outcome counts for 1, 2 and 3 worker processes and for a "
-           "reversed task order (per-replicate seeds, D-107)")
+           "reversed task order, each configuration COMPUTED afresh with checkpoints disabled (per-replicate "
+           "seeds, D-107)")
 
 
 def test_07_no_truth_leakage():
@@ -231,7 +234,7 @@ def test_09_failure_accounting():
     grid = E.build_grid()
     sub = grid[grid.tier == "T2"].head(8).copy()
     sub["replicates"] = 60
-    res = E.run_grid(sub, workers=1, progress_every=10**9)
+    res = E.run_grid(sub, workers=1, progress_every=10**9, use_cache=False)
     bad = []
     for cid, r in res.items():
         total = int(r["outcome_counts"].sum())
@@ -356,12 +359,21 @@ def test_13_scatter_models():
     sd_ok = np.allclose(cen_sd, pool["sds"], rtol=1e-12)
     cal = S.calibrate_c2(SIM._ARCHETYPES_FOR_C2, target_sd, prof["residuals"].to_numpy(float))
     ratio = cal["profile"] / target_sd
-    record("13 scatter-model checks", exact and cen_zero < 1e-12 and offset < 1e-12 and sd_ok,
+    # D-110: the cohort re-aggregation must reproduce the approved WP4 profile exactly for the primary cohort,
+    # which is what licenses using the same code to re-derive the looser and stricter profiles.
+    reagg = S.cohort_profile("primary")
+    reagg_ok = (np.allclose(reagg["sds"], target_sd, rtol=0, atol=0)
+                and np.allclose(reagg["means"], prof["mean"].to_numpy(float), rtol=0, atol=0)
+                and np.array_equal(reagg["counts"], prof["residuals"].to_numpy(int)))
+    coh = {c: np.round(S.cohort_profile(c)["sds"], 5).tolist() for c in ("looser", "stricter")}
+    record("13 scatter-model checks", exact and cen_zero < 1e-12 and offset < 1e-12 and sd_ok and reagg_ok,
            f"C1 reproduces the WP4 SD profile exactly; C3-centred has region means {cen_zero:.2e} (zero) and "
            f"keeps the empirical region SDs; C3-uncentered differs from it by exactly the WP4 region means "
            f"(max deviation {offset:.2e}); C2 calibrated to sigma_T = {cal['sigma_t_c']:.4f} deg C, "
            f"cv = {cal['cv']:.6f}, region ratios " + ", ".join(f"{r:.2f}" for r in ratio) +
-           " (REPORTED against the target, not asserted)",
+           " (REPORTED against the target, not asserted); the D-110 cohort re-aggregation reproduces the WP4 "
+           f"profile EXACTLY for the primary cohort, and gives looser {coh['looser']}, "
+           f"stricter {coh['stricter']}",
            c2_sigma_t_c=cal["sigma_t_c"], c2_cv=cal["cv"])
 
 
@@ -582,9 +594,16 @@ def main():
     # The declared runtime / memory benchmark of D-111, run after the tests pass and before the full grid.
     # It measures nothing once the cache is warm, so on a warm cache the recorded cold-run measurement stands.
     grid = E.build_grid()
+    # outputs/wp6/runtime_benchmark.csv is the committed record of the benchmark on which the go / no-go decision
+    # of D-111 was taken; a wall-clock time is not regenerable, so a later measurement goes to the git-ignored
+    # cache instead of overwriting that record (the D-067 precedent: no run-dependent timing in a tracked output).
     try:
         bench = E.benchmark(grid)
-        pd.DataFrame([bench]).to_csv(OUT / "runtime_benchmark.csv", index=False)
+        latest = E.CP.checkpoint_root() / "runtime_benchmark_latest.csv"
+        latest.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame([bench]).to_csv(latest, index=False)
+        if not (OUT / "runtime_benchmark.csv").exists():
+            pd.DataFrame([bench]).to_csv(OUT / "runtime_benchmark.csv", index=False)
     except RuntimeError as exc:
         print(f"  benchmark skipped: {exc}")
         bench = pd.read_csv(OUT / "runtime_benchmark.csv").iloc[0].to_dict()

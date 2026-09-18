@@ -1,0 +1,23 @@
+data_type,variant,n_comparisons,median_delta_rmse_c,median_central_delta_rmse_c,median_shift_vs_central_c,miniature_wins,full_size_wins,tied,ineligible,changes_conclusion
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V1 scatter C1-robust,48,-3.6698875400008384,-2.900667179075487,-1.2287948013960968,0,33,15,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V10 normalization S3 temperature Lucon,48,-3.489214094951799,-2.900667179075487,-1.294602366619372,0,34,14,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V11 normalization S5 temperature Wallin,48,-11.283535104752808,-2.900667179075487,-9.120112717130656,0,48,0,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V12 normalization S4 temperature Towers,48,-16.142324123757547,-2.900667179075487,-13.996794066472717,0,48,0,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V13 normalization S6 KLST as recorded,48,-2.8811174129492514,-2.900667179075487,-0.5165278113598828,2,30,16,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V14 specimen-level correction draw,48,3.3568910808954153,-2.900667179075487,6.2423135278522555,34,0,14,0,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),"V15 true LSE 6 J, analysed at 2.7 J",48,-3.731249853860578,-2.900667179075487,0.18852939029226334,6,30,12,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V16 T41J_true = -150 deg C,36,-4.67872555009321,-4.343444521639132,0.15014734702514776,0,0,0,36,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V17 T41J_true = 100 deg C,36,-4.154732021198447,-4.343444521639132,0.4526606360896199,0,30,6,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V18 machining allowance c = 0.5 mm,48,0.5532934950354562,-2.900667179075487,2.625947074780332,20,16,12,0,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V19 machining allowance c = 1.0 mm,48,-0.37996502492973416,-2.900667179075487,2.854510587218609,18,16,14,0,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V2 scatter C2,48,-4.590918586702993,-2.900667179075487,-1.2991933682971433,0,36,12,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V20 energy-scale injection (optional),48,-2.2415008960343545,-2.900667179075487,0.3128256439304469,3,26,19,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V21 WP2 looser cohort,48,-2.712003082351612,-2.900667179075487,0.3589137375198055,4,30,14,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V22 WP2 stricter cohort,48,-3.178320369219021,-2.900667179075487,0.0016508897914793152,6,29,13,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V3 scatter C3-centred,48,-2.9886431656005525,-2.900667179075487,-0.09872138020732191,3,26,19,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V4 scatter C3-uncentered,48,-2.6708166179686144,-2.900667179075487,0.5796015187572321,4,28,16,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V5 miniature-inflated scatter,48,-2.7284025004259513,-2.900667179075487,-0.5050508371112539,0,27,21,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V6 correction CONSERVATIVE,48,-13.585995910248531,-2.900667179075487,-11.112420104975453,0,48,0,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V7 correction empirical 7-family,48,-2.0011192331400833,-2.900667179075487,0.8435457085409359,5,24,19,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V8 correction empirical 10-family,48,-13.313374957275961,-2.900667179075487,-10.03510428923202,0,48,0,0,False
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),V9 normalization S1 energy (Bb)^3/2,48,-2.9599315645480146,-2.900667179075487,-0.6574284394648848,1,30,17,0,False

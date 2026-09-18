@@ -43,6 +43,12 @@ assumed. The coldest reachable full-size-equivalent temperature is -195 + M.
 ## Material budget (D-091)
 idealized finished-specimen material-only accounting (D-091): gross rectangular volume L*W*B, integer floor, unused remainder discarded, notch volume not recovered; NOT a prediction of how many specimens fit in or can be machined from a real surveillance capsule
 
+## Scatter model per cell
+The frozen grid records each variant's scatter model. For the **miniature-inflated** variant (V5) that profile is applied
+to the miniature arms only; its full-size reference arms use C1, because the WP4 miniature profile is a property of
+miniature specimens (D-096). `cell_results.csv` states the model actually applied in `scatter_applied`. For the WP2
+cohort variants (V21, V22) the C1 scale is the D-061 profile re-aggregated for that cohort (D-110).
+
 ## Size correction (D-097, D-098, D-099, D-100)
 Injected as a temperature-domain displacement of the simulated truth, `E_mini_true(T) = E_full_true(T + M - D)
 / NF_E`, reproducing D-078's sign exactly. **One programme-level draw**, shared by the whole test matrix.

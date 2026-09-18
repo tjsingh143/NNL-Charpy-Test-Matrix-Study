@@ -2000,7 +2000,10 @@ figure:* curve 33-153 with both methods. Grayscale-legible: dark points, black f
 solid hairline grid; a non-reportable interval is drawn grey and named a conditional range.
 
 ## D-066 — Candidate scatter models for WP6, from the WP4 residual characterization
-**Status:** APPROVED AS CANDIDATE SET ONLY (WP4 internal review, author 2026-09-15); FINAL WP6 SCATTER MODEL NOT YET CHOSEN. Earlier: PROPOSED
+**Status:** CENTRAL MODEL CHOSEN IN WP6 PLANNING: **C1** (D-095, approved by the author in WP6 Plan Mode, 2026-09-18, before
+any WP6 result), which changes the planning preference recorded below (C2 central) on calibration evidence; C2 and C3
+(amended to centred resampling, D-094) remain mandatory sensitivities. Earlier: APPROVED AS CANDIDATE SET ONLY (WP4 internal
+review, author 2026-09-15); FINAL WP6 SCATTER MODEL NOT YET CHOSEN. Earlier: PROPOSED
 (WP4 review), written after the WP4 results existed. Not chosen, not calibrated, not run: the WP6 scatter model is decided in
 WP6, with the sensitivity analysis the brief requires (brief §5 WP6, "the scatter model is the weak link").
 **WP4 internal-review decision (author, 2026-09-15).** Approved as a candidate set only; no scatter model is marked final. All three candidates
@@ -2841,7 +2844,10 @@ analysis was rerun beyond the lightweight WP5 checks; the full `./run_all.sh` re
 merging (author's CP4 verification instruction 8); it was not.
 
 ## D-089 — The normalization-method bias sensitivity is a WP6 planning decision, not a CP4 one
-**Status:** OPEN — deliberately not resolved at CP4; carried into WP6 planning (author, 2026-09-17)
+**Status:** RESOLVED IN WP6 PLANNING by D-100 (approved by the author in WP6 Plan Mode, 2026-09-18, before any WP6 result):
+each published normalization is a complete scenario with its own bias and residual SD, nothing is added in quadrature,
+and which method is "true" is never randomly sampled. Earlier: OPEN — deliberately not resolved at CP4; carried into WP6
+planning (author, 2026-09-17)
 
 **Finding to preserve** (D-087, `normalization_sensitivity_comparison.csv`). Across the pre-declared normalization methods the
 **residual spread is relatively stable** — family-weighted SD 11.1 to 11.9 °C for every volume-type energy convention paired
@@ -3594,3 +3600,102 @@ are `run_all.sh`, `DECISIONS.md`, `PROGRESS.md` and `README.md`.
    `wp6_correction.py`, `wp6_simulator.py`, `wp6_checkpoint.py`, `wp6_validation.py`, `wp6_experiment.py`,
    `wp6_tests.py` — together with the frozen grid definition and the calibration diagnostics, committed **before any
    headline WP6 cell was run**.
+5. *Implementation checks and validation, after the pre-registration commit and before any headline cell.*
+   a. *Two validation tests found real defects; both were fixed in the simulator, not in the test.* (i) Test 2: the
+      miniature analysis branch recomputed M from the rounded Sokolov Eq. 22 instead of using the geometry's approved
+      M, so the full-size case (Eq. 22 gives +0.432 deg C there, the published rounding residue recorded by WP5
+      self-check 2) was not an exact identity. There is now one analysis path, asserted equal to
+      `wp5_normalization.normalize()` for all seven miniature geometries. (ii) Test 17: the snapping sub-check
+      conflated snapping with clipping, and applied a half-grid bound to the difference of two independently snapped
+      designs; it now asserts each design's own residue within half a grid step and their difference within one.
+   b. *Test 18, made precise.* Resampling a finite pool reproduces its population SD (the sample SD x sqrt((n-1)/n),
+      10.586 deg C for the 7-family pool), not its ddof-1 SD; the test asserts the mean against the approved value
+      and the SD against the population SD, with the relation printed. Its purpose - that no bias is added - is
+      tested by the mean and is unchanged.
+   c. *Implementation clarification, fixed before any result.* The physical floor of -196 deg C is not a multiple of
+      the 5 deg C grid, so a temperature cannot be both inside the envelope and on the grid at -196 deg C. Clipped
+      specimens are placed at -195 deg C, the coldest point satisfying both approved requirements of validation test
+      16; no specimen is ever tested below the physical floor. Consequence: the coldest reachable full-size-equivalent
+      temperature is -195 + M, and 22 (not the 21 quoted in planning) of the 104 usable full-size fits are
+      unreachable for `20x1.5x1.5`. Recorded in `method_configuration.md` for the author to confirm or reverse.
+   d. *Benchmark (D-111).* 62 cells (every 100th of the frozen grid), 0.51 % of the fit-weighted work: 148.3 s with
+      3 workers, projected full run 8.13 h, peak 258 MB, both within the approved thresholds. A later re-invocation
+      was served entirely from the warm checkpoint cache and overwrote the record with a meaningless 0.01 h; the
+      cold-run measurement was restored before commit, and `benchmark()` now refuses to report a cache-served timing.
+   e. *Smoke test.* The whole pipeline ran once at 2 % of the replicates in a scratch checkpoint directory outside
+      the repository, to exercise every reporting path and the independent check module (`src/wp6_tests.py`, 11
+      checks). Its outputs were overwritten by the real run and never committed.
+6. *First full run with the frozen grid (results now exist).* 389.5 min with 3 worker processes, peak 313 MB; all 11
+   independent checks passed. The T1 headline, the SD* table, the sensitivity summary, the interval coverage and the
+   breadth check were then inspected.
+7. *Two deviations from the approved plan, found AFTER results existed, both corrected TO the plan as approved - not
+   to a new rule.*
+   a. *V5, miniature-inflated scatter.* The D-108 grid and D-096 specify it for the **miniature arms only**, with the
+      full-size arms of that variant kept on C1 as the reference; the first implementation applied the WP4 miniature
+      profile to the full-size arms as well. It was noticed because the V5 result pointed the implausible way (a
+      +5.05 deg C median shift toward miniature, since inflating the scatter of a small-N full-size programme costs
+      it far more than a large-N miniature one). Corrected: a -0.51 deg C shift toward full-size and no miniature win.
+   b. *V21 and V22, WP2 cohort propagation.* D-110 requires both the archetypes and the scatter profile to be
+      re-derived for each cohort; the first implementation re-derived only the archetypes. Found by auditing the code
+      against D-110 after results existed. Corrected with the unchanged D-061 definitions (`profile_from_curves`);
+      validation test 13 now also asserts that the re-aggregation reproduces the approved WP4 profile exactly for the
+      primary cohort. The stricter cohort's central-transition scatter is 0.1183 against 0.1052 (primary).
+   c. *Reporting changes made after results existed, recorded as such.* (i) Each paired comparison is now computed on
+      the replicate indices both cells share: D-107 defines the paired estimand on shared replicates, and the first run
+      had combined a 1,000-replicate full-size RMSE with a 500-replicate miniature RMSE wherever the two tiers differ in
+      R. That affects 480 comparisons (T4 variants against their T1 full-size comparators) and moved **14 of their
+      480 labels**; no T1, T2, T3 or T7 label is affected. (ii) The paired replicate-index bootstrap SE, declared in
+      D-107 as the cross-check but not computed in the first run, is now reported for T1 and T3: it agrees with the
+      batch-means SE within a factor 1.5 in 97 % of T1 comparisons. (iii) A canonical `winner_class` for grouping,
+      because the INELIGIBLE label embeds the availability percentages. (iv) Adaptive update counts grouped by the
+      specimen count as well, because the machining-allowance variants had been averaged into the same (geometry,
+      budget) row.
+   d. *Because 7a and 7b changed fingerprinted sources, the whole checkpoint cache was invalidated and the complete
+      frozen grid recomputed from cold:* validation re-passed (20 rows), the benchmark re-projected 4.89 h, and the
+      second full run took 381.4 min with a 321 MB peak.
+   e. *Determinism across two complete cold runs:* every T1 value of the second run reproduces the first exactly (the
+      corrections did not touch T1).
+8. *After the second run.*
+   a. *Checkpoint-path collision.* The R = 4,000 stability rerun wrote to the same cache path as its R = 1,000 main
+      cell. Fingerprints ensured no wrong value was ever used, but those 11 cells would have been recomputed on every
+      run; the stability subset now has its own cache folder.
+   b. *The stability deltas all point the same way* (median -0.25 deg C). By the declared common-random-number design,
+      every R = 1,000 miniature cell uses the same 1,000 correction draws, so the eleven deltas are one sampling
+      difference repeated, not eleven independent ones; the correction-RMS difference between the two samples alone is
+      -0.22 deg C, within one Monte Carlo SE (0.27 deg C). Every label is unchanged and every delta is below tau, so the
+      pre-registered stability criterion passes.
+   c. The summary writer was rewritten so that every number quoted in `wp6_summary.md` is computed from the tables.
+   d. **No estimator, decision rule, threshold, tolerance, grid cell, archetype, scatter model, correction value, prior
+      level, replicate count or seed was changed because of any result.**
+9. *Findings the approved plan anticipated differently, reported rather than hidden.*
+   a. The machining allowance was expected to disadvantage the smaller specimens (D-091), which is true of the
+      specimen counts; in RMSE terms it **favours** miniature, because the full-size count at k = 6 falls to 4 or 3,
+      where the full-size RMSE is steep in N, while the miniature RMSE already sits at its correction floor. The
+      idealized accounting is therefore, if anything, favourable to full-size.
+   b. The simple staircase SS is far better than the batched model-based adaptive design S for full-size programmes;
+      the adaptive conclusion depends on the algorithm, which is exactly the question tier T7 was required to answer.
+10. *An ambiguity in the approved adaptive algorithm, found AFTER results existed, left as pre-registered and put
+    to the author at CP5.* D-101 places each adaptive block at `T_hat + delta * C_hat` with "delta cycling 0, -0.5,
+    +0.5, -1.0, +1.0, -1.5, +1.5, ...". The pre-registered code (commit `3714fe7`, `wp6_design._delta_cycle`) reads the
+    ellipsis as EXTENDING the pattern (-2.0, +2.0, ...); the word "cycling" also admits a WRAPPING reading that repeats
+    the listed values and keeps every specimen within +/- 1.5 C_hat of the estimated crossing. It was noticed in the
+    worked-example figure, where a 21-specimen miniature block is spread to +/- 5 C_hat and many specimens are clipped
+    at the envelope. Scope, measured: the listed values cover blocks of up to 7 specimens, and **every full-size S
+    cell (block size at most 4) uses only the listed values, so no full-size result depends on the reading**. It
+    matters for 1,138 miniature S cells, whose later blocks reach up to 122 C_hat and are largely clipped (mean clip
+    fraction 36 % against 14 % for U); their RMSE barely moves (RMSE(S) - RMSE(U) median +0.04 deg C, range -0.62 to
+    +0.43 deg C in T1) because the correction floor dominates, and no miniature S cell fails the availability gate.
+    **The pre-registered reading is kept and nothing was rerun; changing an algorithm after its results are visible is
+    exactly what the pre-registration forbids.** Whether to add the wrapping reading as a labelled sensitivity is the
+    author's decision at CP5.
+11. *A validation test that had passed without testing its property, found after results existed and corrected.*
+    Validation test 6 (determinism) ran the same cells with 1, 2 and 3 worker processes through the checkpointed
+    runner; the first configuration saved its results and the later ones read them back, so the test compared one
+    computation with itself and **did not establish worker-count independence**, although the validation commit
+    (`b24e7f6`) described it as doing so. The runner now has `use_cache=False`, which tests 6 and 9 use: rerun with every
+    configuration computed afresh, test 6 passes - identical per-cell errors and outcome counts for 1, 2 and 3 workers
+    and a reversed task order. Separately, the two complete cold runs reproduced every T1 value exactly (run-to-run
+    determinism). Tests 6 and 9 had also overwritten 14 main-grid checkpoints with their small-R results (fingerprints
+    ensured no wrong value was ever used; those cells were simply recomputed); they no longer touch the cache. The
+    committed benchmark record is no longer overwritten by later measurements, which go to the git-ignored cache,
+    because a wall-clock time is not a regenerable number (the D-067 precedent). No result changed.

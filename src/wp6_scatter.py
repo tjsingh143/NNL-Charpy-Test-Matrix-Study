@@ -171,11 +171,58 @@ class ScatterModel:
         return self.sd_fse(x_true, use_true, lse_true, c_true) * rng.standard_normal(len(x_true))
 
 
-def build_scatter_model(name: str, archetypes=None, cohort_curve_ids=None) -> ScatterModel:
+COHORTS = ("primary", "looser", "stricter")
+
+
+def cohort_curves(cohort: str):
+    """The usable full-size WP3 fits of a CP2-frozen cohort, with their measured points (D-110).
+
+    No cohort is regenerated: the memberships come from the approved WP3 outputs, which carry the frozen CP2
+    cohort flags. Returns (list of (t, e, fit_dict), n_curves).
+    """
+    from common import ROOT
+    recs = pd.read_csv(ROOT / "data" / "processed" / "primary" / "charpy_records_with_curves.csv",
+                       float_precision="round_trip")
+    if cohort == "looser":
+        fits = pd.read_csv(OUTPUTS / "wp3" / "fits_looser_cohort_curves.csv", float_precision="round_trip")
+    else:
+        fits = pd.read_csv(OUTPUTS / "wp3" / "fits_primary.csv", float_precision="round_trip")
+        if cohort == "stricter":
+            fits = fits[fits["in_stricter"].astype(str).str.lower() == "true"]
+    u = fits[(fits["geometry_category"] == "full-size")
+             & (fits["outcome"] == "usable fit, index temperature calculated")]
+    by = {k: v for k, v in recs.groupby("curve_id")}
+    out = []
+    for _, f in u.iterrows():
+        r = by[f["curve_id"]]
+        out.append((r["test_temp_c"].to_numpy(float), r["energy_j"].to_numpy(float), f.to_dict()))
+    return out, list(u["curve_id"].astype(str))
+
+
+_COHORT_PROFILE_CACHE: dict = {}
+
+
+def cohort_profile(cohort: str) -> dict:
+    """The D-061 residual profile re-aggregated for a cohort (D-110). For 'primary' this reproduces the WP4
+    summary table exactly, which validation test 13 asserts."""
+    if cohort not in _COHORT_PROFILE_CACHE:
+        curves, ids = cohort_curves(cohort)
+        prof = profile_from_curves(curves)
+        prof["curve_ids"] = ids
+        _COHORT_PROFILE_CACHE[cohort] = prof
+    return _COHORT_PROFILE_CACHE[cohort]
+
+
+def build_scatter_model(name: str, archetypes=None, cohort_curve_ids=None, cohort: str = "primary") -> ScatterModel:
     """Construct a model from the approved WP4 outputs. `archetypes` is needed only to calibrate C2."""
     if name == "zero":
         return ScatterModel("zero", scale=np.zeros(N_REGIONS), label="zero scatter (validation only)")
     if name in ("C1", "C1-robust"):
+        if cohort != "primary":
+            cp = cohort_profile(cohort)
+            scale = cp["sds"] if name == "C1" else cp["mad_scaled"]
+            return ScatterModel(name, scale=scale,
+                                label=f"{SCATTER_LABELS[name]} - re-aggregated for the CP2-frozen {cohort} cohort")
         prof = wp4_profile("full-size")
         col = "sd" if name == "C1" else "mad_scaled"
         return ScatterModel(name, scale=prof[col].to_numpy(float))
@@ -187,6 +234,8 @@ def build_scatter_model(name: str, archetypes=None, cohort_curve_ids=None) -> Sc
         cal = calibrate_c2(archetypes, prof["sd"].to_numpy(float), prof["residuals"].to_numpy(float))
         return ScatterModel(name, sigma_t=cal["sigma_t_c"], cv=cal["cv"])
     if name in ("C3-centred", "C3-uncentered"):
+        if cohort != "primary" and cohort_curve_ids is None:
+            cohort_curve_ids = cohort_profile(cohort)["curve_ids"]
         pool = residual_pool("full-size", cohort_curve_ids)
         vals = [v.copy() for v in pool["values"]]
         if name == "C3-centred":

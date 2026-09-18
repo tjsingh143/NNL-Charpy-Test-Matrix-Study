@@ -1,2 +1,2 @@
 data_type,benchmark_cells,stride,workers,elapsed_s,fit_weight_run,fit_weight_total,projected_full_run_hours,peak_rss_mb,note
-SYNTHETIC (Monte Carlo test-matrix study; not published measurements),62,100,3,148.317,45300.0,8941200.0,8.132,257.672,declared subset fixed in code (every 100th cell); projection scales by replicates weighted by the per-strategy fit count (D-111); measured on a COLD cache
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),62,100,3,89.27170991897583,45300.0,8941200.0,4.894507068478947,509.15625,declared subset fixed in code (every 100th cell); projection scales by replicates weighted by the per-strategy fit count (D-111); measured on a COLD cache
