@@ -1,0 +1,10 @@
+data_type,wp5_geometry_id,wp5_evidence_status,n_families,n_studies,n_primary_comparisons,simulated_in_wp6,wp6_geometry_code,collapsed_with,reason
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),20x1.5x1.5 a=0.33,WEAKLY SUPPORTED,1,1,1,True,G1,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),20x2.5x2.5 a=0.38,WEAKLY SUPPORTED,3,1,3,True,G2,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),20x3.33x3.33 a=0.51,WEAKLY SUPPORTED,1,1,1,True,G3,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),20x5x5 a=0.76,UNSUPPORTED BY THIS DATASET,0,0,0,False,,,"UNSUPPORTED BY THIS DATASET (D-083): no matched comparison reaches the WP5 primary analysis set. Omitted because the dataset does not support a correction for it, NOT because another geometry is physically equivalent."
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),23.6x3.33x3.33 a=0.51,WEAKLY SUPPORTED,2,2,2,True,G5,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),23.6x5x5 a=0.76,WEAKLY SUPPORTED,1,1,1,True,G7,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),23.6x5x5 a=0.78,UNSUPPORTED BY THIS DATASET,0,0,0,False,,,UNSUPPORTED BY THIS DATASET (D-083): as above. Not treated as covered by '23.6x5x5 a=0.76' despite the 0.02 mm notch-depth difference.
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),27.5x3.33x3.33 a=0.6,WEAKLY SUPPORTED,1,1,1,True,G4,,simulated as its own arm set; no geometry is collapsed with another
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),27x3x4 a=1,WEAKLY SUPPORTED,1,1,1,True,G6,,simulated as its own arm set; no geometry is collapsed with another

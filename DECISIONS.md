@@ -2858,3 +2858,739 @@ pre-declared methods **without double-counting the residual SD** — the SD alre
 adding a bias spread drawn from the same comparisons on top of it would count the same disagreement twice. **This modelling
 choice is not made here.** No combination rule, no widened distribution and no bias prior is approved at CP4. It is a WP6
 planning decision, to be taken in WP6 Plan Mode with the alternatives visible.
+
+---
+
+# WP6 — Monte Carlo test-matrix study
+
+All numbers regenerate with `src/wp6_validation.py` (simulator validation) and `src/wp6_experiment.py` (the frozen
+experiment), with `src/wp6_tests.py` as the independent check module, into `outputs/wp6/`. The simulator calls the
+**unchanged approved** `src/wp3_fitter.py` and `src/wp5_normalization.py`; WP6 changes no WP0–WP5 source file, output,
+cohort or decision.
+
+**WP6 contains only SYNTHETIC data.** Every WP6 table and figure carries
+`data_type = "SYNTHETIC (Monte Carlo test-matrix study; not published measurements)"`. No simulated measurement is ever
+mixed with a published measurement. The only published quantities that enter are *calibrated parameters* — WP3 curve
+parameters, the WP4 residual-scatter profile, and the WP5 correction bias, SD and family-level residuals — each read from
+its regenerated file at full precision at run time, never typed from prose.
+
+**Status legend for this section:** `PRE-REGISTERED (WP6)` = written and committed before any headline WP6 cell was run
+(the commit is named in D-112). `APPROVED (WP6 plan)` = approved by the author in WP6 Plan Mode, before any WP6 result
+existed, over three review rounds (2026-09-17/18). Every entry below was approved before implementation began.
+
+**WP6 plan-approval record (author, 2026-09-18).** The author reviewed a written WP6 implementation plan in three rounds
+and approved it. Round 1 produced the plan; round 2 issued 14 amendments; round 3 issued a temperature-frame correction
+and three implementation clarifications; a final round corrected one remaining coordinate-frame ambiguity. Each amendment
+is recorded in the entry it changed and in the chronology D-112. **Nothing in this section was decided after seeing a WP6
+simulation result**; the only WP6 numbers that existed at approval were planning-stage calibration diagnostics and
+feasibility checks, all listed in D-112.
+
+**Sources cited in WP6** (all previously read and cited in WP3–WP5; no new source is introduced)
+- [Marini2020], [Switzner2023], [NIST-TN2158], [EfronTibshirani1986] — listed under WP3/WP4.
+- [NUREG/CR-6379], [LuconNIST], [ML2026], [E2248-18], [descriptor] — listed under WP5.
+- [10CFR50] §50.61(c)(2)(i)(C) and [E185-82] §6.3 — listed under WP2/WP3.
+No number in WP6 comes from a source that this repository has not already read and recorded.
+
+## D-090 — What WP6 simulates, and what it must never do
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** WP6 answers PROJECT_BRIEF.md §2 by Monte Carlo simulation of complete test programmes against a **known**
+true full-size transition curve. One replicate = one simulated test programme: choose a true curve, a specimen geometry and
+a material budget; derive the specimen count; place test temperatures by a declared strategy using only declared prior
+information; generate specimen energies from a declared scatter model; for a smaller geometry apply the approved WP5
+classical correction back into the full-size domain; fit with the approved WP3 method; take T41J by the approved rule; and
+record `error = T41J_hat − T41J_true`.
+
+**Never.** WP6 does not fit, tune or calibrate anything on published measurements beyond reading the already-approved WP3,
+WP4 and WP5 parameters; does not mix simulated and published measurements in any table; does not train a model to predict
+full-size properties (brief §2.1 and §8); does not alter any WP0–WP5 output; and does not change a scientific decision
+after seeing a WP6 result. Every WP6 file states that it is synthetic.
+
+**Alternatives.** An analytic error-propagation study (no simulation). **Why not.** It cannot represent the estimator's
+refusals (the tested-range rule), the failure modes, the adaptive designs, or the interaction between a mis-centred design
+and the size correction — all of which are the substance of the question. **If chosen.** A smooth but unfaithful answer.
+
+## D-091 — The fixed-material-volume accounting
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
+
+**Decision.** The material budget is spent in **gross rectangular finished-specimen volume** L × W × B. The number of
+specimens is `N = floor(V_budget / V_specimen)`: **integer floor, unused remainder discarded**, no partial specimens, no
+reconstitution and no material recovered from broken halves. The notch-removed volume is **not** recovered (it is about
+20 mm³ of a 5,500 mm³ full-size specimen, 0.36 %). Budgets are exact multiples of one full-size specimen,
+k ∈ {4, 6, 8, 12, 18, 24}, so N_full = k and V = 22,000 / 33,000 / 44,000 / 66,000 / 99,000 / 132,000 mm³. k = 12 is close
+to the [E185-82] §6.3 surveillance specimen counts already adopted as this project's stricter cohort (D-038).
+
+**This is an idealized finished-specimen material-only accounting** (author's amendment, review round 2). It is **not** a
+prediction of how many specimens physically fit in, or can be machined from, a real surveillance capsule. Capsule layout,
+holder geometry, orientation constraints, archive requirements, broken-half reconstitution and machining yield are **not**
+modelled. That sentence appears on every generated table and figure that carries a specimen count.
+
+**No fabrication-yield model is invented and no specimen-count cap is imposed.** Instead, a declared **material-utilization
+sensitivity** applies a uniform linear allowance c per face, V = (L+2c)(W+2c)(B+2c), c ∈ {0.5, 1.0} mm, to **every**
+geometry including full-size (T4 variants V18, V19). It is an illustration of direction and magnitude, not a fabrication
+model, and it is labelled as such. It matters: specimens per full-size equivalent fall from 122.2 to 51.6 to 30.5 for
+20×1.5×1.5, from 44.0 to 26.3 to 18.4 for 20×2.5×2.5 and from 17.0 to 12.1 to 9.4 for the KLST geometry at
+c = 0 / 0.5 / 1.0 mm.
+
+**Alternatives.** (1) Subtract the notch volume. (2) Model a machining yield. (3) Cap the specimen count at a practical
+number. **Why not.** (1) would understate consumption, because the specimen is machined from a prism at least as large;
+(2) has no defensible basis in this repository or in the sources read, and inventing fabrication losses is forbidden
+(brief §7); (3) would silently bias the comparison against the geometry that fits most specimens. **If chosen.** (3) in
+particular would decide the headline by assumption rather than by evidence.
+
+## D-092 — Which specimen geometries WP6 simulates, and how geometry enters
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+
+**Decision.** WP6 simulates the full-size geometry G0 (55 × 10 × 10 mm, a = 2 mm, B b² = 640 mm³, NF_E = 1, M = 0) and
+**all seven miniature geometry classes that D-083 hands over as WEAKLY SUPPORTED**:
+
+| code | WP5 geometry id | B b² (mm³) | NF_E | M (°C) | gross V (mm³) | families / studies |
+|---|---|---|---|---|---|---|
+| G1 | `20x1.5x1.5 a=0.33` | 2.0533 | 311.686 | 87.136 | 45.000 | 1 / 1 |
+| G2 | `20x2.5x2.5 a=0.38` | 11.2360 | 56.960 | 61.471 | 125.000 | 3 / 1 |
+| G3 | `20x3.33x3.33 a=0.51` | 26.4815 | 24.168 | 48.526 | 221.778 | 1 / 1 |
+| G5 | `23.6x3.33x3.33 a=0.51` | 26.4815 | 24.168 | 48.526 | 261.698 | 2 / 2 |
+| G4 | `27.5x3.33x3.33 a=0.6` | 24.8182 | 25.788 | 49.505 | 304.945 | 1 / 1 |
+| G6 | `27x3x4 a=1` (KLST) | 27.0000 | 23.704 | 48.233 | 324.000 | 1 / 1 |
+| G7 | `23.6x5x5 a=0.76` | 89.8880 | 7.120 | 30.072 | 590.000 | 1 / 1 |
+
+Every NF_E and M is recomputed at run time by the unchanged `src/wp5_normalization.py` from the geometry alone.
+**No geometry is collapsed with another.** G3 and G5 share a ligament volume but differ in length, hence in gross volume
+and specimen count, and are simulated separately.
+
+**The two geometries D-083 marks UNSUPPORTED BY THIS DATASET — `20x5x5 a=0.76` and `23.6x5x5 a=0.78` — are omitted,
+because the dataset does not support a correction for them.** They are **not** claimed to be physically redundant with any
+simulated geometry: similar gross or ligament volume does not demonstrate equivalent notch, constraint or size-correction
+behaviour. No external correction number is adopted and no external-literature scenario is built (CP4 item 12). A required
+output `wp5_geometry_reconciliation.csv` accounts for all nine handoff rows: 7 simulated, 2 omitted, 0 collapsed.
+
+**No geometry-specific performance claim is made.** D-083 forbids a geometry-specific correction and 0 of 9 geometries is
+DIRECTLY SUPPORTED, so every geometry result is described as *a conditional fixed-volume scenario using the pooled,
+WEAKLY SUPPORTED correction distribution*. That wording is enforced in every generated table, figure caption and summary
+sentence.
+
+**How geometry enters (restricted claim; author's amendment, review round 3).** The earlier planning statement that
+"geometry enters only through specimen count" is **withdrawn**. The approved statement is: *away from physical
+temperature-envelope clipping, geometry enters primarily through specimen count, because NF_E cancels in relative-scatter
+terms and M displaces truth and design identically; near the raw physical temperature bounds, M also matters through
+geometry-dependent temperature clipping* (D-101). The coldest full-size-equivalent temperature a geometry can physically
+reach is `−196 + M`: −108.9 °C (G1), −134.5 (G2), −147.5 (G3, G5), −146.5 (G4), −147.8 (G6), −165.9 (G7), −196.0 (G0).
+Equivalence is therefore **tested, not assumed** (validation test 12A interior, 12B boundary), and a deterministic output
+`geometry_reachability.csv` reports reachability for every geometry against every archetype and all 104 real fitted curves.
+
+**Alternatives.** Simulate only the best-supported geometries; collapse geometries with equal B b². **Why not.** The first
+would leave the handoff unreconciled; the second would assume an equivalence the physical envelope breaks.
+
+## D-093 — The true transition curves
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+
+**Decision.** Central: a 3 × 3 factorial of the marginal quantiles of the **104 usable full-size WP3 fits with a calculated
+T41J** — USE ∈ {100, 200, 270} J (p10, median, p90) × C ∈ {28, 46, 60} °C (p10, median, p90), with LSE = 2.7 J (the
+approved full-size convention, D-042) and T0 set so that T41J = −53 °C (the cohort median) in every archetype. Archetypes
+are labelled A1…A9; the **declared reduced set used by every reduced tier is {A1, A5, A9}** — the median plus the two
+corners that bracket both where 41 J sits on the fitted rise (0.394 at USE 100 against 0.143 at USE 270) and the transition
+width (28 against 60 °C).
+
+**Occupancy is reported, not assumed.** The number of the 104 real fits within ±25 % of both USE and C is printed for every
+archetype (1, 5, 10 / 9, 44, 28 / 11, 31, 23). Every cell is occupied; the sparsest (A1) is reported as such. USE and C are
+correlated in the cohort (Pearson −0.41), so the corners are deliberately stressed.
+
+**Temperature-location invariance is conditional, not global** (author's amendment, review round 3). The problem is
+translation-invariant in temperature **only when (i) no raw specimen temperature reaches the physical envelope and (ii) the
+5 °C raw grid does not produce a materially different snapping pattern**. Because M changes a miniature geometry's
+proximity to the raw bounds, **absolute location is not globally irrelevant** and is never described as such. The
+invariance justifies one central archetype location and nothing more; validation test 10 checks it only in a declared
+clip-free, snap-matched configuration and **records** where it breaks.
+
+**Required envelope sensitivity, evaluated geometry-specifically:** T41J_true ∈ {−150, +100} °C on G0, G1, G5 and G7
+(T4 variants V16, V17), chosen so that the largest M, an intermediate M, the smallest M and full-size are all covered.
+
+**Required breadth check:** each of the 104 usable full-size fits is used in turn as a synthetic truth (tier T5), and the
+distribution of the per-curve winner is reported in the summary, not in an appendix. This is what stops a few archetypes
+carrying the headline.
+
+**Declared model sensitivity on the lower shelf:** true LSE = 6 J analysed with the fixed 2.7 J convention (T4 variant
+V15). Legitimate because WP4 measured an empirical lower-shelf mean residual of +0.0149 × USE (+3.0 J at USE = 200), i.e.
+measured lower shelves commonly sit above the convention (D-066).
+
+**Alternatives.** One convenient tanh curve; only real fitted curves as truths. **Why not.** The first would let a single
+shape carry the headline; the second alone gives no factorial attribution to USE or C — so both are used, the factorial
+centrally and the real curves as the breadth check.
+
+## D-094 — The three scatter-model candidates and how each is calibrated
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+
+**Decision.** The five regions are WP4's (D-061), evaluated on the **true** curve: lower shelf x ≤ −1.5; lower transition
+−1.5 < x ≤ −0.5; central −0.5 < x < 0.5; upper transition 0.5 ≤ x < 1.5; upper shelf x ≥ 1.5, with x = (T − T0_true)/C_true.
+
+- **C1 — region-wise normal scatter scaled by USE.** `sd = USE_true × s(region)`, zero mean, s read at full precision from
+  `outputs/wp4/published_residual_scatter_summary.csv` (full-size, usable WP3 fits, leverage-adjusted residual / fitted
+  USE, SD column): 0.036079, 0.072945, 0.105201, 0.099833, 0.061581. **Calibration = reading the table; nothing is fitted.**
+  **C1-robust** uses the `mad_scaled` column (0.0225, 0.0543, 0.0986, 0.0852, 0.0513) as the low-scatter sensitivity.
+- **C2 — the smooth WP3 generator form** `sd(T) = σ_T·|dE/dT| + cv·E(T) + 3·cv·LSE` (D-048). Calibration, declared before
+  it was run: (σ_T, cv) by bounded least squares minimising Σ_r w_r·(profile_C2(r) − s_empirical(r))², where profile_C2(r)
+  is the mean of sd(T)/USE over a 201-point uniform x-grid inside region r (shelf regions truncated at |x| = 3), averaged
+  with equal weight over the nine archetypes, and w_r = √(n_r/Σn) with the WP4 residual counts n = (154, 339, 511, 286, 395).
+- **C3 — region-wise empirical resampling of the leverage-adjusted residual / USE observations, CENTRED** (author's
+  amendment, review round 2). From `outputs/wp4/published_residual_scatter_dataset.csv` (full-size, usable WP3 fits), split
+  by region, **subtract that region's empirical mean** (+0.014854, −0.004736, −0.000900, +0.008567, −0.003058) and resample
+  the **centred** values with replacement within region, multiplied by USE_true. This makes C3 a zero-mean stochastic
+  scatter model directly comparable with C1 and C2, while keeping the empirical skew, heavy tails and heterogeneity about
+  the mean. **The lower-shelf +0.0149 × USE offset is a model-convention / model-shape bias and is never injected as if it
+  were random specimen scatter.**
+- **C3-uncentered** is retained as a separate, clearly labelled case — *"empirical residual + model-shape /
+  systematic-region-bias sensitivity"* — and is **not** the main C3 scatter sensitivity.
+
+**Pre-declared selection criterion** (fixed before any headline cell, evaluated on calibration diagnostics only): the
+central model must lie within ±25 % of the WP4 empirical SD/USE in **all five** regions and within ±15 % at the 41 J
+crossing of the median archetype; ties are broken toward the candidate needing no fitted parameter; if none qualifies, C1
+is central by default.
+
+**Alternatives.** Fit a new scatter form to the residuals; stratify by product form or irradiation. **Why not.** A new form
+would be a model invented after the WP4 results; D-066 found no product-form stratification supported (fewer than 10 curves
+in most strata). **If chosen.** An unfalsifiable scatter model, or strata too thin to interpret.
+
+## D-095 — The CENTRAL scatter model is C1, changing the D-066 planning preference
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This supersedes the planning preference
+recorded in D-066** (C2 central), and the change was made **before any headline WP6 result existed**.
+
+**Decision.** The **CENTRAL** WP6 scatter model is **C1 with the ordinary SD scale**. C2 and C3-centred are **mandatory**
+sensitivities; C1-robust is the low-scatter sensitivity; C3-uncentered is the labelled model-shape case; the
+miniature-inflated profile is a required sensitivity (D-096). All are run on the frozen T4 grid and the headline is
+reported under each, with an explicit statement of whether the full-size-versus-miniature conclusion changes across them
+(required by D-066).
+
+**Why C1 and not C2** (calibration evidence, produced during planning and regenerated by `src/wp6_scatter.py`). Calibrating
+C2 by the D-094 procedure gives σ_T ≈ 7.38 °C and cv ≈ 0.057, and the resulting region profile is
+0.0101 / 0.0510 / 0.1146 / 0.0921 / 0.0643 against the empirical 0.0361 / 0.0729 / 0.1052 / 0.0998 / 0.0616 — ratios
+0.28 / 0.70 / 1.09 / 0.92 / 1.04. **C2 under-represents the lower shelf by a factor of about 3.6 and the lower transition
+by about 30 %**, and it fails the D-094 criterion in two regions. For a 200 J RPV curve 41 J sits at x ≈ −0.71, i.e.
+**inside the lower-transition region that C2 under-represents**, which is the single most important place on the curve for
+the T41J estimand. C1 reproduces every region of the measured profile by construction and needs no fitted parameter; its
+only defect, a step in sd at a region edge, does not bias T41J.
+
+**Directional asymmetry, recorded so that the choice cannot later be mistaken for tuning.** Because
+RMSE_mini ≈ √(V_sampling(N_mini) + bias² + SD_correction²) has a floor that the full-size sampling variance does not,
+**understating the scatter favours full-size and overstating it favours miniature**. The choice was made on a calibration
+diagnostic, before any headline simulation result existed, and all three candidates are run regardless.
+
+**Alternatives.** Keep C2 central as D-066 preferred, reporting its lower-region deficit as a caveat. **Why not.** It would
+build a known ≈ 30 % understatement into the headline, in the direction that favours full-size, at exactly the place on the
+curve the estimand depends on. **If chosen.** A smoother scatter model, a lower full-size sampling error, and a headline
+biased toward full-size by an amount the sensitivity analysis would then have to undo.
+
+## D-096 — Miniature scatter: magnitude, coordinate and the un-modelled resolution floor
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+
+**Decision — magnitude.** Centrally, the **same relative scatter profile applies at both specimen sizes**, so that the
+energy normalization is exactly variance-preserving in relative terms and the comparison isolates the test-programme design
+question. A **required sensitivity** uses the WP4 **miniature** profile instead (central transition 0.1670 against
+0.105201, a factor 1.59), from 13 curves and 6 references, and is stated to be weakly supported wherever it appears.
+
+**Decision — coordinate (author's amendment, review round 3).** For a miniature programme with programme-level discrepancy
+Δ, a specimen tested at raw temperature `T_raw` truly sits at
+`T_equiv_true = T_raw + M − Δ`, `x_true = (T_equiv_true − T0_true)/C_true`.
+**Region selection for C1 and C3, and evaluation of the C2 function, use `x_true`** — never the raw temperature alone, and
+never the nominal position `T_raw + M`, which is where the analyst *thinks* the specimen sits. The magnitude is computed in
+the full-size-equivalent frame and converted to raw energy units by dividing by NF_E before being added to the raw
+specimen energy:
+`sd_raw = sd_fse / NF_E`, with sd_fse from C1, C1-robust, C2, C3-centred, C3-uncentered or the miniature-inflated profile.
+C2 is exactly scale-covariant in energy, so dividing by NF_E is identical to evaluating C2 in raw units with
+USE_raw = USE/NF_E and LSE_raw = 2.7/NF_E at the same σ_T and cv. Energies drawn below 0 J are set to 0 J **in raw units**
+and counted, as in D-048 and D-053. Multiplying by NF_E during normalization must therefore recover the intended
+full-size-equivalent scatter distribution; validation test 17 proves it.
+
+**Independence caveat, carried into every report of a large-N miniature gain.** All C1/C2/C3 specimen draws are
+**independent conditional on the programme-level Δ**. WP6 does **not** model a within-programme correlated laboratory or
+instrument systematic error — one machine, one operator, one calibration applied to every specimen of one programme. The
+WP4 pool itself contains between-laboratory and model-shape heterogeneity (D-061), part of which would in reality act as a
+*shared* within-programme offset. An independent error averages away as 1/√N; a correlated one does not. **Every
+very-large-N miniature gain is therefore reported as conditional on this independence assumption and as potentially
+optimistic.** No extra variance component is invented to cover it.
+
+**Named, quantified, and deliberately not modelled: the absolute energy-resolution floor.** It is not scale-invariant and
+would count against miniature specimens. Mapping a 200 J full-size material back through NF_E gives raw miniature curves
+spanning 0.642 J (G1), 3.511 (G2), 8.275 (G5), 8.438 (G6) and 28.090 J (G7), with the 41 J criterion at 0.132 J raw for G1.
+The 13 usable miniature WP3 fits have fitted USE between 3.32 and 29.08 J, so **G1's implied raw curve is smaller than
+anything in the dataset's own miniature fits**. No citable resolution value was found in the sources read, so the effect is
+named with its direction and magnitude rather than invented, and the G1 results carry that caveat.
+
+**Alternatives.** Invent a resolution floor; assume miniature scatter equals the WP4 miniature profile centrally. **Why
+not.** The first fabricates a number; the second would make a 13-curve, 6-reference estimate the central assumption.
+
+## D-097 — How the size correction is injected into the simulated truth
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** The size-correction discrepancy enters as a **temperature-domain displacement of the simulated truth**. With
+Δ the programme's discrepancy, the true miniature response is
+`E_mini_true(T_raw) = E_full_true(T_raw + M − Δ) / NF_E`.
+Applying the approved forward normalization (T + M, E × NF_E) then returns an estimate whose 41 J crossing lies at
+`T41J_true + Δ`, which **reproduces D-078's definition and sign exactly**: ΔT_size = T41J(normalized smaller-specimen
+estimate) − T41J(matched full-size curve), positive meaning the correction places the transition warmer. Verified end to
+end during planning: injecting −25 / −3.5 / 0 / +15 °C returned mean recovered errors of −25.32 / −3.82 / +0.22 / +14.97 °C.
+The sign convention is never silently reversed (CP4 item 7).
+
+**A consequence that is kept, not removed:** the displacement also **mis-centres the miniature test temperatures**, because
+the designer places specimens where the *published* correction says the transition is. That is physically real and is the
+mechanism by which an adaptive design can partly rescue a badly corrected miniature programme; a post-hoc additive shift
+applied to the recovered T41J would miss it.
+
+**Alternatives.** (1) Add Δ to the recovered T41J after the fit. (2) Inject the discrepancy as an energy-scale error
+(WP5 found normalized USE over-predicts by a median factor 1.19), at the same calibrated magnitude — retained as an
+optional labelled sensitivity (T4 variant V20), not as the central form. **Why not (1).** It would remove the design
+mis-centring and make the correction error purely additive, which is not what a wrong correlation does to a test programme.
+
+## D-098 — The correction residual is ONE programme-level draw
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** Δ is drawn **once per simulated test programme** and shared by every specimen in that programme. It is **not**
+redrawn per specimen in any central or headline analysis.
+
+**Why.** (i) WP5's estimand is defined per matched geometry comparison — one whole smaller-specimen curve against one whole
+full-size curve (D-078) — and D-082 describes it as "the spread of ΔT_size across matched comparisons". (ii) D-070 makes
+the material-condition family the unit of independence, which is a programme-level unit, not a specimen. (iii) Decisive:
+specimen-level noise would average away as 1/√N, so a programme with 500 miniature specimens would recover an *exact*
+correction — the physically absurd conclusion that testing enough small specimens removes a systematic correlation error.
+(iv) The observed structure supports it: ΔT_size varies between *geometries within one material* by tens of degrees
+(R59-266: −33.8 and +11.5 °C), i.e. at the curve-mapping level.
+
+**Kept as an explicitly labelled illustrative sensitivity only:** specimen-level redrawing (T4 variant V14). It makes the
+correction penalty vanish at large N, and showing that is the point — it demonstrates how much the answer depends on this
+one modelling choice. It is never the headline and never presented as an alternative central case.
+
+**Alternatives.** Specimen-level draws as central; a hierarchical split of the residual into programme and specimen parts.
+**Why not.** The first is refuted above; the second would need a variance decomposition that D-082 explicitly forbids
+attempting from these data.
+
+## D-099 — The distribution of the correction residual, and the two approved WP5 scenarios
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+
+**Decision — scenarios and their exact values,** read at run time from the regenerated WP5 outputs at full precision,
+never typed from prose (D-083):
+
+| scenario | bias (°C) | SD (°C) | source file and row |
+|---|---|---|---|
+| **CENTRAL** (primary pooled, WEAKLY SUPPORTED) | −3.4941546891181936 | 11.433714718421587 | `wp6_size_correction_handoff.csv`, POOLED row |
+| **CONSERVATIVE** (required, D-083) | −10.804718715572376 | 21.08698664047987 | `size_correction_summary_overall.csv`, all-STRICT family-weighted |
+| robust-scale brackets | as above | 11.337678974122086 / 19.903817963325263 | same files |
+| ZERO-PENALTY | 0 | 0 | validation only |
+
+WP6 **must** report whether the headline conclusion changes when CENTRAL is replaced by CONSERVATIVE. Neither is chosen
+because it gives a preferred answer.
+
+**Decision — parametric form.** Centrally `Δ ~ Normal(bias, SD)`. **There is no truncation.** A ±4 SD numerical guard was
+proposed during planning and **removed by the author**: it has no physical basis, and it is unnecessary, because the draw
+displaces the *truth* relative to the design and can never generate an out-of-envelope test temperature. The only
+consequence of an extreme draw is a programme that misses the transition, which is counted honestly as
+estimator-unavailable and enters the availability gate and the failure accounting like any other refusal. **If some
+numerical bound ever turns out to be genuinely necessary, the run stops and the author is asked before one is introduced.**
+
+**Decision — required nonparametric sensitivity.** Δ is resampled with replacement directly from the **family-level**
+ΔT_size values behind the approved summaries, reconstructed inside the pipeline from
+`outputs/wp5/size_correction_residuals.csv` and checked against the approved mean and SD to 1e-9 before use (the run stops
+on any mismatch):
+- PRIMARY pool, 7 families: −13.3260, +2.6865, −2.0097, −11.1610, −14.0078, −4.9607, +18.3196 °C
+  (reproducing −3.4941546891182 / 11.4337147184216).
+- ALL-STRICT pool, 10 families: −13.3260, +7.1936, +9.8117, −2.0097, −11.1610, −48.9415, −38.8450, −9.4327, −19.6563,
+  +18.3196 °C (reproducing −10.8047187155724 / 21.0869866404799).
+
+**No bias is ever added to an empirical draw** (author's amendment, review round 3). The two forms are exactly
+`Δ = bias + SD·z` (parametric) and `Δ = sample_with_replacement(family values)` (empirical, **directly**). The family
+values already contain their own empirical mean, so `bias + sampled_value` would count the bias twice. This is enforced
+structurally: an empirical scenario carries `bias_already_included = True` and the sampler refuses a separate bias
+argument; validation test 18 checks it numerically on 10⁷ draws.
+
+**Seven observations are not evidence that the residual is normal.** The normal model stays central only because it
+supplies a smooth SD axis for the correction-threshold experiment (D-106); the empirical-family resampling is what tests
+whether the parametric assumption changes the conclusion.
+
+**Caveat carried wherever the SD appears.** The pooled SD is a family-weighted **between-material** spread that still
+contains WP4 fit noise and between-study variation; no deconvolution is attempted (D-082), so it is if anything
+conservative. It is not a geometry-specific law, not pure material scatter and not an ASTM uncertainty (CP4 item 7).
+
+## D-100 — The normalization-method bias sensitivity (resolves the open D-089)
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This resolves D-089**, which CP4 deliberately
+left open as a WP6 planning decision.
+
+**Decision.** Each pre-declared published normalization is treated as a **complete, self-consistent scenario carrying its
+own (bias, SD) pair measured on the same matched comparisons**. Nothing is added in quadrature, no extra generic
+"method-uncertainty SD" is introduced, and which literature method is "true" is **never** randomly sampled.
+
+| scenario | family-weighted bias (°C) | family-weighted SD (°C) |
+|---|---|---|
+| **CENTRAL — Sokolov Eq. 22 with the B b² energy factor** | −3.494 | 11.434 |
+| S1 Corwin (B b)^{3/2} energy | −4.485 | 11.887 |
+| S3 Lucon shift | −6.614 | 11.499 |
+| S6 KLST dataset-literal geometry | −3.975 | 11.975 |
+| S5 Wallin shift | −18.010 | 11.056 |
+| S4 Towers shift | −23.234 | 11.784 |
+
+Values are read from `outputs/wp5/normalization_sensitivity_comparison.csv` at run time. S2 (pure fracture area,
++42.942 / 42.087) is **not** a scenario — D-089 rules it out as a central candidate — and is shown once as an illustration
+of what an inappropriate convention costs.
+
+**Why this does not double-count.** Each SD is the scatter of the residual **about that method's own bias**, measured on
+that method's own residuals. The bias moves between rows; no SD is widened to cover the movement. This is exactly what
+D-089 required: represent the bias sensitivity without double-counting the residual SD.
+
+**Alternatives.** (1) Draw the bias from a distribution over the six methods and keep the pooled SD. (2) Add a fixed extra
+method-uncertainty SD in quadrature. **Why not.** (1) adds a spread the same comparisons already generated and treats the
+choice of which published paper to cite as a random variable with a frequency interpretation nobody can justify from four
+published formulas; (2) is precisely what D-089 warns against. **What could be sensitive to it.** The miniature error floor
+is √(3.494² + 11.434²) = 11.9 °C under Sokolov and √(23.234² + 11.784²) = 26.0 °C under Towers, so the choice of published
+correlation may matter more than the scatter model. That is reported explicitly rather than assumed either way.
+
+## D-101 — Test-temperature placement: the physical frame, the grid, and the five strategies
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2, 3 and 4); PRE-REGISTERED (WP6)
+
+**Decision — the physical frame (author's amendment, review round 3).** The **−196 °C to +300 °C envelope is a physical
+raw-specimen test-temperature envelope** (−196 °C is the liquid-nitrogen floor; the range also covers the −196…+300 °C span
+of [Marini2020]'s RPV matrix and this cohort's own tested range), and the **5 °C grid is a physical raw test-temperature
+grid**. Every placement therefore follows this order, without exception, for U, C, A, S, SS and **every adaptive update**:
+
+1. the strategy proposes a desired **full-size-equivalent** temperature `T_fse_desired`;
+2. convert to raw: `T_raw_desired = T_fse_desired − M` (M = 0 for full-size);
+3. round the **raw** temperature to the 5 °C grid;
+4. clip the **raw** temperature to [−196, +300] °C;
+5. the specimen is tested at that snapped, clipped `T_raw_actual`;
+6. for analysis the actual raw temperature is normalized back: `T_fse_actual = T_raw_actual + M`.
+
+**Clipping and snapping never occur in full-size-equivalent space.** Clipping in the equivalent frame and then subtracting
+M would request physically impossible raw temperatures — for G1 (M = 87.1 °C) a wide-span design would ask for specimens at
+−265 °C.
+
+**M is subtracted exactly once (author's amendment, review round 4).** The prior `T_assumed_fse = T41J_true + e_prior` and
+every quantity a strategy reasons with are **full-size-equivalent, identically for full-size and miniature programmes**;
+the one and only subtraction of M is step 2. No strategy is ever handed a pre-shifted prior, and this is enforced
+structurally: the strategy functions take no geometry argument and only `place()` knows M. Validation test 19 proves the
+single subtraction numerically. **SS is the one deliberate exception**: it operates directly in raw space, starting at
+`T_raw_start = T_assumed_fse − M` (still a single subtraction) and stepping in raw temperature thereafter.
+
+Specimens whose desired raw temperature is colder than −196 °C **pile up at −196 °C** — the engineer has run out of cooling.
+This is the declared central behaviour; it is counted by the per-cell `temperature_clip_fraction` and
+`n_distinct_raw_temperatures` and is never hidden. A "feasible-span" variant that re-spreads a design inside the reachable
+raw window is a *different* design definition and is not substituted for any frozen arm.
+
+**Decision — prior information available to every strategy.** `T_assumed_fse = T41J_true + e_prior` and a fixed declared
+nominal width `C_assumed = 40 °C` (close to the cohort median 46 °C). **The true C is never visible to design code.**
+
+**Decision — the strategies.** `place(·)` below means "apply steps 2–5".
+- **U, UNIFORM / WIDE SPAN.** `T_i = place(T_assumed_fse + W_wide·(i/(N−1) − ½))`, i = 0…N−1, `W_wide = 250 °C`
+  (the cohort median tested span is 268 °C; p10 175, p90 365). N = 1 places one specimen at the centre.
+- **C, CLUSTERED.** The same rule with `W_clust = 3·C_assumed = 120 °C`.
+- **A, CLUSTERED WITH SHELF ANCHORS.** `n_anchor = max(1, round(0.10·N))` specimens at
+  `place(T_assumed_fse + 3·C_assumed)` and the same number at `place(T_assumed_fse − 3·C_assumed)`; the remaining
+  N − 2·n_anchor by rule C. Modelled on [Marini2020]'s RCC-M matrix (15 tests from −60 to +20 °C plus 3 at +100 °C).
+- **S, ADAPTIVE (model-based, batched).** Seed block `n0 = max(4, round(N/3))` placed by rule A from the prior alone; block
+  size `k_blk = max(1, round(N/6))`; then repeat until N specimens are used: fit everything so far with the approved fitter
+  in the full-size-equivalent frame using `T_fse_actual`; if the fit converged and 41 J lies strictly between the fitted
+  shelves, place the next block at `place(T̂ + δ_j·Ĉ)` with δ cycling 0, −0.5, +0.5, −1.0, +1.0, −1.5, +1.5, …; otherwise,
+  if every measured energy so far is ≥ 41 J place at `place(min(T_fse_actual) − 0.75·C_assumed)`, if every one is < 41 J at
+  `place(max(T_fse_actual) + 0.75·C_assumed)`, and if the fit failed outright at `place(T_assumed_fse)`. **An out-of-range
+  crossing may be used for design**: D-044's tested-range rule governs *reporting*, not the choice of the next test
+  temperature. The budget fixes N exactly; there is no early stop and no extra specimen.
+- **SS, SIMPLE UP/DOWN STAIRCASE** (required reduced-grid sensitivity, tier T7), frozen before any result and run entirely
+  in raw space: start at `T_raw_start = T_assumed_fse − M` snapped and clipped; one specimen at a time; step
+  `Δ_step = 0.5·C_assumed = 20 °C`; after each specimen, if **E_fse < 41 J** the next raw temperature is +Δ_step (warmer)
+  and if **E_fse ≥ 41 J** (including exact equality, so the rule is total) it is −Δ_step (colder); each next raw
+  temperature is snapped and clipped, repeats allowed and counted; no early stop, no re-centring, no fitting during design.
+
+**Adaptation-update accounting (author's amendment, review round 2).** The number of genuine adaptation updates is reported
+per arm in `adaptive_update_counts.csv`. It is **0 at N = 4**, 2 at N = 6 and 4 for N ≥ 8. **At the smallest full-size
+budget (k = 4) the seed block consumes the whole programme and S is exactly strategy A**; every result, caption and
+conclusion touching that cell says so, and no "adaptive" claim is made from a cell in which no adaptation occurred.
+
+**No truth leakage is structurally possible.** `wp6_design.place_temperatures(strategy, t_assumed_fse, c_assumed, n,
+history, ...)` has no truth parameter, and the simulator never passes one (validation test 7, structural and behavioural).
+
+**Alternatives.** Place temperatures in the equivalent frame and clip there; let the adaptive rule see the true T0.
+**Why not.** The first requests physically impossible tests; the second is information leakage and would invalidate the
+whole comparison.
+
+## D-102 — The prior-knowledge axis
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** `e_prior = T_assumed_fse − T41J_true`, symmetric and declared in advance, nine levels:
+**{0, ±10, ±20, ±40, ±80} °C**. Basis: 80 °C is about 1.7 × the median fitted C (46 °C) and about twice a typical
+irradiation shift; 10 °C is within the 9.4 °C base-metal scatter allowance of [10CFR50] §50.61(c)(2)(i)(C) already adopted
+as this project's reference scale (D-048). A planning check confirmed the ladder brackets the collapse: a clustered design
+at ±80 °C produced a reportable T41J in only 3–18 % of replicates, against ≥ 99 % at ±40 °C. **The levels were fixed before
+any result and are not adjusted afterwards.**
+
+**Why this axis matters.** PROJECT_BRIEF.md §5 expects the answer to depend on how well the transition is known before
+testing, but says to determine rather than assume it. The sweep (tier T2) is what determines it.
+
+## D-103 — The estimator is the approved WP3 and WP5 analysis, unchanged
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** Every simulated programme is analysed exactly as the corresponding real programme would be:
+`wp3_fitter.fit_curve(t, e, lse_fixed=2.7)` (the approved full-size convention of D-042, which D-077 also approved for
+normalized smaller-specimen points), then `index_temperature` with the tested-range rule applied to the **analysed**
+temperatures, `index_fraction_of_rise`, `classify` and `criterion_bracketing` — the approved functions, imported unchanged
+from `src/wp3_fitter.py`. For a miniature programme the transformation into the analysis frame is the approved
+`wp5_normalization.normalize` (D-073, D-074) applied to the **actual raw** temperature and energy.
+
+**The estimator's refusals are part of the estimator.** A replicate whose 41 J crossing lies outside its own tested range
+has **no** T41J and is counted as unavailable (D-044); it is never replaced by an extrapolated value. Validation test 14
+proves the WP6 analysis path reproduces `wp3_fitter` on stored published curves, so what is validated is what is applied
+(the D-054 pattern).
+
+**Alternatives.** A simplified or "simulation-friendly" fitter; allowing extrapolated crossings. **Why not.** Either would
+measure a different estimator from the one this project reports.
+
+## D-104 — The primary performance metric and the availability gate
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** The **primary metric is the RMSE of (T̂41J − T41J_true) in °C**, computed over the replicates in which the
+approved estimator produced a value. The **eligibility gate is availability ≥ 95 % of the replicates requested** — the same
+threshold and the same logic as the WP4 reporting rule D-057, reused rather than invented. Failed and unavailable
+replicates always stay in the denominator. A cell below the gate is labelled **"estimator unavailable too often"** and can
+never be declared a winner, however small its conditional RMSE.
+
+**Also reported for every cell:** signed bias, SD, MAE, median |error|, P90 |error|, P95 |error|, availability fraction,
+the WP3 outcome-category counts of the final fit, the index-unavailable reasons, `temperature_clip_fraction`,
+`n_distinct_raw_temperatures`, and for strategy S the adaptation-update count.
+
+**Why RMSE decides.** It combines the systematic correction penalty with the sampling variance in the units of the
+regulatory index. SD alone would hide the correction bias; MAE would under-weight the tail that matters for a vessel
+integrity argument. **Secondary decision metric: P90 |error|**, reported beside it, with any disagreement between the two
+flagged explicitly rather than resolved silently.
+
+**Why the gate is necessary.** A planning check found clustered designs at ±80 °C prior error available in only 3–18 % of
+replicates with a conditional RMSE of 14–25 °C — which without the gate would look merely mediocre instead of unusable.
+
+## D-105 — Win, practical tie, flip, and the label-threshold robustness matrix
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
+
+**Decision.** With ΔRMSE = RMSE(full-size) − RMSE(miniature) for one budget, strategy, archetype and scenario:
+- **τ = max(2.0 °C, 5 % of the smaller RMSE)**. Basis: 2 °C is this project's own distinct-test-temperature convention
+  (D-037) — a difference below the resolution at which test temperatures are set and reported cannot drive a
+  test-programme decision — and it is about 21 % of the 9.4 °C base-metal scatter allowance of [10CFR50]
+  §50.61(c)(2)(i)(C) already adopted as a reference scale in D-048.
+- **MINIATURE WINS** iff ΔRMSE > τ **and** ΔRMSE > 3·SE_paired(ΔRMSE) **and** both cells pass the D-104 gate.
+- **FULL-SIZE WINS** iff −ΔRMSE > τ and −ΔRMSE > 3·SE_paired(ΔRMSE) and both cells pass the gate.
+- **PRACTICALLY TIED** otherwise; **INELIGIBLE** if either cell fails the gate.
+**No winner is ever declared from a fraction of a degree of Monte Carlo difference.**
+
+**Flip point** = the value of a swept variable at which the declared winner changes, reported as a bracketing interval
+between adjacent grid values and separating the **numerical crossing** (ΔRMSE changes sign; linear interpolation) from the
+**practically meaningful crossing** (the whole tie band is crossed). Both are printed; the second is what conclusions quote.
+
+**Label-threshold robustness matrix (author's amendment, review round 2), at zero additional simulation.** Recomputed post
+hoc from the stored per-replicate errors and availability masks: availability gate ∈ {90 %, **95 % primary**, 99 %} ×
+τ ∈ {0 °C, 2 °C fixed, 5 °C fixed, **max(2 °C, 5 %) primary**}, twelve label variants, written to
+`label_threshold_robustness.csv` with an explicit statement of whether the headline winner and the flip depend materially
+on these project-defined thresholds. **The threshold that gives a cleaner answer is never selected**; the primary rule is
+fixed here and does not change.
+
+**Alternatives.** A pure significance test with no practical tolerance; a fixed 5 °C tolerance. **Why not.** The first
+would manufacture winners from Monte Carlo noise at large replicate counts; the second is one of the reported variants
+rather than the rule, because it is not tied to any project convention.
+
+## D-106 — The correction-uncertainty threshold SD*
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** The headline threshold quantity is **SD\*** = the correction residual SD at which
+RMSE(miniature at N_mini) = RMSE(full-size at N_full), at the declared bias, for a given budget, strategy and archetype.
+It is obtained two ways, both reported:
+1. **Simulated (primary):** a declared sweep SD ∈ {0, 5, 10, 15, 20, 25, 30, 40} °C (tier T3), with SD\* by linear
+   interpolation between the bracketing grid points and the tie band shown. The measured 11.4337 and 21.0870 °C are drawn
+   as annotated verticals; their cells already exist in T1 and T4.
+2. **Semi-analytic cross-check:** SD\* = √(RMSE_full² − V_sampling,mini − bias²) from the simulated sampling-only variances.
+
+**Agreement is a validation check; disagreement is informative** — it measures the second-order effect that a large Δ also
+mis-centres the miniature test temperatures (D-097), which the algebra cannot capture. This answers the brief's question
+"how uncertain can the size correction be before the benefit of extra miniature specimens disappears?", per budget and per
+strategy rather than as one global number.
+
+## D-107 — Replicates, seeds, common random numbers, the paired Monte Carlo SE, and stability
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+
+**Decision — replicates.** R = 1,000 in tiers T1, T2, T3 and T7; R = 500 in T4; R = 400 in T5; R = 200 programmes in T6.
+Fixed before any result. **R is never chosen by which value makes a curve smoother**, and no cell receives a different R
+because of its result.
+
+**Decision — seeds.** `numpy.random.SeedSequence([20260918, h(cell_stream), h(component), replicate])`, with h the integer
+of the first 15 hex digits of SHA-256 — the WP3 and WP4 construction (D-055). One independent stream per replicate per
+component, so results do not depend on the worker count, the chunking or the execution order.
+
+**Decision — common random numbers, declared in advance.** The standardized correction draw z and the specimen-noise stream
+are keyed on (archetype, prior error, replicate index) and are therefore **shared across strategies, geometries and
+correction-SD levels** within a replicate. This pairs exactly the comparisons the win and flip rules operate on. It is
+declared here, before results, not adopted after seeing noisy curves.
+
+**Decision — the availability gate and the Monte Carlo SE are separate quantities** (author's amendment, review round 3).
+*Eligibility* is decided **once per cell on the complete R replicates** (availability ≥ 95 %, D-104); that is the sole use
+of the gate. *The Monte Carlo SE* estimates the sampling error of ΔRMSE, where each cell's RMSE is its **conditional RMSE
+over its available replicates**; the estimand is fixed first and the estimator mirrors it.
+
+**Primary SE estimator: paired batch means over exactly 20 batches.** The R shared replicate indices are partitioned into
+20 contiguous batches — **the same index batches in both cells** (R = 1000 → 50 each, R = 500 → 25, R = 400 → 20). Within
+batch b each cell's conditional RMSE is computed from the available values in that batch, giving ΔRMSE_b; then
+SE_paired = s({ΔRMSE_b}, ddof 1)/√20. This preserves the covariance created by the shared streams. **The 95 % gate is not
+re-applied inside a batch**, because a noisy 50-replicate availability fraction would discard batches for no statistical
+reason. The only batch-level rule: a batch with **zero** available values in either cell is dropped and counted, and if
+more than **2 of 20** are unusable the comparison is labelled "paired SE unreliable — availability too low" and no winner
+is declared. **The revision-1 proposal to combine two independent RMSE/√(2R) terms in quadrature is removed**: it is wrong
+for cells that deliberately share random numbers.
+
+**Declared cross-check, same estimand, no refits:** a **paired replicate-index bootstrap** — resample the R replicate
+indices with replacement, apply the identical index set to both cells, compute each cell's conditional RMSE from its
+available values, take ΔRMSE, repeat 2,000 times, and use the SD of the bootstrap ΔRMSE. It likewise does not re-apply the
+gate inside a resample. It is reported beside the batch-means SE at every declared flip and for the stability subset;
+disagreement by more than a factor 1.5 is reported, not silently resolved.
+
+**Decision — Monte Carlo stability.** A predeclared subset — for each strategy, the cells at k = 4 and k = 24 and the cell
+nearest the flip for archetype A5, at most 16 cells — is rerun at **R = 4,000** on an independent stream. **Criterion:**
+every winner label unchanged, and the interpolated flip budget and SD\* each move by less than the grid spacing (or less
+than τ in RMSE terms). Reported whether or not it passes.
+
+## D-108 — The frozen experiment grid
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+
+**Decision.** Every cell of every tier is enumerated **before** implementation, so that no "representative" arm can be
+chosen after results are visible. Archetypes A1–A9; reduced set {A1, A5, A9}; geometries G0–G7; budgets
+k ∈ {4, 6, 8, 12, 18, 24}; strategies U, C, A, S (and SS in T7).
+
+- **T1 headline.** A1–A9 (9) × 48 arms × 4 strategies; e_prior = 0; scatter C1; correction CENTRAL normal; normalization
+  Sokolov. Arms: G0 × 6 budgets, and each of G1, G2, G3, G5, G4, G6, G7 × 6 budgets. **1,728 cells, R = 1,000.**
+- **T2 prior sweep.** 9 prior levels × {A1, A5, A9} × 4 strategies × **8 frozen arms** (G0, G2, G5, G6 at k = 6 and 12).
+  **864 cells, R = 1,000.**
+- **T3 threshold sweep.** 8 correction-SD levels × {A1, A5, A9} × 4 strategies × **6 frozen miniature arms**
+  (G2, G5, G6 at k = 4 and 8), bias fixed at −3.4941546891181936, e_prior = 0, scatter C1. Full-size comparators G0 at
+  k = 4 and 8 are reused from T1. **576 cells, R = 1,000.**
+- **T4 sensitivities.** 22 variants V1–V22 on {A1, A5, A9} × 4 strategies, using the frozen 6-arm set S6A
+  (G0, G5, G6 at k = 6 and 12), the miniature-only 4-arm set S4M (G5, G6 at k = 6 and 12), or, for V16 and V17, the
+  geometry-specific set (G0, G1, G5, G7 at k = 12). **1,296 cells, R = 500.** The variants are C1-robust, C2, C3-centred,
+  C3-uncentered, miniature-inflated, CONSERVATIVE correction, the two empirical-family pools, five normalization scenarios,
+  specimen-level draws, true LSE 6 J, the two envelope locations, the two machining allowances, the energy-scale injection,
+  and the looser and stricter WP2 cohorts.
+- **T5 breadth check.** Each of the 104 usable full-size WP3 fits as a truth × 4 strategies × **4 frozen arms**
+  (G0 and G5 at k = 6 and 12). **1,664 cells, R = 400.**
+- **T6 interval coverage.** **6 frozen cells** (G0 and G5 at k = 6, 12, 24), archetype A5, strategy U, e_prior = 0,
+  scatter C1, correction CENTRAL. **R = 200 programmes, B = 500 bootstrap replicates each.**
+- **T7 staircase.** Strategy SS × {A1, A5, A9} × e_prior ∈ {0, −40, +40} × S6A. **54 cells, R = 1,000.** Comparators
+  already exist in T1 and T2.
+
+**Total 6,188 cells, about 4.54 M simulated programmes, about 10.2 M fits.** The grid is not reduced for runtime; see
+D-111.
+
+## D-109 — The bounded interval-coverage sub-study
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+
+**Decision.** Tier T6 measures how a bootstrap interval behaves on a *simulated* programme, using the **approved WP4 pairs
+bootstrap, unchanged** (D-052 to D-057). Two coverage quantities are reported **separately and never merged**:
+- **Coverage A** — of the programme's own corrected estimand **conditional on its realised size correction**, i.e. of
+  `T41J_true + Δ`. This isolates what the bootstrap actually samples.
+- **Coverage B** — of the **true full-size T41J**, after programme-level size-correction uncertainty exists.
+For full-size cells the two coincide because Δ ≡ 0. For miniature cells they must not: the bootstrap cannot see Δ, so
+coverage B is expected to collapse while coverage A stays near the WP4 synthetic values. **That contrast is the result**,
+and it is a practical warning about quoting a bootstrap CI on a sub-size-derived T41J. Median interval widths are reported
+beside both.
+
+**B = 500 is a bounded WP6 Monte Carlo coverage experiment only.** It neither replaces nor modifies WP4's approved
+production procedure, which remains B = 2,000 per curve per method (D-055). No WP4 output, interval, rule or number is
+affected, and nothing in WP6 may be described as a change to the WP4 bootstrap. **The bootstrap is never modified to
+improve coverage.**
+
+## D-110 — WP2 cohort propagation
+**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+
+**Decision.** PROJECT_BRIEF.md §5 requires the headline to be tested against looser and stricter inclusion rules. WP6
+propagates the CP2-frozen cohorts on the frozen T4 grid (variants V21, V22) through the two inputs it can legitimately
+recompute:
+- **true-curve archetypes** — USE and C quantiles re-derived from `outputs/wp3/fits_looser_cohort_curves.csv` (looser) and
+  from the `in_stricter` subset of `outputs/wp3/fits_primary.csv` (stricter);
+- **scatter profile** — re-aggregated with the unchanged D-061 definitions from the WP3 fits of that cohort; for the
+  stricter cohort this is a filter of `outputs/wp4/published_residual_scatter_dataset.csv`, so **no WP4 run is repeated**.
+
+**The WP5 size correction stays at the primary-cohort value in every cohort variant**, because D-071 fixes WP5 to the
+CP2-frozen primary cohort and D-039 forbids regenerating cohorts. **That limitation is stated in the generated output**,
+not worked around. No frozen cohort is touched, and the CP2 membership check runs before WP6 reads anything.
+
+**Alternatives.** Rerun WP5 per cohort. **Why not.** It would require changing a frozen cohort, which needs its own
+approved decision (D-039), and CP4 did not approve one.
+
+## D-111 — Computational architecture, memory, determinism and the runtime stop rule
+**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+
+**Decision.** WP6 is built for the 8 GB project machine from the start, applying the WP4 lesson (D-067 steps 3–5):
+- execution through the existing `wp4_bootstrap.stream_map` — spawn context, **3 worker processes by default**
+  (`WP6_WORKERS` to override), workers recycled after 200 tasks, tasks fed lazily from a generator, results consumed one
+  at a time;
+- **workers return per-cell summaries and a compact float32 error array, never specimen-level data**; across all 6,188
+  cells the stored per-replicate errors total about 25 MB, so exact quantiles need no streaming approximation;
+- no simulated data set is written to disk except the single worked-example programme used for figure 9;
+- **checkpoint and resume** through `src/wp6_checkpoint.py`, which has its own `SOURCES` list and reuses
+  `src/wp4_checkpoint.py`'s atomic-write and fingerprint helpers **without editing any WP4 file**, so the WP4 cache is not
+  invalidated. One fingerprinted `.npz` per cell block in the git-ignored `cache/wp6/`, reused only when code, package
+  versions, parameters and inputs are identical; a stopped run recomputes only the missing blocks;
+- **determinism**: per-replicate seeds make every result independent of worker count, chunking and order (validation
+  test 6).
+
+**Runtime stop rule (author's instruction).** The order of work is: implement → run the validation suite → **benchmark
+actual runtime and peak memory on a declared subset** → if the projected full-run wall time is **≤ about 10 hours** and
+memory is safe, run the complete frozen grid; **if it materially exceeds that, or memory safety is questionable, STOP and
+report the benchmark to the author before any reduction is proposed.** Runtime alone is not a reason to reduce scientific
+coverage. The **measured** runtime, not an estimate, is what goes into `README.md` and `run_all.sh` (the D-067 step 8
+precedent).
+
+**Hard constraint.** WP6 changes no WP0–WP5 source file, output, cohort or decision. The only pre-existing files it touches
+are `run_all.sh`, `DECISIONS.md`, `PROGRESS.md` and `README.md`.
+
+## D-112 — How the WP6 method was arrived at (chronological, including everything computed before pre-registration)
+**Status:** record. PRE-REGISTERED (WP6) for steps 1–4; extended as work proceeds. No step is rewritten later.
+
+1. *State reconstruction and planning, before any WP6 code existed (2026-09-17/18).* The approved state was verified
+   read-only: branch, CP4 merge, 213 tracked files, the exact CP4 handoff numbers, the WP4 residual profile and the WP3
+   parameter quantiles. `PROJECT_BRIEF.md` §5, §6.2 and §9, `PROGRESS.md` and the WP3, WP4 and WP5 sections of this file
+   were read in full.
+2. *Calculations performed during planning, before any decision above was fixed.* All ran outside the repository and none
+   is a WP6 result; each is regenerated by the implementation under the pre-registered procedure. They are recorded here
+   because they could in principle have influenced a choice.
+   a. *Fitter benchmark (timings only):* 6.1–15.4 ms per full evaluation at N = 6…3,000, used to size the experiment.
+   b. *C2 calibration arithmetic* against the WP4 profile: σ_T ≈ 7.38 °C, cv ≈ 0.057, region ratios
+      0.28 / 0.70 / 1.09 / 0.92 / 1.04. **This is the evidence behind D-095 and it is a calibration diagnostic, not a
+      simulation outcome.**
+   c. *Feasibility pilot:* full-size T41J RMSE against N (17.8 °C at N = 4 down to 1.67 °C at N = 240), the clustered and
+      prior-error variants, and the availability collapse to 3–18 % at e_prior = ±80 °C. Used to confirm that the budget
+      ladder brackets the flip and that the availability gate does real work. The grid was chosen to **bracket** the flip,
+      which is the brief's stated objective; no estimator, rule, metric or tolerance was chosen to produce a preferred
+      winner.
+   d. *Sign-convention check* of the correction injection: injected −25 / −3.5 / 0 / +15 °C returned −25.32 / −3.82 /
+      +0.22 / +14.97 °C.
+   e. *WP5 residual structure* read from the approved outputs: between-family SD 11.43 °C, within-family spread 23.2 °C on
+      3 df. Used only to argue the D-098 programme-level draw.
+   f. *Family-pool reconstruction:* the 7 primary and 10 all-STRICT family-level residuals rebuilt from
+      `outputs/wp5/size_correction_residuals.csv`, reproducing the approved family-weighted means and SDs to 13
+      significant figures.
+   g. *Raw-envelope consequence calculation:* the coldest reachable full-size-equivalent temperature `−196 + M` per
+      geometry, the clipped share of a 250 °C uniform span, and the number of the 104 usable full-size fits lying below
+      each geometry's floor (21 of 104 for G1, 7 for G2). This motivated withdrawing the geometry-collapse claim (D-092)
+      and widening the envelope sensitivity (D-093).
+   h. *Raw miniature energy scale* implied by NF_E (0.64 J for a 200 J material at G1), used only to quantify the
+      already-declared un-modelled resolution floor (D-096).
+3. *Three author review rounds of the written plan (2026-09-17/18), all before implementation.*
+   a. Round 1: the plan was written and presented with every decision listed for approval.
+   b. Round 2: 14 amendments. C1 approved as the central scatter model against the D-066 preference (D-095); C3 amended to
+      centred resampling (D-094); the programme-level correction draw approved (D-098); the ±4 SD truncation removed and
+      the empirical-family sensitivity made required (D-099); all seven WEAKLY SUPPORTED geometries simulated and the
+      nine-row reconciliation required (D-092); the budget accounting declared idealized (D-091); the paired batch-means
+      SE replacing an incorrect quadrature (D-107); the label-threshold robustness matrix added (D-105); the staircase
+      promoted to a required sensitivity and adaptation counts required (D-101); every reduced cell frozen (D-108); T6
+      approved (D-109); D-100 approved unchanged; the grid not reduced for runtime (D-111).
+   c. Round 3: the physical test-temperature envelope corrected to the **raw specimen** frame, with the placement order
+      fixed (D-101); the global geometry-collapse claim withdrawn and restricted, and validation test 12 split into
+      interior and boundary parts (D-092); raw-feasibility validation and the clip diagnostics added; translation
+      invariance restricted and the envelope sensitivity made geometry-specific (D-093); the miniature scatter coordinate
+      made explicit (D-096); the empirical-draw double-counting rule made explicit (D-099); the availability gate and the
+      Monte Carlo SE separated (D-107).
+   d. Round 4: one remaining coordinate-frame ambiguity corrected — the prior is stored and passed in the
+      full-size-equivalent frame for U, C, A and S, and **M is subtracted exactly once**, inside `place()`; SS is the
+      deliberate raw-space exception; validation test 19 added (D-101). Two reporting clarifications added: the
+      conditional-independence caveat on large-N miniature gains (D-096) and the statement that T6's B = 500 does not
+      modify WP4's approved B = 2,000 (D-109).
+4. *Pre-registration commit.* D-090 to D-112 and the WP6 source modules — `wp6_design.py`, `wp6_scatter.py`,
+   `wp6_correction.py`, `wp6_simulator.py`, `wp6_checkpoint.py`, `wp6_validation.py`, `wp6_experiment.py`,
+   `wp6_tests.py` — together with the frozen grid definition and the calibration diagnostics, committed **before any
+   headline WP6 cell was run**.
