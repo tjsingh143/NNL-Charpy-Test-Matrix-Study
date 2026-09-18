@@ -2608,8 +2608,22 @@ finding and it is reported as such, per comparison and in the summary.
       pre-declared sensitivities (D-075), so a reader can see what any other choice would have given.
 2. *Pair inventory, committed before any normalization existed* (commit `6d2aba0`): `src/wp5_pairs.py` and its outputs. Match
    classes (D-068, D-069) were defined and applied before `src/wp5_size_effect.py` was written.
-3. *Pre-registration commit:* D-068 to D-086 and `src/wp5_normalization.py` (the literature equations and their self-checks),
-   committed before any normalization residual, refit or before/after metric existed.
+3. *Pre-registration commit* (`e160fe3`): D-068 to D-086 and `src/wp5_normalization.py` (the literature equations and their
+   self-checks), committed before any normalization residual, refit or before/after metric existed.
+4. *Implementation and results* (`src/wp5_size_effect.py`, `src/wp5_tests.py`). Everything that determines a residual — the two
+   primary equations, the seven sensitivities, the full-size-equivalent fitting rule, the match classes, the primary analysis
+   set, the evidence thresholds, the sign convention and the summary statistics — was already fixed in step 3 and none of it
+   changed. Changes made after the results existed, recorded as such:
+   a. *Reporting only:* the stratified summaries now emit both weightings per stratum instead of one merged row; the WP6 handoff
+      gained a POOLED row and suppresses a standard deviation below 4 families, which applies D-080's existing rule that the
+      pre-registered text already stated; the WP4 interval label of the full-size curve is carried on every comparison for
+      reporting (it is never used as a size penalty, D-082).
+   b. *Figures only:* geometries ordered by ligament volume, rotated axis labels, and one panel added to the performance figure
+      showing the published shift against the observed pair shift (a quantity D-078 had already declared as an outcome).
+   c. *Corrected in the generated text:* the count of miniature geometries matching a NUREG/CR-6379 specimen type was written
+      from a wrong expression and printed 5, then 1 in a limitation; recomputed from the geometry table it is 6 of 9. No number
+      used in an estimate was affected.
+   No estimator, normalization, threshold, match class, sign convention, inclusion rule or cohort changed.
 
 ## D-086 — Software and sanity checks that must pass before any WP5 number is trusted
 **Status:** PRE-REGISTERED (WP5); provisional pending CP4
@@ -2636,3 +2650,60 @@ raises and stops the pipeline rather than producing numbers.
 9. **Raw data immutability.** `data/raw/` checksums are verified by WP0 on every pipeline run; WP5 writes nothing outside
    `outputs/wp5/`.
 10. **Frozen cohorts.** The CP2 membership check runs before WP5 reads anything.
+
+## D-087 — What the analysis found (results; the method above was fixed before any of this existed)
+**Status:** record of results. PROPOSED (CP4) — the author decides at CP4 what WP6 may carry forward.
+
+**Matched evidence** (`pair_data_sufficiency.md`, `wp5_summary.md` §2). Of 4,824 enumerated candidate pairs, **18** are STRICT
+matched geometry comparisons, from **10** independent material-condition families in **5** publications (refs 53, 55, 59, 60,
+107). **0** PARTIAL and **0** cross-study. **10** comparisons from **7** families in **5** publications reach the pre-registered
+primary analysis set; 8 are held as sensitivity. 8 of the 9 miniature geometries reach at least one STRICT comparison.
+
+**Primary residual** (`size_correction_summary_overall.csv`). ΔT_size, primary analysis set: comparison-weighted mean −3.5 °C,
+median −3.7, MAE 13.9, RMSE 16.2, SD 16.7, robust scale 19.5, range −33.8 to +18.3 °C (10 comparisons); family-weighted mean
+−3.5 °C, median −5.0, MAE 9.5, RMSE 11.1, **SD 11.4 °C**, robust scale 11.3 (7 families). Over all 17 STRICT comparisons with a
+residual: family-weighted mean −10.8 °C, SD 21.1 °C (10 families).
+
+**No geometry class reaches the D-079 threshold** (`size_correction_summary_by_geometry.csv`, `wp6_size_correction_handoff.csv`):
+0 of 9 are DIRECTLY SUPPORTED, 7 are WEAKLY SUPPORTED (1–3 families each, and where there are 3 they come from one publication),
+2 are UNSUPPORTED BY THIS DATASET. Product form: plate is the only stratum meeting the threshold (4 families, 3 publications;
+family-weighted mean −2.2 °C, SD 14.6); forging (2 families) and weld metal (1 family) do not. Irradiation: unirradiated meets it
+(5 families, 4 publications; mean −1.7 °C, SD 12.8); irradiated (2 families) does not, so **no separate irradiated correction is
+estimated and no interaction between irradiation and geometry is claimed either way**.
+
+**The normalization does help** (`before_after_normalization_metrics.csv`). Median |T0 difference| 66.9 → 16.2 °C; median
+|relative USE difference| 0.96 → 0.24; median curve-level RMS energy difference over the shared supported range 0.46 → 0.26 of
+the full-size USE. 8 of 10 comparisons improved on T0, 9 of 10 on USE, 8 of 10 on the curve-level metric.
+
+**The two failures are both ref 55**, the same severely embrittled low-toughness A533B plate (full-size USE 51–63 J, T41J +115
+and +214 °C). For those pairs the measured shift runs the wrong way — T0(full-size) − T0(smaller) = −35.5 and −2.2 °C, i.e. the
+miniature specimens transitioned at or above the full-size temperature — so adding a positive published shift makes the
+agreement worse. Reported, not removed. For the other 8 comparisons the published shift lands within 30 °C of the shift the
+matched pair actually shows, over observed shifts of 35–90 °C.
+
+**Sensitivity** (`normalization_sensitivity_comparison.csv`). The central bias moves a great deal with the convention and the
+scatter barely moves: family-weighted mean −3.5 (primary), −4.5 (Corwin (Bb)^{3/2}), −6.6 (Lucon), −18.0 (Wallin), −23.2 °C
+(Towers), with family-weighted SD 11.1–11.9 °C throughout; the two volume-type energy normalizations are nearly
+indistinguishable. Pure fracture-area energy scaling (S2) gives mean +42.9 °C and SD 42.1 °C, the expected result of applying
+Sokolov's *brittle* factor to a whole transition curve. The KLST geometry reading (S6) moves the pooled mean by 0.5 °C.
+
+**Systematic over-prediction of the upper shelf.** The normalized USE exceeds the matched full-size USE in 16 of 18 comparisons,
+by a median factor of about 1.19 (range 0.98–1.93). This reproduces NUREG/CR-6379's own observation (p. 16) that the B b²
+factor gives estimates "slightly higher than empirical ratios for each specimen geometry".
+
+**Against published values** (`wp5_summary.md` §10). NUREG/CR-6379's own ±2σ intervals on its per-type shifts are 20–30 °C
+(σ 10–15 °C); [ML2026] Table 5 reports RMSE 45.8 °C for Sokolov's correction and 35.5 °C for the best classical method it
+benchmarked, on 27 SA533B sub-size sets, against 24.9–27.2 °C for its trained models. This project's family-weighted SD of
+11.4 °C (primary set, 7 families) to 21.1 °C (all STRICT, 10 families) sits inside that range.
+
+**Checks** (`wp5_check_results.csv`, `normalization_self_checks.csv`). All 9 independent checks and all 12 normalization
+self-checks pass, including the reproduction of NUREG/CR-6379's Table 2 ratios for its four specimen types to 0.3 %.
+
+**Nothing was tuned on these results.** The method, the match classes, the primary analysis set, the evidence thresholds, the
+sign convention and the seven sensitivities were all committed in `e160fe3` before `src/wp5_size_effect.py` was written.
+Changes made after the results existed, recorded as such (D-085 step 4): the counts of miniature geometries matching a
+NUREG/CR-6379 specimen type were corrected in the generated summary text from a wrong expression to the table's own value (6 of
+9); figure ordering, label rotation and one added figure panel (the published shift against the observed pair shift); the
+stratified summaries were changed to emit both weightings per stratum instead of one; the WP6 handoff gained a pooled row and
+suppressed standard deviations below 4 families, applying D-080's existing rule that the method text already stated. No
+estimator, normalization, threshold, match class, sign convention or inclusion rule changed.

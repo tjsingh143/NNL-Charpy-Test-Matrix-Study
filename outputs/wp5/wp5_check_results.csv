@@ -1,0 +1,10 @@
+check,result,detail
+every candidate pair is accounted for,pass,"4824 ordered pairs enumerated (36 smaller x 134 full-size), each with a match class"
+STRICT pairs are a subset of the candidates and all same-study,pass,"18 STRICT comparisons, all within one publication"
+no full-size answer leaks into its own correction,pass,NF_E and M recomputed from the smaller specimen's geometry alone for all 18 comparisons (largest difference 7.11e-15 and 0.00e+00); neither depends on the paired full-size curve
+DT_size is the stated difference with the stated sign,pass,DT_size = T41J(normalized) - T41J(full-size) for all 17 residuals (largest deviation 2.84e-14); positive means the correction places the transition warmer than the measured full-size curve
+"the full-size side is the approved WP3 fit, untouched",pass,every full-size T41J equals outputs/wp3/fits_primary.csv (largest difference 0.00e+00 deg C)
+the mapped points round-trip to the published measurements,pass,267 transformed points invert to their measured values (largest 5.68e-14 deg C and 2.79e-16 relative)
+raw measurements are unaltered,pass,the transformed points of all 18 smaller-specimen curves derive from the published energies exactly; WP5 writes nothing outside outputs/wp5/
+evidence statuses and suppression follow the pre-registered rules,pass,all 9 geometry rows follow D-079 and D-080
+the primary analysis set obeys D-079,pass,"10 of 18 STRICT comparisons qualify: STRICT match, usable full-size fit with a calculated T41J, usable transformed refit with a calculated T41J"
