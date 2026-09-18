@@ -21,8 +21,9 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP2 Curve grouping and inclusion criteria | done (CP2 approved; cohorts frozen) |
 | WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
 | WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
-| WP5 Specimen size effect | done (CP4 AWAITING AUTHOR APPROVAL; on branch `wp5`, not merged) |
-| WP6–WP7 | not started |
+| WP5 Specimen size effect | done (CP4 approved; merged into `main`) |
+| WP6 Monte Carlo test matrix study | next permitted work package; NOT started; the official checkpoint CP5 follows WP6 |
+| WP7 | not started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
 not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).

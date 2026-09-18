@@ -2155,8 +2155,75 @@ published measurement, a parameter fitted to published measurements, or a transf
 measurements, and every output table says which.
 
 **Status legend for this section:** `PRE-REGISTERED (WP5)` = written and committed before the normalization result it governs
-existed (commits named in D-085). `PROPOSED (CP4)` = written after results, for the author to decide at CP4. Every WP5 entry is
-**provisional until the author approves it at the official checkpoint CP4** (PROJECT_BRIEF.md §9).
+existed (commits named in D-085). `PROPOSED (CP4)` = written after results, for the author to decide at CP4.
+`FINAL APPROVED (CP4)` = approved by the author at the official checkpoint CP4 (2026-09-17), after reviewing the completed WP5
+results; the earlier statuses follow it as history and the pre-registered text of every entry is kept unchanged as the record.
+
+**CP4 approval record (author, 2026-09-17).** The author reviewed CP4 and approved WP5 subject to the decisions below; `wp5` is
+merged into `main` once they are recorded and verified. Each item is recorded in full in the entry named. **These approvals are
+documentation and status only: no code, estimator, normalization, threshold, match class, sign convention, inclusion rule,
+cohort, number, generated table or generated figure changed, and no WP5 number moved** (verified by SHA-256 over all 206 tracked
+files in `data/`, `outputs/`, `src/` and `run_all.sh` before and after the approval edits; D-088).
+
+1. **D-073, D-074 FINAL APPROVED** — the primary normalization stands as pre-registered: energy by the ligament (nominal
+   fracture) volume ratio (B b²)_full / (B b²)_small with b = W − a, temperature by M = 98 − 15.1 ln(B b²) °C with B b² in mm³,
+   as in the published Sokolov & Alexander correlation. The documented caveats are kept verbatim: the energy normalization is a
+   classical geometry-based approximation; the temperature equation was developed from specific RPV steels and specimen
+   geometries; **neither equation is exact physics**; geometry, notch and constraint effects remain; and applicability outside
+   the originally studied geometries is weaker. **The primary method is not changed because a post-hoc sensitivity had a
+   different residual.**
+2. **D-075 FINAL APPROVED AS SENSITIVITY SET** — the seven pre-declared alternatives stay sensitivities and are regenerated on
+   every run.
+3. **D-072 FINAL APPROVED** — the KLST specimens of refs 107 and 109 are read with the 3 mm ligament direction (W = 4 mm,
+   B = 3 mm) as primary, with the dataset-literal reading kept as sensitivity S6. **The raw dataset is not rewritten**: the
+   recorded dimensions, the interpreted geometry, the source basis and the S6 alternative all stay auditable in
+   `geometry_normalization_factors.csv` and in this entry.
+4. **D-068, D-069 FINAL APPROVED** — primary WP5 evidence stays same-study matched material-condition comparisons. **The rule is
+   not loosened to increase N.** The empty cross-study primary class is an honest result. STRICT, PARTIAL, NOT MATCHED and the
+   explicit per-pair rejection reasons are preserved in `candidate_pair_inventory.csv` and `unmatched_reason_summary.csv`.
+5. **D-070 FINAL APPROVED** — several geometries from one material-condition family are not independent material observations.
+   Family-weighted summaries are essential and are **preferred for the WP6 penalty handoff**.
+6. **D-079, D-080 FINAL APPROVED AS PRE-REGISTERED** — the direct-support threshold stays at **at least 3 independent families
+   from at least 2 publications**, and is **not lowered after seeing that no individual geometry satisfies it**. Therefore no
+   individual miniature geometry is DIRECTLY SUPPORTED; seven are WEAKLY SUPPORTED; two are UNSUPPORTED BY THIS DATASET. **This
+   negative evidence is part of the result.**
+7. **WP6 central size-correction scenario APPROVED, AS WEAKLY SUPPORTED ONLY** (D-083): the pooled family-weighted bias
+   **−3.5 °C** and pooled family-weighted SD **11.4 °C**, from **7 independent families in 5 studies**, status **WEAKLY
+   SUPPORTED**. The sign convention stays exactly as D-078 defines it, ΔT_size = T41J(normalized smaller-specimen estimate) −
+   T41J(matched full-size curve); **WP6 must not silently reverse it**. This pooled distribution is **not** a geometry-specific
+   law, **not** pure material scatter, **not** an ASTM uncertainty and **not** directly supported for every miniature geometry.
+   It is the best empirical pooled penalty this dataset provides after the pre-registered primary filters.
+8. **WP6 conservative sensitivity REQUIRED** (D-083): the all-STRICT matched result, family-weighted mean about −10.8 °C and SD
+   about 21.1 °C from **10 independent families**, is a required WP6 sensitivity. WP6 must read the exact regenerated values,
+   not these rounded figures, and must **report whether the headline full-size-versus-miniature conclusion changes** when the
+   primary pooled penalty is replaced by it. **Neither is chosen because it produces a preferred answer.**
+9. **Normalization-method bias sensitivity REQUIRED FOR WP6 PLANNING** (D-087, D-089): WP5 found the residual spread relatively
+   stable across several defensible temperature-correction formulas while the central bias moved materially with the chosen
+   published normalization. That is preserved as a **methodological uncertainty**. WP6 planning must consider how to represent
+   the size-correction bias sensitivity across the pre-declared methods **without double-counting the residual SD**. **That
+   modelling choice is not resolved at CP4; it is a WP6 planning decision.**
+10. **Product-form evidence APPROVED** (D-081): plate has enough matched evidence for its own descriptive result; forging and
+    weld metal do not. **No standalone forging or weld correction distribution is created.** The plate-only result may be
+    carried into WP6 as a sensitivity or diagnostic if useful, but **must not replace the pooled central result without
+    explicit justification**.
+11. **Irradiation APPROVED** (D-081): the dataset does **not** support a reliable separate irradiated size correction. **No
+    separate irradiated penalty is estimated from two families**, and it is **not assumed** that irradiation and geometry do not
+    interact. Irradiation stays an explicit limitation and sensitivity concern.
+12. **Unsupported geometries** (D-083): `20x5x5 a=0.76` and `23.6x5x5 a=0.78` must **not** be used in the central WP6 comparison
+    as though WP5 measured their correction uncertainty. WP6 may (A) omit them from the central analysis and, if scientifically
+    useful, (B) include them only in a clearly labelled EXTERNAL/LITERATURE SCENARIO after verifying the external numerical
+    assumption and its applicability. **No external correction number is approved yet**; WP6 Plan Mode decides whether such a
+    scenario is useful at all.
+13. **D-085 FINAL APPROVED AS CHRONOLOGY** — approved precisely because it is transparent. The normalized upper-shelf ratios were
+    seen during the feasibility and literature-review stage before D-073 and D-074 were pre-registered. **History is not
+    rewritten.** The safeguard is preserved: the primary formulas came from the project brief, the literature and applicability
+    reasoning; the alternatives were fixed before any residual comparison; and the primary method was not selected by minimizing
+    the final residual.
+14. **The remaining WP5 entries** (D-071, D-076, D-077, D-078, D-082, D-084, D-086) contain no contradiction with the above and
+    are **FINAL APPROVED**. **D-087** is FINAL APPROVED as the record of results.
+Not authorized by this approval: WP6 work of any kind, the Monte Carlo simulator, the fixed-material-volume comparison,
+calibrating or choosing a WP6 scatter model, adopting any external size-correction number, and any change to WP0–WP5 code, data
+or generated outputs.
 
 **Sources cited in WP5** (what was actually read is stated; nothing below is cited from memory)
 - [NUREG/CR-6379] Sokolov M.A., Alexander D.J. (1997). *An Improved Correlation Procedure for Subsize and Full-Size Charpy Impact
@@ -2198,7 +2265,7 @@ existed (commits named in D-085). `PROPOSED (CP4)` = written after results, for 
   between anvils of 22 mm". The full text was not accessible; this is used only as corroboration in D-072.
 
 ## D-068 — What must agree before two curves are one material and condition at two specimen sizes
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision** (`MATCH_FIELDS` in `src/wp5_pairs.py`). A smaller-specimen curve and a full-size curve are treated as the same
 material in the same condition, measured at two specimen geometries, only if **every** field below agrees:
@@ -2223,7 +2290,7 @@ differences are mostly material and study differences, and would make the residu
 than of a specimen-size effect. (2) would inherit the curve IDs that mix geometries and conditions (D-022, D-028).
 
 ## D-069 — Match-quality classes, fixed before any normalization result existed
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** Four classes, decided from provenance metadata alone:
 - **STRICT** — same publication, no recorded disagreement, and no one-sided gap in the identity-critical fields (material family,
@@ -2245,7 +2312,7 @@ and compositions are almost never reported identically by two publications. In p
 difference. Genuinely matched cross-study pairs may exist in the literature and are invisible to this dataset.
 
 ## D-070 — The unit of independence is the material-condition family, not the pair
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** A **matched material-condition family** is one publication, one material designation, one product form, one heat
 chemistry, one irradiation condition and one test-condition statement — that is, one full-size curve and every smaller-geometry
@@ -2258,7 +2325,7 @@ correction across materials, which is exactly the quantity WP6 needs. **Alternat
 only. **If chosen.** One material with many geometries would dominate the headline uncertainty invisibly.
 
 ## D-071 — Which published curves the size analysis may use
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** The CP2-frozen **primary** cohort only (170 curves; `outputs/wp2/cohort_membership.csv`, verified against
 `data/FROZEN_COHORTS_CP2.csv` before anything is read, D-039). No cohort is regenerated, loosened or tightened for WP5. The
@@ -2273,7 +2340,7 @@ therefore contains no usable E23-type sub-size curve at all**, and WP5's smaller
 as evidence about E23-type sub-size specimens.
 
 ## D-072 — Which recorded dimension is the notched one for the KLST specimens of refs 107 and 109
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Context.** D-008 fixed the convention: `width_mm` (W) is the dimension the notch is cut into and the crack grows through;
 `thickness_mm` (B) is the dimension parallel to the notch; ligament b = W − a. The dataset records the KLST-type specimens of
@@ -2310,7 +2377,7 @@ full-size upper shelf; **that observation played no part in the decision**, and 
 as S6 so the reader can see both.
 
 ## D-073 — Primary energy normalization: the ligament (nominal fracture) volume B b²
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** Absorbed energy is mapped into the full-size-equivalent domain by the scalar ratio of nominal fracture volumes:
 
@@ -2354,7 +2421,7 @@ material, which is the circularity the brief forbids — D-076.
 `normalization_sensitivity_comparison.csv`.
 
 ## D-074 — Primary temperature correction: Sokolov & Alexander Eq. (22)
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** Test temperatures are mapped into the full-size-equivalent domain by adding a shift that depends only on the
 smaller specimen's own geometry:
@@ -2397,7 +2464,8 @@ supervised learning and illegitimate as an uncertainty estimate.
 degrees; `normalization_sensitivity_comparison.csv` reports the spread of the residual across all of them.
 
 ## D-075 — Pre-declared sensitivity normalizations
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED AS SENSITIVITY SET (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional
+pending CP4
 
 **Decision.** Exactly these seven alternatives are run, chosen now from published methods and their stated applicability, before
 any of their residuals is seen. No further method is added later, and the primary method is not replaced by one that performs
@@ -2421,7 +2489,7 @@ did not build (`sokolov_type` in `src/wp5_normalization.py`), and where it does 
 **"normalization not defensibly established for this geometry"** rather than carrying an invented shift.
 
 ## D-076 — Published methods that cannot be run on this dataset, and why
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** Each of the following is named, with its reason, and **not run**. None of its missing inputs is imputed.
 
@@ -2459,7 +2527,7 @@ did not build (`sokolov_type` in `src/wp5_normalization.py`), and where it does 
    are 4.1–10 (miniature) and 8.0 (full-size), so no geometry meets the condition under which that rule says no shift is needed.
 
 ## D-077 — The full-size-equivalent fitting rule
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** The transformed points (T_fse, E_fse) of a smaller-specimen curve are fitted with the **unchanged approved WP3
 functions** (`src/wp3_fitter.py`: `fit_curve`, `index_temperature`, `index_fraction_of_rise`, `classify`,
@@ -2482,7 +2550,7 @@ analytically instead of refitting. **If chosen.** (1) mixes a method difference 
 tested-range and support rules, and would hide that the transformed curve can fail them.
 
 ## D-078 — The residual size-effect quantity and its sign
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** For every matched geometry comparison the primary residual is
 
@@ -2503,7 +2571,7 @@ of the transformed refit; the WP4 interval label and width of the full-size curv
 **A perfect scalar normalization would make ΔT_size near zero. It is not forced towards zero, and negative results stay visible.**
 
 ## D-079 — Which comparisons enter the primary analysis, and the evidence thresholds
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision, fixed before any residual exists.**
 - **PRIMARY analysis set:** match class STRICT, **and** the full-size curve has a WP3 *usable fit* with a calculated T41J,
@@ -2521,7 +2589,7 @@ of the transformed refit; the WP4 interval label and width of the full-size curv
   families, or ≥ 3 families from a single publication; UNSUPPORTED BY THIS DATASET = no STRICT matched comparison.
 
 ## D-080 — Summary statistics for the residual
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** Every residual summary reports, side by side and each with its counts: N comparisons; N independent families;
 N studies; mean signed residual; median signed residual; mean absolute error; root-mean-square error; ordinary standard
@@ -2531,7 +2599,7 @@ and maximum with their pair IDs. Each set is given **comparison-weighted** and *
 smoothed or fitted; with samples this small the individual points are the honest presentation.
 
 ## D-081 — Product-form and irradiation reporting
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** The residual is broken out by the approved harmonized product forms (plate, forging, weld metal; D-013) and by
 irradiation state, using the D-079 thresholds. Overall and stratum-specific evidence are always shown side by side, and product
@@ -2541,7 +2609,7 @@ that irradiation and geometry do not interact; whether the matched evidence can 
 counts, and if it cannot, that is reported as a limitation rather than estimated.
 
 ## D-082 — Three uncertainties that must not be confused
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** WP5 keeps these separate and says so wherever a number is reported.
 1. **Per-curve fit and sampling uncertainty** (WP4): how well one curve's own index temperature is determined by its own
@@ -2558,7 +2626,7 @@ calibrated, and D-056 records that the WP4 intervals are nominal, not calibrated
 that still contains fit noise is preferred to a falsely precise deconvolution.
 
 ## D-083 — What WP5 hands to WP6
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** `wp6_size_correction_handoff.csv`, one row per smaller-geometry class, carrying: the geometry and its B, b, B b²
 and NF_E; the central size-correction bias (the family-weighted mean ΔT_size) where the D-079 threshold is met; the residual
@@ -2571,8 +2639,38 @@ UNSUPPORTED BY THIS DATASET is handed to WP6 with that label, so that WP6 must e
 external literature scenario for it. WP5 does not run WP6, does not compare fixed material volumes and does not choose a
 scatter model.
 
+**CP4 decision (author, 2026-09-17): exactly what WP6 carries, and from which regenerated file.** WP6 reads the values from the
+outputs, never from rounded prose in this file or in any summary.
+
+| what | value at CP4 | where WP6 reads it |
+|---|---|---|
+| **CENTRAL scenario, status WEAKLY SUPPORTED** — pooled family-weighted bias | −3.4941546891181936 °C | `wp6_size_correction_handoff.csv`, row `POOLED: all miniature geometries together`, column `central_bias_c` |
+| **CENTRAL scenario** — pooled family-weighted residual SD | 11.433714718421587 °C | same row, column `residual_scale_sd_c` (robust 1.4826 × MAD beside it in `residual_scale_robust_c`, 11.337678974122086 °C) |
+| **CENTRAL scenario** — supporting evidence | 7 independent families, 5 studies, 10 comparisons | same row, columns `n_families`, `n_studies`, `n_primary_comparisons`, `evidence_status` |
+| **CONSERVATIVE sensitivity, REQUIRED** — all-STRICT family-weighted mean | −10.804718715572376 °C | `size_correction_summary_overall.csv`, row `subset` = "all STRICT comparisons with a residual (primary + held as sensitivity)" and `weighting` = "family-weighted (each family's mean counts once)", column `mean_c` |
+| **CONSERVATIVE sensitivity** — all-STRICT family-weighted SD | 21.08698664047987 °C | same row, column `sd_c` (robust scale 19.903817963325263 °C in `robust_scale_1p4826_mad_c`) |
+| **CONSERVATIVE sensitivity** — supporting evidence | 10 independent families, 5 studies, 17 comparisons | same row, columns `n_families`, `n_studies`, `n` |
+
+**Rules attached to the handoff.**
+- The **sign convention is D-078's and is not reversed**: ΔT_size = T41J(normalized smaller-specimen estimate) −
+  T41J(matched full-size curve). Positive means the correction places the transition warmer than the measured full-size curve.
+- The pooled central scenario is **WEAKLY SUPPORTED, not DIRECTLY SUPPORTED**. It is **not** a geometry-specific law, **not**
+  pure material scatter, **not** an ASTM uncertainty, and **not** directly supported for every miniature geometry. Every WP6
+  table and figure that uses it states that.
+- **No individual miniature geometry is DIRECTLY SUPPORTED** (0 of 9), so WP6 may not apply a geometry-specific correction
+  uncertainty from this dataset. The per-geometry biases in the handoff are descriptive only.
+- WP6 **must** run the conservative sensitivity and **must report whether the headline full-size-versus-miniature conclusion
+  changes** when the central penalty is replaced by it. Neither is selected because it gives a preferred answer.
+- The two geometries marked UNSUPPORTED BY THIS DATASET (`20x5x5 a=0.76`, `23.6x5x5 a=0.78`) are **excluded from the central
+  WP6 comparison**. WP6 may (A) omit them entirely or (B) include them only in a clearly labelled EXTERNAL/LITERATURE SCENARIO,
+  after verifying the external number and its applicability. **No external correction number is approved at CP4**; whether such
+  a scenario is useful at all is a WP6 Plan Mode decision.
+- The plate-only result (4 families, 3 publications) may be carried as a sensitivity or diagnostic; it **must not replace the
+  pooled central result without explicit justification**. No standalone forging or weld-metal correction distribution exists.
+- No separate irradiated penalty is handed over, and WP6 must not assume irradiation and geometry do not interact (D-081).
+
 ## D-084 — Does the normalization actually help? The before/after test
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** For every matched comparison and for the set as a whole, three metrics are reported **before** and **after**
 normalization, with the count that improved and the count that worsened:
@@ -2589,7 +2687,8 @@ normalization, with the count that improved and the count that worsened:
 finding and it is reported as such, per comparison and in the summary.
 
 ## D-085 — How the WP5 method was arrived at (chronological, including anything learned before pre-registration)
-**Status:** record. PRE-REGISTERED (WP5) for steps 1–2; extended as work proceeds. No step is rewritten later.
+**Status:** record. FINAL APPROVED AS CHRONOLOGY (CP4, author 2026-09-17). Earlier: record; PRE-REGISTERED (WP5) for
+steps 1–2; extended as work proceeds. No step is rewritten later.
 
 1. *State reconstruction and literature review, before any WP5 code existed.* The approved state was verified (raw-data
    checksums, the 14 CP2 cohort fingerprints, the 170/2,588 primary cohort, the WP3 outcome counts 0/0/18/35/13/104 and the WP4
@@ -2626,7 +2725,7 @@ finding and it is reported as such, per comparison and in the summary.
    No estimator, normalization, threshold, match class, sign convention, inclusion rule or cohort changed.
 
 ## D-086 — Software and sanity checks that must pass before any WP5 number is trusted
-**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+**Status:** FINAL APPROVED (CP4, author 2026-09-17). Earlier: PRE-REGISTERED (WP5); provisional pending CP4
 
 **Decision.** These run on every execution (`src/wp5_normalization.py::self_checks` and `src/wp5_size_effect.py`), and a failure
 raises and stops the pipeline rather than producing numbers.
@@ -2652,7 +2751,8 @@ raises and stops the pipeline rather than producing numbers.
 10. **Frozen cohorts.** The CP2 membership check runs before WP5 reads anything.
 
 ## D-087 — What the analysis found (results; the method above was fixed before any of this existed)
-**Status:** record of results. PROPOSED (CP4) — the author decides at CP4 what WP6 may carry forward.
+**Status:** record of results. FINAL APPROVED (CP4, author 2026-09-17). Earlier: PROPOSED (CP4) — the author decides at
+CP4 what WP6 may carry forward; decided as recorded in the CP4 approval record above.
 
 **Matched evidence** (`pair_data_sufficiency.md`, `wp5_summary.md` §2). Of 4,824 enumerated candidate pairs, **18** are STRICT
 matched geometry comparisons, from **10** independent material-condition families in **5** publications (refs 53, 55, 59, 60,
@@ -2707,3 +2807,54 @@ NUREG/CR-6379 specimen type were corrected in the generated summary text from a 
 stratified summaries were changed to emit both weightings per stratum instead of one; the WP6 handoff gained a pooled row and
 suppressed standard deviations below 4 families, applying D-080's existing rule that the method text already stated. No
 estimator, normalization, threshold, match class, sign convention or inclusion rule changed.
+
+## D-088 — The CP4 approval session changed documentation only (verification record)
+**Status:** record. FINAL APPROVED (CP4, author 2026-09-17)
+
+**What was done.** The author's CP4 decisions were recorded: the CP4 approval record at the head of this section, the status
+line of every WP5 entry (D-068 to D-087), the D-075 heading wording, the D-083 handoff table and its attached rules, and this
+entry and D-089. `PROGRESS.md` and `README.md` were updated to the approved status. **No executable code was changed**, so no
+analysis was rerun beyond the lightweight WP5 checks; the full `./run_all.sh` reproducibility run of the CP4 state (exit 0 in
+10 min 18 s, 0 tracked output files changed) stands (author's CP4 verification instruction 7).
+
+**Verification performed before the merge.**
+1. *Branch base.* `git merge-base wp5 main` equals `main` (`0b5dad6`, the approved WP4 state): `wp5` is a clean descendant with
+   no divergence.
+2. *Primary analysis set unchanged:* 10 comparisons, 7 independent families, 5 studies.
+3. *Direct-support threshold:* 0 of 9 geometry classes DIRECTLY SUPPORTED; 7 WEAKLY SUPPORTED; 2 UNSUPPORTED BY THIS DATASET
+   (`20x5x5 a=0.76`, `23.6x5x5 a=0.78`).
+4. *Exact regenerated values, read from the outputs at full precision:* primary family-weighted mean −3.4941546891181936 °C and
+   SD 11.433714718421587 °C (7 families, 5 studies); all-STRICT family-weighted mean −10.804718715572376 °C and SD
+   21.08698664047987 °C (10 families, 5 studies). These are the values D-083 hands to WP6; the rounded −3.5 / 11.4 and
+   −10.8 / 21.1 used in prose are those numbers to one decimal.
+5. *No number moved.* SHA-256 was taken over all 206 tracked files in `data/`, `outputs/`, `src/` and `run_all.sh` before the
+   approval edits and again afterwards: **0 differ**. The only files this session changed are `DECISIONS.md`, `PROGRESS.md` and
+   `README.md`.
+6. *Checks rerun:* `src/wp5_tests.py`, 9 of 9 pass (pairing audit, leakage, sign convention, full-size side untouched, round
+   trip, raw-data immutability, evidence thresholds, primary-set membership). The 12 normalization self-checks are unchanged and
+   run inside `src/wp5_size_effect.py`.
+7. *Raw data and cohorts:* raw-file SHA-256 verified (7 of 7); the 14 CP2 cohort fingerprints recomputed and matching
+   (primary 170 curves / 2,588 records); WP3 outcome counts 0 / 0 / 18 / 35 / 13 / 104.
+8. *AGENTS.md* was not modified, not deleted, not committed and not added to `.gitignore`; it remains the only untracked file.
+
+**Nothing in the approvals required an executable change.** Had one been needed, the session was to stop and say why before
+merging (author's CP4 verification instruction 8); it was not.
+
+## D-089 — The normalization-method bias sensitivity is a WP6 planning decision, not a CP4 one
+**Status:** OPEN — deliberately not resolved at CP4; carried into WP6 planning (author, 2026-09-17)
+
+**Finding to preserve** (D-087, `normalization_sensitivity_comparison.csv`). Across the pre-declared normalization methods the
+**residual spread is relatively stable** — family-weighted SD 11.1 to 11.9 °C for every volume-type energy convention paired
+with any of the four published temperature corrections — while the **central bias moves materially**: family-weighted mean
+−3.5 °C (primary, Sokolov Eq. 22), −4.5 °C (Corwin (B b)^{3/2} energy), −6.6 °C (Lucon shift), −18.0 °C (Wallin shift),
+−23.2 °C (Towers shift). Pure fracture-area energy scaling is far worse on both counts (mean +42.9 °C, SD 42.1 °C) and is not a
+candidate for a central scenario.
+
+**What this means.** The choice of which published correlation to cite is itself a source of uncertainty in the *location* of
+the size correction, largely separate from the scatter of the residual about it.
+
+**What WP6 must do, and what it must not do.** WP6 planning must consider how to represent this bias sensitivity across the
+pre-declared methods **without double-counting the residual SD** — the SD already describes scatter about a chosen bias, so
+adding a bias spread drawn from the same comparisons on top of it would count the same disagreement twice. **This modelling
+choice is not made here.** No combination rule, no widened distribution and no bias prior is approved at CP4. It is a WP6
+planning decision, to be taken in WP6 Plan Mode with the alternatives visible.
