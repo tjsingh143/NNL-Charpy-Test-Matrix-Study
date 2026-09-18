@@ -2143,3 +2143,496 @@ and the reproducibility tests. The chronology is not rewritten to make the devel
       for its 2,000 replicates, and confirmed that in each of the 54 curves every replicate without a T41J is one whose crossing lies below its own
       lowest test temperature.
    e. `wp4` is merged into `main` with an explicit merge commit and kept; no remote, no push. WP5 has not started.
+
+---
+
+# WP5 — Specimen size effect
+
+All numbers regenerate with `src/wp5_pairs.py` (pair inventory, no normalization) and `src/wp5_size_effect.py` (normalization,
+mapping, residuals) into `outputs/wp5/`; both use `src/wp5_normalization.py`, which holds the literature equations and their
+self-checks, and the unchanged approved WP3 fitter `src/wp3_fitter.py`. WP5 contains **no synthetic data**: every row is either a
+published measurement, a parameter fitted to published measurements, or a transformed estimate derived from published
+measurements, and every output table says which.
+
+**Status legend for this section:** `PRE-REGISTERED (WP5)` = written and committed before the normalization result it governs
+existed (commits named in D-085). `PROPOSED (CP4)` = written after results, for the author to decide at CP4. Every WP5 entry is
+**provisional until the author approves it at the official checkpoint CP4** (PROJECT_BRIEF.md §9).
+
+**Sources cited in WP5** (what was actually read is stated; nothing below is cited from memory)
+- [NUREG/CR-6379] Sokolov M.A., Alexander D.J. (1997). *An Improved Correlation Procedure for Subsize and Full-Size Charpy Impact
+  Specimen Data.* NUREG/CR-6379, ORNL-6888, Oak Ridge National Laboratory (HSSI Report 14), doi:10.2172/463630. **Full report read**
+  (311-page scanned PDF from OSTI, rendered page by page; the abstract alone was cited in WP3). Used: Introduction and Materials
+  (p. 1), Fig. 1 specimen types 1–5 (p. 4), Eq. (2) (p. 12), Eq. (3) and the review of Corwin, Lucas, Louden and Kumar (p. 14),
+  Fig. 12 dimension definitions and Table 2 normalization-factor ratios (p. 15), Eq. (7) Kayano's Q, the 200 J upper-shelf limit
+  and Eq. (8) (p. 16), Table 3 measured USEs (p. 17), Eqs (9)–(12) and the percent-shear procedure (p. 22), Table 4 shear
+  sensitivity and Eqs (13)–(16) (p. 24), Fig. 22, Eq. (17), Eqs (18)–(19) (p. 25), Eqs (20)–(22) and Fig. 27 (p. 28),
+  Figs 28–29 (p. 30), Figs 36–37 (p. 34), Summary and Conclusions (pp. 29, 35).
+- [LuconNIST] Lucon E., McCowan C.N., Santoyo R.L. *Overview of NIST Activities on Sub-size and Miniaturized Charpy Specimens:
+  Correlations with Full-Size Specimens and Verification Specimens for Small-Scale Pendulum Machines.* Journal of Pressure Vessel
+  Technology; NIST open copy, publication id 918008 (tsapps.nist.gov). **Full text read.** Used: the CVN / SCVN / MCVN definitions
+  and the KLST and RHS dimensions (p. 3), footnote 3 on B being the dimension parallel to the notch, Eqs (2)–(5) temperature
+  shifts (pp. 9–11), Eqs (6)–(9) energy densities (pp. 11–12), Eq. (10) and NF1–NF7 (p. 13), Eqs (11)–(12) (p. 14), Conclusions
+  1–7 (pp. 16–17), and the primary-source reference list (pp. 18–19).
+- [STP1380] Lucon E., Chaouadi R., Fabry A., Puzzolante J.-L., van Walle E. (2000). *Characterizing Material Properties by the Use
+  of Full-Size and Subsize Charpy Tests: An Overview of Different Correlation Procedures.* ASTM STP 1380:146–163.
+  **Not read** (paywalled). Its two results used here are taken from sources that tabulate them: the KLST upper-shelf relation
+  USE_CVN = 29.454·exp(0.2378·USE_KLST) ([LuconNIST] Eq. 12) and the temperature shift M = 92.7 − 14.34·ln(B b²)
+  (dataset descriptor Table 3; [ML2026] Table 2). Cited as second-hand and labelled as such wherever it is used.
+- [ML2026] Kasala Sreenivasulu Y., Lee I., Merickel J.W., Xu F., Tang Y., Rittenhouse J.E., Vakanski A., Song R. (2026).
+  *Machine Learning-based Correlation of Charpy Impact Properties Between Sub-sized and Standard-sized Specimens for Nuclear
+  Structural Materials.* Scientific Reports 16:16202; arXiv 2607.10412. **Full text read** (arXiv PDF). By the authors of this
+  project's dataset and its descriptor. Used: §1 limitations of analytical methods, §2.2 the Louden and Wallin physical pictures,
+  §2.3 Tables 1 and 2 of analytical USE and DBTT correlations, §3.1 dataset and matching definition and Table 3 geometries,
+  §3.2 Eqs (4)–(7) their transformation, §4.1 Tables 4 and 5 analytical performance, §4.2 Tables 6–8 machine-learning performance.
+- [descriptor] (listed at the head of this file). WP5 read its specimen-size-effect section in full: "Specimen size effect",
+  "Correlation of Upper Shelf Energy" and Table 2, "Correlation of Ductile-to-Brittle Transition Temperature" and Table 3.
+- [E2248-18] (listed under WP3 sources). WP5 re-read §1.1, §1.2, §1.3, §1.5 and §5.2 from the publisher's scope and abstract pages.
+- Cited only through [NUREG/CR-6379], [LuconNIST], [descriptor] and [ML2026], and **not read**: Lucas et al. (1986, ASTM STP 888
+  and Fusion Technology 10), Corwin et al. (1984 J. Nucl. Mater. 122–123 and 1986 ASTM STP 888), Louden et al. (1988 J. Nucl.
+  Mater. 155–157), Kayano et al. (1991 J. Nucl. Mater. 179–181), Kurishita et al., Towers (1983 TWI RR 219/1983; 1986 Metal
+  Construction), Wallin (1994 Jernkontorets Forskning 4013/89), Curll (1959), Uehira et al., Rosinski et al., Schubert et al.
+  Every equation taken from them is quoted from a source that was read, and the second-hand route is stated at the equation.
+- [ref107] Schill R.H., Forget P., Catherine C.S. (2013). *Correlation between Charpy-V and sub-size Charpy tests results for an
+  un-irradiated low alloy RPV ferritic steel* (dataset ref 107). Read only through a search-result summary of its specimen
+  description: "27 mm × 3 mm × 4 mm KLST specimens with a 60° notch angle, 1 mm depth, notch radius R = 0.1 mm, and distance
+  between anvils of 22 mm". The full text was not accessible; this is used only as corroboration in D-072.
+
+## D-068 — What must agree before two curves are one material and condition at two specimen sizes
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision** (`MATCH_FIELDS` in `src/wp5_pairs.py`). A smaller-specimen curve and a full-size curve are treated as the same
+material in the same condition, measured at two specimen geometries, only if **every** field below agrees:
+material family; material designation `material_std` (specification, type/grade, class where stated, weld-metal label); product
+form; heat chemistry `composition_signature` (all reported elements — the heat/lot proxy, because the dataset has no heat or lot
+identifier, D-033); irradiation status as resolved in D-021; fluence (the exact reported value, D-036); irradiation temperature;
+irradiation time; treatment; post-treatment temperature and time; cooling method and rate; test-condition statement (HAZ location,
+reconstituted specimen, welded area, striking velocity); reconstituted-specimen tag (D-033); specimen orientation.
+A field blank on **both** sides counts as agreement — within one publication it means the publication reported it for neither
+curve, which is consistent, not contradictory. A field blank on **one** side is a provenance gap. A recorded **disagreement** in
+any field rejects the pair, and the first disagreeing field in the order above is recorded as the reason.
+
+**Why.** These are the WP2 grouping variables of D-033 minus specimen geometry, which is the intended substantive difference.
+Sharing a material name is not enough: "SA533B" spans different heats, product forms, heat treatments, irradiation histories,
+laboratories and publications, and a pair matched on the name alone would confound all of those with the specimen-size effect.
+[ML2026] §3.1 matched on the same principle, selecting "only the sub-sized specimen data for which corresponding experimental
+results from full-sized specimens are available in the original publications", the full-size set being one "produced under the
+same manufacturing and heat treatment conditions and tested using the same test protocol".
+**Alternatives.** (1) Match on material family and irradiation status only. (2) Match on the dataset's own curve ID.
+**If an alternative were chosen.** (1) would admit hundreds of cross-heat, cross-laboratory pairs whose transition-temperature
+differences are mostly material and study differences, and would make the residual an estimate of between-study variation rather
+than of a specimen-size effect. (2) would inherit the curve IDs that mix geometries and conditions (D-022, D-028).
+
+## D-069 — Match-quality classes, fixed before any normalization result existed
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Four classes, decided from provenance metadata alone:
+- **STRICT** — same publication, no recorded disagreement, and no one-sided gap in the identity-critical fields (material family,
+  material designation, product form, heat chemistry, irradiation status, fluence, test-condition statement, reconstituted tag).
+- **PARTIAL** — same publication, no recorded disagreement, but at least one identity-critical field is reported for only one of
+  the two curves.
+- **CROSS-STUDY** — no recorded disagreement, but the two curves come from different publications.
+- **NOT MATCHED** — at least one recorded field disagrees.
+Only STRICT pairs enter the primary analysis. PARTIAL pairs would be reported as a clearly labelled secondary set; CROSS-STUDY
+pairs are never primary. **A class is never upgraded after seeing that a pair's curves happen to normalize onto one another.**
+
+**Why same-study is required for the primary analysis.** D-032 already established that this dataset's recorded columns do not
+always identify heat or condition, and that between-laboratory, machine and calibration differences are real and unmeasurable
+here (brief §3). A cross-publication pair therefore mixes those differences into what would be reported as a specimen-size
+residual. The same reasoning that keeps a curve inside one publication keeps a primary size comparison inside one publication.
+**Consequence, and it is a real cost.** The dataset has no heat identifier, so the only heat proxy is the reported composition,
+and compositions are almost never reported identically by two publications. In practice this makes the CROSS-STUDY class empty
+(0 of 4,824 candidate pairs) rather than merely secondary: every cross-publication pair is rejected on a recorded composition
+difference. Genuinely matched cross-study pairs may exist in the literature and are invisible to this dataset.
+
+## D-070 — The unit of independence is the material-condition family, not the pair
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** A **matched material-condition family** is one publication, one material designation, one product form, one heat
+chemistry, one irradiation condition and one test-condition statement — that is, one full-size curve and every smaller-geometry
+curve matched to it. Family ID `R<ref>-<full-size curve>-<irradiation condition>`. Several smaller geometries matched to one
+full-size curve give several **geometry comparisons** of **one** material observation. Every summary statistic is therefore
+reported twice: **comparison-weighted** (each comparison counts once) and **family-weighted** (each family contributes the mean
+of its comparisons, then each family counts once). Counts of both are printed beside every number.
+**Why.** Treating four geometries of one plate as four independent observations would understate the spread of the size
+correction across materials, which is exactly the quantity WP6 needs. **Alternative.** Report comparison-weighted statistics
+only. **If chosen.** One material with many geometries would dominate the headline uncertainty invisibly.
+
+## D-071 — Which published curves the size analysis may use
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** The CP2-frozen **primary** cohort only (170 curves; `outputs/wp2/cohort_membership.csv`, verified against
+`data/FROZEN_COHORTS_CP2.csv` before anything is read, D-039). No cohort is regenerated, loosened or tightened for WP5. The
+secondary populations stay out of the primary size analysis: SA508 Gr.1A piping (D-027), additively manufactured SA508 (D-034,
+whose permitted use as "secondary evidence in the WP5 specimen-size analysis if scientifically useful" is **not** taken up — its
+only geometry, 24.1 × 4.8 × 4.8 mm RHS, has no full-size partner in its own publication, so it would add no comparison),
+source-contradicted labels (D-031) and unresolved irradiation labels (D-035).
+**Consequence.** The two 55 × 10 × 6 mm curves of ref 18 — the only ASTM E23-type sub-size specimens (reduced thickness, standard
+length) anywhere in the data — have 4 points each and fail every WP2 rule, so they are not in any cohort. **This dataset
+therefore contains no usable E23-type sub-size curve at all**, and WP5's smaller-specimen evidence is entirely miniaturized
+(MCVN) evidence. [E2248-18] §1.5 and [LuconNIST] both insist the two classes are not interchangeable; nothing here is presented
+as evidence about E23-type sub-size specimens.
+
+## D-072 — Which recorded dimension is the notched one for the KLST specimens of refs 107 and 109
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Context.** D-008 fixed the convention: `width_mm` (W) is the dimension the notch is cut into and the crack grows through;
+`thickness_mm` (B) is the dimension parallel to the notch; ligament b = W − a. The dataset records the KLST-type specimens of
+refs 107 and 109 as length 27 mm, **width 3 mm, thickness 4 mm**, notch depth 1.0 mm, notch angle 60°, root radius 0.1 mm. Read
+literally under D-008 this gives a ligament of 2 mm and a notch depth to width ratio a/W = 0.33.
+
+**Decision.** For these records the notched dimension is the 4 mm one: **W = 4 mm, B = 3 mm, ligament b = 3 mm, a/W = 0.25**.
+No raw value is altered and no measurement is changed; this is a decision about which of two recorded dimensions is which, made
+because three independent authorities define the specimen and all three agree:
+1. [LuconNIST] p. 3: "The most popular MCVN specimen type is designated KLST (from the German Kleinstprobe), and has thickness
+   B = 3 mm, width W = 4 mm, notch depth N = 1 mm and length L = 27 mm", with B defined in that paper as the dimension parallel
+   to the notch — this project's `thickness_mm`.
+2. [NUREG/CR-6379] Fig. 1 type 4: 26 mm long, cross-section drawn as 4.0 mm in the notched direction and 3.0 mm across, notch
+   depth 1.0 mm, 60°, span 22 mm; p. 29 states "a/W = 0.25" for type 4 and "the specimen thickness is only 3 mm as compared to
+   5 mm for type 3". Its Table 2 ratio for type 4, Bb² = 23.7, is reproducible only with B = 3 and b = 3 (10 × 8² / (3 × 3²) =
+   23.7); with B = 4 and b = 2 it would be 40.0. `src/wp5_normalization.py::self_checks` reproduces all of Table 2 to 0.3 %.
+3. [ref107] describes its specimens as "27 mm × 3 mm × 4 mm KLST specimens with a 60° notch angle, 1 mm depth, notch radius
+   R = 0.1 mm, and distance between anvils of 22 mm" — a KLST by name, with the same 22 mm span as NUREG's type 4. The paper's
+   "3 mm × 4 mm" states the cross-section without saying which dimension is notched, which is exactly the ambiguity the dataset
+   resolved one way and the standard resolves the other.
+Implemented as `SWAPPED_WIDTH_THICKNESS` in `src/wp5_normalization.py`, applied only to the exact dimension tuple
+(27.0, 3.0, 4.0, 1.0) and recorded per curve in the outputs.
+
+**Why this is not a free choice.** A 1 mm notch leaving a 2 mm ligament is not a KLST and matches no specimen in [E2248-18],
+ISO 14556 or DIN 50115. The alternative would apply a published correlation to a specimen the publication did not test.
+**Alternatives.** (1) Use the dataset's assignment literally. (2) Exclude refs 107 and 109 from WP5.
+**Effect of the alternative, quantified and carried as a pre-declared sensitivity (S6, D-075).** Literal reading gives
+B b² = 4 × 2² = 16 mm³ against 3 × 3² = 27 mm³, so the energy factor changes from 23.70 to 40.00 (×1.69) and the Sokolov shift
+from 48.2 °C to 40.3 °C (−7.9 °C). Excluding refs 107 and 109 would remove the only KLST comparison in the study.
+**Chronology, stated plainly.** This decision was made during the WP5 literature review, before `src/wp5_size_effect.py` existed
+and before any residual was computed, on the three sources above. A scoping feasibility calculation made at the same time
+(D-085 step 1) showed that the corrected reading also happens to place the normalized KLST upper shelf close to its paired
+full-size upper shelf; **that observation played no part in the decision**, and the literal reading is regenerated on every run
+as S6 so the reader can see both.
+
+## D-073 — Primary energy normalization: the ligament (nominal fracture) volume B b²
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Absorbed energy is mapped into the full-size-equivalent domain by the scalar ratio of nominal fracture volumes:
+
+&nbsp;&nbsp;&nbsp;&nbsp;**E_fse = NF_E × E_measured,&nbsp;&nbsp; NF_E = (B b²)_full-size / (B b²)_smaller = 640 mm³ / (B_s b_s²)**
+
+where B is the specimen thickness (mm, the dimension parallel to the notch), b = W − a the remaining ligament (mm), W the
+specimen width (mm) and a the notch depth (mm); B b² is the nominal fracture volume (mm³); the full-size reference is
+B_f = 10 mm, b_f = 10 − 2 = 8 mm, B_f b_f² = 640 mm³. NF_E is dimensionless and equals exactly 1 for a full-size specimen.
+**This is an empirical geometry scaling with a volume interpretation, not a physical law**, and it is not called "volume
+scaling" loosely: B b² is the *nominal* fracture volume of Lucas et al., distinct from the *fracture area* B b and from the
+(B b)^{3/2} volume measure of Corwin et al., which are carried separately as S1 and S2.
+
+**Source.** Lucas, Odette, Sheckherd, McConnell & Perrin (1986), ASTM STP 888:304–324, and Lucas, Odette, Sheckherd &
+Krishnadev (1986), Fusion Technology 10:728–733 — not read directly; quoted identically by four sources that were read:
+[NUREG/CR-6379] p. 14 ("Lucas et al. also used an NF equal to the ratio of the FV of full-size to subsize specimens, but
+expressed the nominal FV as Bb²"); [LuconNIST] Eq. (10) NF₃; [descriptor] Table 2, which writes it **B(W − A)²** — the notation
+the brief's own data description uses; [ML2026] Table 1 (`USE_s · (B_f b_f²)/(B_s b_s²)`).
+**Geometry applicability.** Developed for sub-sized bend and Charpy specimens for irradiated-materials testing; it is a
+geometry ratio defined for any B and b, and both [LuconNIST] (conclusion 4: "A strong exponential correlation with cross
+sectional area was found, in close agreement with the normalization factor based on the ratio of nominal fracture volumes B d²")
+and [NUREG/CR-6379] p. 16 ("an NF based on the FV of specimens, namely (Bb²)_full size/(Bb²)_subsize, gives the closest
+estimation for each geometry") report it as the best of the purely geometric factors across several geometries.
+**Physical idea, plainly.** On the upper shelf the specimen fractures in a ductile way, and most of the energy goes into plastic
+work in the material around the growing crack. That deforming region scales with the ligament in all three directions, so the
+energy is taken to scale with a volume-like measure B b² rather than with the fracture area alone.
+
+**Why this is the primary method, argued before any residual was computed.**
+1. PROJECT_BRIEF.md §5 WP5 requires "absorbed energy is scaled by a measure of the specimen ligament volume", and §6.4 requires
+   "the ligament-volume normalization convention adopted, and from which reference". B(W − A)² is the ligament-volume
+   convention, and the descriptor of this project's own dataset writes it in exactly that notation. The brief's wording ties
+   unambiguously to this one convention; the others are area scaling or a different volume measure, so they are sensitivities.
+2. It needs nothing the dataset does not have: only published specimen dimensions.
+3. It is independent of the paired full-size curve, so no full-size answer can enter its own correction.
+**Alternatives and why not primary.** (B b)^{3/2} (Corwin) and B b (area) are S1 and S2. Louden's B b²/(L K_t) and Kayano's
+B b²/K_t′ need an elastic stress-concentration factor and Kayano's plastic factor Q = 1 + (π − θ)/2; published K_t values exist
+for a handful of geometries only (five in [ML2026] Table 3, against nine miniature geometries in this cohort), so running them
+would mean inventing K_t for most curves — see D-076. Sokolov's own Eq. (11) needs percent shear, which this dataset does not
+have at all — D-076. Uehira's and Wallin's USE power laws need exponents calibrated against the full-size USE of the same
+material, which is the circularity the brief forbids — D-076.
+**If an alternative were chosen.** S1 and S2 quantify exactly that, and the comparison is reported in
+`normalization_sensitivity_comparison.csv`.
+
+## D-074 — Primary temperature correction: Sokolov & Alexander Eq. (22)
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Test temperatures are mapped into the full-size-equivalent domain by adding a shift that depends only on the
+smaller specimen's own geometry:
+
+&nbsp;&nbsp;&nbsp;&nbsp;**T_fse = T_measured + M,&nbsp;&nbsp; M = 98 − 15.1 × ln(B b²)&nbsp;&nbsp;[M in °C; B b² in mm³]**
+
+**Source.** [NUREG/CR-6379] Eq. (22) and Fig. 27, applied in the form of their Eq. (17), DBTT_full-size = DBTT_subsize + M.
+**Geometry applicability.** Fitted through the four specimen types that report built (types 1–4 of its Fig. 1) plus a point
+forced at the full-size specimen: "the equation was forced to give a correction factor of 0 for the full-size specimen". The
+report offers it beyond those four types — "the form of the dependence may be used as guidance to estimate size corrections for
+subsize specimens" — while stating the limitation in the same sentence: "Deviations from this dependence reflect the constraint
+effects of different notch dimensions". Materials: A533B plate, A508 class 2, 15Kh2MFA ring forging and HSSI weld 72W, USE
+73–330 J, transition temperatures −46 to +58 °C, yield strengths 410–940 MPa.
+**Physical idea, plainly.** A bigger specimen contains more material near the notch, so it is more likely to contain the one
+weak spot that starts a cleavage crack, and it is also held more rigidly in the through-thickness direction. Both push a bigger
+specimen towards brittle behaviour at a given temperature, so its transition sits at a higher temperature. Sokolov & Alexander
+derive the log form from that picture: a yield stress that rises as temperature falls (their Eq. 13) meeting a cleavage strength
+that falls with stressed volume as V^(−1/m) (Weibull weakest link, their Eq. 14) gives DBTT = 1/(R − S ln V) (their Eq. 16), and
+Eq. (22) is the empirical fit of that form to their measured shifts.
+
+**Why this is the primary correction, argued before any residual was computed.**
+1. It is the RPV-specific classical convention, from the ORNL/NRC HSSI report that PROJECT_BRIEF.md §11 points to, developed on
+   this project's own material family.
+2. Its argument is **the same B b² ligament volume as the primary energy normalization**, so one geometric measure drives both
+   halves of the mapping instead of two unrelated ones.
+3. It is defined for any B b² and carries an identity at full size, unlike the per-type constants of Eqs (18)–(21), which exist
+   only for the four specimen types that report built.
+4. It is **independent of the paired full-size curve**: M depends only on the smaller specimen's published dimensions and two
+   fixed published constants. This is what keeps the residual an out-of-sample test (D-078, D-086 check 7).
+5. It comes with a published uncertainty scale for comparison: the ±2σ intervals of Eqs (18)–(21), 20–30 °C.
+**Alternatives, all pre-declared as sensitivities (D-075).** Lucon's refit of the same form (S3), Towers's thickness-only
+quadratic (S4), Wallin's thickness-only logarithm (S5), and Sokolov's own per-type constants where the geometry is one of his
+four types (S7).
+**Explicitly NOT used as an input.** A pair-specific shift measured as T0(full-size) − T0(smaller) is *calculated and reported*
+as an outcome of the size effect, and is never used to correct the curve it was measured from. Doing so would align each
+smaller curve to its own partner and then report the resulting agreement as evidence that the correction works, which is
+circular; it is also, in a different form, what [ML2026] Eq. (5) does to build its training targets, which is legitimate for
+supervised learning and illegitimate as an uncertainty estimate.
+**If an alternative were chosen.** At the cohort's smallest geometry (B b² = 2.05 mm³) the four shifts differ by tens of
+degrees; `normalization_sensitivity_comparison.csv` reports the spread of the residual across all of them.
+
+## D-075 — Pre-declared sensitivity normalizations
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Exactly these seven alternatives are run, chosen now from published methods and their stated applicability, before
+any of their residuals is seen. No further method is added later, and the primary method is not replaced by one that performs
+better on these data.
+
+| id | what changes | equation | source (read?) |
+|---|---|---|---|
+| S1 | energy | NF_E = (B_f b_f)^{3/2} / (B_s b_s)^{3/2} | Corwin et al. 1984, 1986 — via [NUREG/CR-6379] p. 14, [LuconNIST] NF₂ (not read directly) |
+| S2 | energy | NF_E = (B_f b_f) / (B_s b_s) — fracture area; = Sokolov's NF_brittle, Eq. (10) | [NUREG/CR-6379] Eqs (8)–(10) (read) |
+| S3 | temperature | M = 92.7 − 14.34 ln(B b²) | Lucon et al. 2000 [STP1380] — via [descriptor] Table 3 and [ML2026] Table 2 (not read directly) |
+| S4 | temperature | M = 0.7 (10 − B)² | Towers 1983, 1986 — via [LuconNIST] Eq. (2), [ML2026] Table 2 (not read directly) |
+| S5 | temperature | M = −51.4 ln[2 (B/10)^0.25 − 1] | Wallin 1994 — via [LuconNIST] Eq. (3), [ML2026] Table 2 (not read directly) |
+| S6 | geometry | the dataset's literal width/thickness for the KLST records (D-072) | — |
+| S7 | temperature | Sokolov's per-type shifts, Eqs (18)–(21): +30 (±28), +53 (±24), +34 (±20), +38 (±30) °C | [NUREG/CR-6379] Eqs (18)–(21) (read) |
+
+S4 and S5 depend on thickness alone and were developed for **sub-size specimens of reduced thickness (SCVN)**; [LuconNIST]
+reports that KLST and RHS miniaturized specimens nevertheless "seem to follow the same trend as SCVN specimens", which is why
+they are admissible sensitivities and not the primary method. S7 is applied **only** where the geometry matches one of the four
+types that report built, on cross-section, notch depth and notch root radius; it is never extrapolated to a geometry the report
+did not build (`sokolov_type` in `src/wp5_normalization.py`), and where it does not apply the row says
+**"normalization not defensibly established for this geometry"** rather than carrying an invented shift.
+
+## D-076 — Published methods that cannot be run on this dataset, and why
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Each of the following is named, with its reason, and **not run**. None of its missing inputs is imputed.
+
+1. **Sokolov & Alexander's own proposed procedure, Eq. (11)** —
+   E = E_subsize × [NF_brittle·(100 − SHEAR)/100 + NF_ductile·SHEAR/100], with NF_brittle the fracture-area ratio (Eq. 10) and
+   NF_ductile the empirical upper-shelf ratio (5.1, 18.3, 6.3, 21.3 for their types 1–4), SHEAR the percent shear fracture on
+   each specimen's fracture surface. **The dataset has no shear-fracture-appearance column at all** — 56 columns, none of which
+   is shear area, fracture appearance or lateral expansion (`outputs/wp0/data_dictionary.csv`). Shear is not partly missing
+   here; it is absent for all 2,588 primary records. It is therefore **not imputed, not derived from test temperature, not
+   assumed to be 0 % or 100 %**, and Eq. (11) cannot be run, as primary or as sensitivity. Their Eq. (12), which recovers shear
+   from instrumented force–displacement traces, needs F_iu, F_a, F_gy and F_m, which the dataset also does not have.
+   **Consequence, stated rather than hidden.** The primary method applies **one** factor to a whole curve, while Sokolov's
+   evidence is that the brittle and ductile factors differ by roughly 1.3–2.4× for his four types (NF_brittle 3.77 / 8.52 /
+   4.00 / 8.90 against NF_ductile 5.1 / 18.3 / 6.3 / 21.3). A single factor is therefore expected to misfit the lower and upper
+   parts of the curve in opposite directions — the failure mode [descriptor] describes ("sub-sized specimens tend to produce
+   higher impact energies in the lower shelf region and proportionally lower energies in the upper shelf region") and [ML2026]
+   §1 repeats. WP5 measures that misfit (S2 is the pure-area factor, so S2 against the primary brackets it) instead of denying it.
+2. **Louden's NF (B b²/L K_t) and DBTT normalization, and Kayano's NF (B b²/K_t′)** — need the elastic stress-concentration
+   factor K_t, a function of ligament size and notch root radius whose values the sources tabulate for particular geometries
+   only ([ML2026] Table 3 gives K_t, K_t′ and K_t″ for five geometries; this cohort has nine miniature geometries). Running
+   them would mean inventing K_t for the rest. Louden's DBTT normalization additionally needs the maximum force P_m from an
+   instrumented test, which this dataset does not record. Not run.
+3. **Kumar's ΔUSE + USE_p** — needs energies from precracked specimens as well as notched ones. D-020 established that every
+   retained curve here is an ordinary Charpy V-notch measurement and that no precracked series survives; there are no USE_p
+   values. Not run.
+4. **Uehira's m(B b)^n and Wallin's USE power law (b_f/b_s)^m** — their exponents must be calibrated against full-size USE
+   values of the same material. That is in-sample calibration against the quantity a size correction is then evaluated on, which
+   PROJECT_BRIEF.md §7 forbids. [ML2026] §4.1 illustrates the effect: its best analytical USE variants (R² 0.824 and 0.859) were
+   obtained by fitting m and n per publication or per thickness to the same full-size data used to score them, against R² 0.488
+   for one uncalibrated fit. Not run, as primary or as sensitivity.
+5. **[STP1380]'s KLST upper-shelf relation USE_CVN = 29.454·exp(0.2378·USE_KLST)** ([LuconNIST] Eq. 12) — a material-specific
+   dimensional relation for one geometry, not a geometry normalization, and read only second-hand. Reported as an external
+   comparison for the single KLST family, never applied as the correction.
+6. **Kurishita's a/ρ ≈ 15 rule** — reported as a diagnostic for every geometry, never used as a correction. The cohort's ratios
+   are 4.1–10 (miniature) and 8.0 (full-size), so no geometry meets the condition under which that rule says no shift is needed.
+
+## D-077 — The full-size-equivalent fitting rule
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** The transformed points (T_fse, E_fse) of a smaller-specimen curve are fitted with the **unchanged approved WP3
+functions** (`src/wp3_fitter.py`: `fit_curve`, `index_temperature`, `index_fraction_of_rise`, `classify`,
+`criterion_bracketing`), using the **full-size convention of D-042: LSE fixed at 2.7 J**, with USE, T0 and C fitted, and with
+bounds and starting values derived from the transformed data exactly as D-041 defines them. T41J is then taken from the analytic
+crossing under the unchanged D-044 rules, including the tested-range rule applied to the **transformed** tested temperatures, and
+carries the same two support diagnostics (index position on the fitted rise; empirical bracketing of 41 J by the transformed
+energies). The resulting row is labelled **"transformed estimate of full-size-equivalent behaviour derived from published
+smaller-specimen measurements"** and is never called a measurement.
+**Why the full-size shelf convention.** After mapping, the points are estimates of full-size-equivalent behaviour, so the
+convention that D-042 approved for full-size curves is the consistent one; keeping the miniature convention (fitted LSE) would
+leave a fitting-method difference inside the size comparison and confound it with the size effect. It also matters mechanically:
+15 of the cohort's 36 miniature curves are classed boundary-limited only because their fitted lower shelf rests on its 0 J bound
+(D-046), which is an artefact of the miniature convention and cannot occur once the shelf is fixed.
+**Note on what this changes.** The energy normalization multiplies every energy by one constant, but the 2.7 J lower shelf is
+**not** scaled with it: 2.7 J is the full-size shelf convention and the transformed curve lives in the full-size domain. The
+transformed lower shelf is therefore not a scaled version of the miniature one, and the difference is visible in the fits.
+**Alternatives.** (1) Fit the transformed points with the miniature convention. (2) Scale the raw miniature fit's parameters
+analytically instead of refitting. **If chosen.** (1) mixes a method difference into the residual; (2) would not reapply the
+tested-range and support rules, and would hide that the transformed curve can fail them.
+
+## D-078 — The residual size-effect quantity and its sign
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** For every matched geometry comparison the primary residual is
+
+&nbsp;&nbsp;&nbsp;&nbsp;**ΔT_size = T41J(normalized smaller specimen, full-size-equivalent) − T41J(measured full-size curve)&nbsp;&nbsp;[°C]**
+
+Both terms come from the same WP3 fitter and the same 41 J criterion. **Sign, locked here before any residual exists:** a
+**positive** ΔT_size means the classical correction places the full-size-equivalent transition **warmer** than the measured
+full-size curve — the correction over-predicts the transition temperature, which is the conservative direction for a vessel
+integrity argument. A negative ΔT_size means it under-predicts, the non-conservative direction.
+Secondary residual, available for comparisons where a T41J cannot be formed: **ΔT0 = T0(normalized) − T0(measured full-size)**,
+with T0 the tanh mid-transition temperature, which is defined at every specimen size.
+Reported as an outcome and never used as an input (D-074): the **observed** pair shift T0(full-size) − T0(smaller specimen, raw),
+against the published shift M. This is the cleanest single statement of the measured size effect in this dataset.
+**Per comparison the outputs store:** family ID; study; material; heat proxy; product form; irradiation condition and fluence;
+smaller geometry and full-size geometry; match-quality class; NF_E and M with the geometry quantities behind them; normalized
+predicted T41J; measured full-size T41J; ΔT_size; the WP3 outcome, index-support and bracketing flags of both original curves and
+of the transformed refit; the WP4 interval label and width of the full-size curve where one exists; and every applicability flag.
+**A perfect scalar normalization would make ΔT_size near zero. It is not forced towards zero, and negative results stay visible.**
+
+## D-079 — Which comparisons enter the primary analysis, and the evidence thresholds
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision, fixed before any residual exists.**
+- **PRIMARY analysis set:** match class STRICT, **and** the full-size curve has a WP3 *usable fit* with a calculated T41J,
+  **and** the transformed refit is a *usable fit* with a calculated T41J under the same D-046 and D-044 rules.
+- **SENSITIVITY sets, reported separately and never merged into the headline:** comparisons whose full-size fit is weakly
+  identified or boundary-limited; comparisons whose transformed refit is weakly identified or boundary-limited; comparisons
+  whose transformed refit yields no T41J; and any PARTIAL-class comparison.
+- The **original** smaller-specimen WP3 outcome is carried on every row but is **not** an inclusion criterion, because it is
+  measured under the miniature lower-shelf convention that D-077 replaces (see D-077).
+- **Evidence thresholds for reporting a stratum-specific correction** (product form, geometry class, irradiation state):
+  a central bias and a scale are reported only with **at least 3 independent matched families from at least 2 publications**.
+  Below that the row reads "insufficient matched evidence for a standalone estimate" and the individual comparisons are shown
+  instead of a summary statistic. **No SD is printed from two observations.**
+- **Evidence status handed to WP6** (D-083): DIRECTLY SUPPORTED = ≥ 3 families from ≥ 2 publications; WEAKLY SUPPORTED = 1–2
+  families, or ≥ 3 families from a single publication; UNSUPPORTED BY THIS DATASET = no STRICT matched comparison.
+
+## D-080 — Summary statistics for the residual
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** Every residual summary reports, side by side and each with its counts: N comparisons; N independent families;
+N studies; mean signed residual; median signed residual; mean absolute error; root-mean-square error; ordinary standard
+deviation (ddof 1); robust scale 1.4826 × median absolute deviation; the 10th, 25th, 75th and 90th percentiles; and the minimum
+and maximum with their pair IDs. Each set is given **comparison-weighted** and **family-weighted** (D-070). With fewer than
+4 observations the SD and the percentiles are suppressed and the individual values are printed instead. No distribution is
+smoothed or fitted; with samples this small the individual points are the honest presentation.
+
+## D-081 — Product-form and irradiation reporting
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** The residual is broken out by the approved harmonized product forms (plate, forging, weld metal; D-013) and by
+irradiation state, using the D-079 thresholds. Overall and stratum-specific evidence are always shown side by side, and product
+forms are **not** pooled merely to raise N: the pooled row is reported as the pooled row, and the per-form rows are reported with
+their own counts, including the rows that say the evidence is insufficient. The primary size normalization does **not** assume
+that irradiation and geometry do not interact; whether the matched evidence can resolve an interaction is answered from the
+counts, and if it cannot, that is reported as a limitation rather than estimated.
+
+## D-082 — Three uncertainties that must not be confused
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** WP5 keeps these separate and says so wherever a number is reported.
+1. **Per-curve fit and sampling uncertainty** (WP4): how well one curve's own index temperature is determined by its own
+   specimens. A bootstrap interval width.
+2. **Size-correction residual disagreement** (WP5): the spread of ΔT_size across matched comparisons after the classical
+   correction has been applied. **This is what WP6 needs.**
+3. **Between-material and between-study variation**: differences among matched families, which include real material differences
+   and the between-laboratory differences of a 109-publication compilation (brief §3).
+**A WP4 interval width is never used as a WP5 size-correction penalty** (PROGRESS.md, author's WP4 decision). Quantity 2 is
+**not** claimed to be pure physical specimen-size variance: it contains contributions from 1 and 3, because each ΔT_size is a
+difference of two independently fitted curves from heterogeneous published data. **No variance deconvolution is attempted**:
+subtracting WP4 variances from the observed residual variance would need the two to be independent and the WP4 intervals to be
+calibrated, and D-056 records that the WP4 intervals are nominal, not calibrated. A conservative residual-disagreement estimate
+that still contains fit noise is preferred to a falsely precise deconvolution.
+
+## D-083 — What WP5 hands to WP6
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** `wp6_size_correction_handoff.csv`, one row per smaller-geometry class, carrying: the geometry and its B, b, B b²
+and NF_E; the central size-correction bias (the family-weighted mean ΔT_size) where the D-079 threshold is met; the residual
+size-correction scale, **defined explicitly** as the family-weighted standard deviation of ΔT_size about that bias, in °C, with
+the robust 1.4826 × MAD scale beside it; the number of independent matched families and publications supporting it; the product
+forms and irradiation states represented; the applicability limits (the 200 J full-size upper-shelf limit of
+[NUREG/CR-6379] p. 16 and p. 29; whether the geometry is one of the four types that report built); and the evidence status of
+D-079. **Geometry classes are not collapsed into one correction unless the evidence supports it**, and a class marked
+UNSUPPORTED BY THIS DATASET is handed to WP6 with that label, so that WP6 must either not simulate it or use a clearly labelled
+external literature scenario for it. WP5 does not run WP6, does not compare fixed material volumes and does not choose a
+scatter model.
+
+## D-084 — Does the normalization actually help? The before/after test
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** For every matched comparison and for the set as a whole, three metrics are reported **before** and **after**
+normalization, with the count that improved and the count that worsened:
+1. **Transition temperature:** |T0(smaller, raw WP3 fit) − T0(full-size)| before, against |T0(normalized refit) − T0(full-size)|
+   after. T0 is used because it is defined at every specimen size, whereas a raw miniature curve has no 41 J index (D-045).
+   Where both T41J values exist, the same comparison is also given on T41J.
+2. **Upper-shelf energy:** (USE_smaller − USE_full)/USE_full before, against (USE_normalized − USE_full)/USE_full after.
+3. **Curve-level energy:** the root-mean-square difference between the smaller curve's fitted energy and the full-size curve's
+   fitted energy, expressed as a fraction of the full-size fitted USE, evaluated **only over the temperature interval where both
+   curves have measured support** — the overlap of the full-size tested range with the smaller curve's tested range (raw for
+   "before", transformed for "after"). Where the overlap is empty the row says so and no number is produced; the normalized curve
+   is never evaluated where one member of the pair has no data.
+**Negative results stay visible.** If the normalization leaves agreement unchanged or makes some pairs worse, that is the
+finding and it is reported as such, per comparison and in the summary.
+
+## D-085 — How the WP5 method was arrived at (chronological, including anything learned before pre-registration)
+**Status:** record. PRE-REGISTERED (WP5) for steps 1–2; extended as work proceeds. No step is rewritten later.
+
+1. *State reconstruction and literature review, before any WP5 code existed.* The approved state was verified (raw-data
+   checksums, the 14 CP2 cohort fingerprints, the 170/2,588 primary cohort, the WP3 outcome counts 0/0/18/35/13/104 and the WP4
+   interval accounting). The sources listed at the head of this section were then read, the full NUREG/CR-6379 report first.
+   **Two things were computed during that review, before any decision below was written, and both are recorded here because they
+   could in principle have influenced a choice:**
+   a. *Feasibility check required by the brief's own structure:* whether a normalized miniature curve can support a 41 J index
+      at all. Multiplying each matched miniature curve's WP3 upper shelf by its B b² factor gives full-size-equivalent upper
+      shelves of roughly 79–305 J, all above 41 J, so the index is computable in principle and WP5 is not futile. This is a
+      feasibility fact about the method, not a residual.
+   b. *Observed while doing (a):* the ratio of those normalized upper shelves to the paired full-size upper shelves, which is a
+      result and not merely a feasibility fact. It is recorded here that this was seen before D-073 and D-074 were written.
+      **Neither choice rests on it.** D-073 follows PROJECT_BRIEF.md §5 and §6.4, which name the ligament-volume convention, and
+      the four read sources that write it B b² or B(W − A)²; D-074 follows the RPV-specific report the brief's §11 points to and
+      the requirement that the correction be independent of the paired full-size curve. The alternatives are all carried as
+      pre-declared sensitivities (D-075), so a reader can see what any other choice would have given.
+2. *Pair inventory, committed before any normalization existed* (commit `6d2aba0`): `src/wp5_pairs.py` and its outputs. Match
+   classes (D-068, D-069) were defined and applied before `src/wp5_size_effect.py` was written.
+3. *Pre-registration commit:* D-068 to D-086 and `src/wp5_normalization.py` (the literature equations and their self-checks),
+   committed before any normalization residual, refit or before/after metric existed.
+
+## D-086 — Software and sanity checks that must pass before any WP5 number is trusted
+**Status:** PRE-REGISTERED (WP5); provisional pending CP4
+
+**Decision.** These run on every execution (`src/wp5_normalization.py::self_checks` and `src/wp5_size_effect.py`), and a failure
+raises and stops the pipeline rather than producing numbers.
+1. **Dimensions.** B b has units mm², B b² mm³; every NF_E is a ratio of like quantities and so dimensionless; every shift is in
+   °C; ln(B b²) takes mm³, the unit the published constants were fitted in.
+2. **Identity.** Feeding the full-size geometry into every energy normalization must give NF_E = 1 exactly. Towers's and
+   Wallin's shifts must give exactly 0 at B = 10 mm; Sokolov's and Lucon's, whose published coefficients are rounded, must give
+   |M| ≤ 0.5 °C (they give +0.43 and +0.04 °C), and the source states the fit was forced through zero there.
+3. **Hand calculation.** One geometry is worked by hand in the generated documentation so a reader can repeat it with a
+   calculator.
+4. **Round trip.** Dividing back by NF_E and subtracting M returns the measured values to machine precision.
+5. **No-op shift.** A geometry whose published shift is zero leaves the temperatures unchanged.
+6. **Reproduces the published source.** Recomputing NUREG/CR-6379's Table 2 ratios (B b, B b², (B b)^{3/2} for its types 1–4)
+   from the type dimensions must match the printed values; this checks the equations *and* the convention for which dimension is
+   notched. Achieved to 0.3 %.
+7. **Pairing audit.** Every primary matched comparison must be reconstructable from the source metadata: the inventory carries
+   the field-by-field comparison for all 4,824 candidate pairs.
+8. **Leakage check.** The correction applied to a smaller curve must be a function of that curve's own published dimensions and
+   fixed published constants only. Verified numerically on every run by recomputing NF_E and M from the geometry alone and
+   requiring an exact match with the values used, and structurally by `normalize()` taking no full-size-curve argument.
+9. **Raw data immutability.** `data/raw/` checksums are verified by WP0 on every pipeline run; WP5 writes nothing outside
+   `outputs/wp5/`.
+10. **Frozen cohorts.** The CP2 membership check runs before WP5 reads anything.
