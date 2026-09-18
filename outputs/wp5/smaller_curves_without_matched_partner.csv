@@ -1,0 +1,19 @@
+curve_id,ref_id,geometry,material_std,product_form,irradiated,n_points,wp3_outcome,same_study_full_size_candidates,reason_no_strict_partner
+109-286,109,27x3x4 a=1,"A508, grade/class not stated",forging,False,15,"usable fit, index temperature unavailable",0,the publication contributes no full-size curve to the frozen primary cohort
+109-287,109,27x3x4 a=1,"A508, grade/class not stated",forging,True,13,"usable fit, index temperature unavailable",0,the publication contributes no full-size curve to the frozen primary cohort
+109-288,109,27x3x4 a=1,"A508, grade/class not stated",forging,False,10,weakly identified,0,the publication contributes no full-size curve to the frozen primary cohort
+109-289,109,27x3x4 a=1,"A508, grade/class not stated",forging,True,12,boundary-limited,0,the publication contributes no full-size curve to the frozen primary cohort
+109-290,109,27x3x4 a=1,"A508, grade/class not stated",forging,False,15,"usable fit, index temperature unavailable",0,the publication contributes no full-size curve to the frozen primary cohort
+109-292,109,27x3x4 a=1,"A508, grade/class not stated",forging,False,11,boundary-limited,0,the publication contributes no full-size curve to the frozen primary cohort
+109-293,109,27x3x4 a=1,"A508, grade/class not stated",forging,True,13,weakly identified,0,the publication contributes no full-size curve to the frozen primary cohort
+52-221,52,23.6x5x5 a=0.78,"A533 Type B, class not stated",plate,True,12,"usable fit, index temperature unavailable",0,"the publication contributes no full-size curve to the frozen primary cohort (its full-size curves left at WP1 step E8 as republications of ref 55's tests, D-019)"
+53-226,53,20x5x5 a=0.76,"A533 Type B, class not stated",plate,False,23,boundary-limited,1,recorded disagreement in material family
+53-227,53,20x5x5 a=0.76,"A533 Type B, class not stated",HAZ,False,24,boundary-limited,1,recorded disagreement in material family
+53-228,53,20x5x5 a=0.76,"A533 Type B, class not stated",HAZ,False,19,"usable fit, index temperature unavailable",1,recorded disagreement in material family
+53-230,53,20x3.33x3.33 a=0.51,"A533 Type B, class not stated",plate,False,20,boundary-limited,1,recorded disagreement in material family
+53-231,53,20x3.33x3.33 a=0.51,"A533 Type B, class not stated",HAZ,False,14,weakly identified,1,recorded disagreement in material family
+53-232,53,20x3.33x3.33 a=0.51,"A533 Type B, class not stated",HAZ,False,22,boundary-limited,1,recorded disagreement in material family
+53-234,53,20x1.5x1.5 a=0.33,"A533 Type B, class not stated",plate,False,8,weakly identified,1,recorded disagreement in material family
+53-235,53,20x1.5x1.5 a=0.33,"A533 Type B, class not stated",HAZ,False,11,boundary-limited,1,recorded disagreement in material family
+53-244,53,20x1.5x1.5 a=0.33,"A533 Type B, class not stated",HAZ,True,8,boundary-limited,1,recorded disagreement in material family
+59-273,59,20x2.5x2.5 a=0.38,"A533 Type B, class not stated",plate,True,12,"usable fit, index temperature unavailable",5,recorded disagreement in fluence; recorded disagreement in irradiation status; recorded disagreement in material family

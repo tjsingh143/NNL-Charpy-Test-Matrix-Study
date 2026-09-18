@@ -1,0 +1,8 @@
+match_class,match_reason,pairs
+NOT MATCHED (a recorded field disagrees),recorded disagreement in material family,2985
+NOT MATCHED (a recorded field disagrees),recorded disagreement in heat chemistry (the heat/lot proxy; the dataset has no heat identifier),1284
+NOT MATCHED (a recorded field disagrees),recorded disagreement in product form,348
+NOT MATCHED (a recorded field disagrees),"recorded disagreement in material designation (specification, type/grade, class, weld-metal label)",168
+NOT MATCHED (a recorded field disagrees),recorded disagreement in irradiation status,16
+NOT MATCHED (a recorded field disagrees),recorded disagreement in fluence,5
+"STRICT (same study, no conflict, no one-sided gap)",same publication; every compared material and condition field agrees,18
