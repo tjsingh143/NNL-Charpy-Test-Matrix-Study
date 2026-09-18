@@ -106,13 +106,19 @@ def _generate(t_raw, truth: dict, m_shift: float, nf_energy: float, delta, scatt
 
 
 def _analyse(t_raw, e_raw, geom: dict):
-    """Steps 8-10: the approved WP5 normalization and the approved WP3 estimator, both unchanged."""
-    if geom["is_full_size"]:
-        t_fse, e_fse = np.asarray(t_raw, float), np.asarray(e_raw, float)
-    else:
-        g = NZ.geometry(geom["length_mm"], geom["width_recorded_mm"], geom["thickness_recorded_mm"],
-                        geom["notch_depth_mm"])
-        t_fse, e_fse, _, _ = NZ.normalize(t_raw, e_raw, g)
+    """Steps 8-10: the approved WP5 normalization and the approved WP3 estimator, both unchanged.
+
+    ONE code path for both specimen sizes: T_fse = T_raw + M, E_fse = E_raw * NF_E, with NF_E and M taken from
+    the geometry. They are the approved WP5 quantities - geometry_info() computes them with
+    wp5_normalization.nf_energy_ligament_volume and shift_sokolov - except that the full-size geometry carries
+    the approved convention NF_E = 1, M = 0 exactly, so full-size analysis is an exact identity (D-074: the
+    published fit "was forced to give a correction factor of 0 for the full-size specimen"; evaluating the
+    rounded Eq. 22 there returns +0.43 deg C, which WP5 self-check 2 records as the rounding residue).
+    Validation test 2 asserts that this path equals wp5_normalization.normalize() exactly for every miniature
+    geometry, and that the full-size case is the exact identity.
+    """
+    t_fse = np.asarray(t_raw, float) + float(geom["m_shift_c"])
+    e_fse = np.asarray(e_raw, float) * float(geom["nf_energy"])
     fit = fit_curve(t_fse, e_fse, TRUE_LSE_J)
     t41, status = index_temperature(fit, t_fse, CRITERION_J)
     fraction = index_fraction_of_rise(fit, CRITERION_J)

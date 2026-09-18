@@ -708,3 +708,67 @@ replicate). Paired batch-means SE over exactly {BATCHES} batches, with a paired 
 
 Total {len(grid)} cells.
 """)
+
+
+# ---------------------------------------------------------------------------
+# 6. Declared runtime / memory benchmark (D-111)
+# ---------------------------------------------------------------------------
+BENCHMARK_STRIDE = 100      # declared subset: every 100th cell of the frozen grid, in cell_id order
+
+
+def peak_rss_mb() -> float:
+    """Peak resident memory of this process and its children, in MB (macOS ru_maxrss is in bytes)."""
+    import resource
+    scale = 1.0 / (1024 * 1024) if hasattr(resource, "RUSAGE_CHILDREN") else 1.0
+    self_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * scale
+    child_rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * scale
+    return float(self_rss + child_rss)
+
+
+def benchmark(grid: pd.DataFrame, workers: int = None) -> dict:
+    """Run the declared benchmark subset and project the full-run wall time (D-111).
+
+    The subset is fixed in code, not chosen after seeing anything: every 100th cell of the frozen grid. The
+    projection scales by total replicates weighted by the per-strategy fit count, which is what actually drives
+    the cost.
+    """
+    workers = worker_count() if workers is None else workers
+    fits_per_programme = {"U": 1.0, "C": 1.0, "A": 1.0, "SS": 1.0}
+
+    def weight(row):
+        if row["strategy"] != "S":
+            return fits_per_programme[row["strategy"]] * row["replicates"]
+        n = int(row["n"])
+        n0 = D.adaptive_seed_size(n)
+        k = D.adaptive_block_size(n)
+        blocks = int(np.ceil(max(0, n - n0) / k))
+        return (1 + blocks) * row["replicates"]
+
+    run = grid.iloc[::BENCHMARK_STRIDE].copy()
+    w_run = float(sum(weight(r) for r in run.to_dict("records")))
+    w_all = float(sum(weight(r) for r in grid.to_dict("records")))
+    print(f"  benchmark: {len(run)} cells (every {BENCHMARK_STRIDE}th of {len(grid)}), "
+          f"{w_run / w_all:.2%} of the total fit-weighted work, {workers} workers", flush=True)
+    # A benchmark served from checkpoints measures nothing. Refuse to report such a timing as a measurement.
+    code_fp = CP.code_fingerprint()
+    root = CP.checkpoint_root()
+    cached = sum(1 for row in run.to_dict("records")
+                 if CP.has_arrays(root / row["tier"] / f"{CP.slug(row['cell_id'])}.npz",
+                                  _cell_fingerprint(code_fp, _task_from_row(row))))
+    if cached:
+        raise RuntimeError(
+            f"{cached} of the {len(run)} benchmark cells are already in the checkpoint cache, so the timing "
+            f"would not be a measurement. Move cache/wp6/ aside to re-measure, or read the recorded "
+            f"outputs/wp6/runtime_benchmark.csv from the cold run.")
+    t0 = time.time()
+    run_grid(run, workers=workers, progress_every=10)
+    elapsed = time.time() - t0
+    projected_h = elapsed / max(1e-9, w_run) * w_all / 3600.0
+    peak = peak_rss_mb()
+    print(f"  benchmark: {elapsed / 60:.2f} min for the subset; projected full run "
+          f"{projected_h:.2f} h; peak RSS {peak:.0f} MB", flush=True)
+    return dict(data_type=DATA_TYPE, benchmark_cells=len(run), stride=BENCHMARK_STRIDE, workers=workers,
+                elapsed_s=elapsed, fit_weight_run=w_run, fit_weight_total=w_all,
+                projected_full_run_hours=projected_h, peak_rss_mb=peak,
+                note="declared subset fixed in code (every 100th cell); projection scales by replicates weighted "
+                     "by the per-strategy fit count (D-111); measured on a COLD cache")

@@ -66,29 +66,39 @@ def test_01_zero_scatter():
 
 
 def test_02_full_size_identity():
-    import wp5_normalization as NZ
+    import wp5_normalization as NZ  # noqa: F401
     g0 = D.geometry_info("G0")
     g = NZ.geometry(55.0, 10.0, 10.0, 2.0)
     nf = NZ.nf_energy_ligament_volume(g)
     m_eq22 = NZ.shift_sokolov(g)
     ok_nf = abs(nf - 1.0) < 1e-12 and abs(g0["nf_energy"] - 1.0) < 1e-12
     ok_m = g0["m_shift_c"] == 0.0
-    # The miniature code path, given NF_E = 1 and M = 0, must reproduce the full-size path bit for bit.
+    # The single analysis path must be the EXACT identity for the full-size geometry, and must agree exactly
+    # with the approved wp5_normalization.normalize() for every miniature geometry.
     truth = E.archetypes()["A5"]
-    forced = dict(g0); forced["is_full_size"] = False
     a = SIM.simulate_programme(truth, g0, 12, "U", 0.0, S.build_scatter_model("C1"), K.scenario_none(),
                                SIM.replicate_rng("id", "noise", 0), SIM.replicate_rng("id", "corr", 0),
                                keep_detail=True)
-    b = SIM.simulate_programme(truth, forced, 12, "U", 0.0, S.build_scatter_model("C1"), K.scenario_none(),
-                               SIM.replicate_rng("id", "noise", 0), SIM.replicate_rng("id", "corr", 0),
-                               keep_detail=True)
-    same = (np.array_equal(a["t_fse"], b["t_fse"]) and np.array_equal(a["e_fse"], b["e_fse"])
-            and a["t41j_hat_c"] == b["t41j_hat_c"])
-    record("02 full-size identity", ok_nf and ok_m and same,
-           f"NF_E = {nf:.15g} (exactly 1); the approved full-size M is 0 by convention, while Sokolov Eq. 22 "
-           f"evaluated at the full-size geometry returns {m_eq22:+.3f} deg C, the published rounding residue "
-           f"(WP5 self-check 2: the fit was forced through zero there); miniature code path with NF_E = 1 and "
-           f"M = 0 reproduces the full-size path bit for bit: {same}",
+    identity = np.array_equal(a["t_fse"], a["t_raw"]) and np.array_equal(a["e_fse"], a["e_raw"])
+    agree = True
+    for code in D.MINIATURE_CODES:
+        info = D.geometry_info(code)
+        gg = NZ.geometry(info["length_mm"], info["width_recorded_mm"], info["thickness_recorded_mm"],
+                         info["notch_depth_mm"])
+        t_raw = np.linspace(-150.0, 50.0, 11)
+        e_raw = np.linspace(0.1, 9.0, 11)
+        tn, en, nf_i, m_i = NZ.normalize(t_raw, e_raw, gg)
+        mine_t = t_raw + info["m_shift_c"]
+        mine_e = e_raw * info["nf_energy"]
+        if not (np.allclose(tn, mine_t, rtol=0, atol=0) and np.allclose(en, mine_e, rtol=0, atol=0)
+                and nf_i == info["nf_energy"] and m_i == info["m_shift_c"]):
+            agree = False
+    record("02 full-size identity", ok_nf and ok_m and identity and agree,
+           f"NF_E = {nf:.15g} (exactly 1) and the approved full-size M is 0 by convention, so the full-size "
+           f"analysis is the exact identity: {identity}. Sokolov Eq. 22 evaluated at the full-size geometry "
+           f"returns {m_eq22:+.3f} deg C, which WP5 self-check 2 records as the published rounding residue "
+           f"(D-074: the fit was forced through zero there). The single WP6 analysis path agrees EXACTLY with "
+           f"wp5_normalization.normalize() for all {len(D.MINIATURE_CODES)} miniature geometries: {agree}",
            nf_energy=nf, m_sokolov_at_full_size_c=m_eq22)
 
 
@@ -450,14 +460,25 @@ def test_17_miniature_scatter_scaling():
         worst = max(worst, d, gap)
         ks = stats.ks_2samp(dev_a, dev_b)
         detail.append(f"{name}: max |deviation difference| {d:.2e} J, KS p = {ks.pvalue:.2f}")
-    # with snapping on, the equivalent temperatures may differ by at most half a grid step
-    c = SIM.simulate_programme(truth, g5, 200, "U", 0.0, S.build_scatter_model("C1"), zero_pen,
+    # With snapping on, the equivalent temperatures differ only by the grid residue - PROVIDED no specimen is
+    # clipped. Clipping is a separate, physical, geometry-dependent effect (validation 12B/16), so this
+    # sub-check uses a design in which neither geometry clips (strategy C, 120 deg C span).
+    c = SIM.simulate_programme(truth, g5, 40, "C", 0.0, S.build_scatter_model("C1"), zero_pen,
                                SIM.replicate_rng("ms", "n", 1), SIM.replicate_rng("ms", "c", 1),
                                snap=True, keep_detail=True)
-    a2 = SIM.simulate_programme(truth, g0, 200, "U", 0.0, S.build_scatter_model("C1"), none,
+    a2 = SIM.simulate_programme(truth, g0, 40, "C", 0.0, S.build_scatter_model("C1"), none,
                                 SIM.replicate_rng("ms", "n", 1), SIM.replicate_rng("ms", "c", 1),
                                 snap=True, keep_detail=True)
+    if c["n_clipped"] or a2["n_clipped"]:
+        record("17 miniature scatter scaling", False, "the snapping sub-check design clipped; it must not")
+    desired = D.place_temperatures("C", truth["t41j_c"], D.C_ASSUMED_C, 40)
+    res_full = float(np.max(np.abs(a2["t_raw"] - desired)))                       # own snap residue, full-size
+    res_mini = float(np.max(np.abs(c["t_raw"] - (desired - g5["m_shift_c"]))))    # own snap residue, miniature
+    # Each design snaps its OWN raw temperature, so each residue is bounded by half a grid step; the difference
+    # between two independently snapped designs is bounded by one full grid step.
     offset = float(np.max(np.abs(np.sort(c["t_fse"]) - np.sort(a2["t_fse"]))))
+    snap_ok = (res_full <= D.GRID_C / 2 + 1e-9 and res_mini <= D.GRID_C / 2 + 1e-9
+               and offset <= D.GRID_C + 1e-9)
     # Delta moves the region boundaries by exactly Delta
     delta = 17.0
     cs = K.CorrectionScenario("d", "normal", delta, 0.0)
@@ -465,11 +486,14 @@ def test_17_miniature_scatter_scaling():
                              S.build_scatter_model("zero"), np.random.default_rng(0))
     expect = SIM.true_energy_fse(np.array([0.0 + g5["m_shift_c"] - delta]), truth) / g5["nf_energy"]
     region_ok = abs(float(e_raw[0]) - float(expect[0])) < 1e-12
-    record("17 miniature scatter scaling", worst < 1e-9 and offset <= D.GRID_C / 2 + 1e-9 and region_ok,
+    record("17 miniature scatter scaling", worst < 1e-9 and snap_ok and region_ok,
            "with Delta = 0, no clipping, equal N and equal full-size-equivalent temperatures (snapping "
            "disabled), the normalized miniature energies reproduce the full-size scatter exactly for every "
            "model - " + "; ".join(detail) +
-           f"; with snapping on the equivalent-temperature offset is {offset:.2f} deg C (<= 2.5); and a "
+           f"; with snapping on and no clipping, each design's own snap residue is {res_full:.2f} deg C "
+           f"(full-size) and {res_mini:.2f} deg C (miniature), both within half a grid step (2.5 deg C), and "
+           f"the offset between the two independently snapped designs is {offset:.2f} deg C, within one full "
+           f"grid step ({D.GRID_C:g} deg C), as two independent residues must be; and a "
            f"non-zero Delta = {delta} deg C moves the evaluated true position by exactly Delta")
 
 
@@ -555,6 +579,20 @@ def main():
     df = pd.DataFrame(RESULTS)
     df.to_csv(OUT / "validation_results.csv", index=False)
     print(f"  {len(df)} validation rows, all passed, in {time.time() - t0:.1f} s")
+    # The declared runtime / memory benchmark of D-111, run after the tests pass and before the full grid.
+    # It measures nothing once the cache is warm, so on a warm cache the recorded cold-run measurement stands.
+    grid = E.build_grid()
+    try:
+        bench = E.benchmark(grid)
+        pd.DataFrame([bench]).to_csv(OUT / "runtime_benchmark.csv", index=False)
+    except RuntimeError as exc:
+        print(f"  benchmark skipped: {exc}")
+        bench = pd.read_csv(OUT / "runtime_benchmark.csv").iloc[0].to_dict()
+    ok = bench["projected_full_run_hours"] <= 10.0 and bench["peak_rss_mb"] < 2000.0
+    print(f"  benchmark {'WITHIN' if ok else 'BEYOND'} the approved thresholds "
+          f"(projected {bench['projected_full_run_hours']:.2f} h <= 10 h, peak "
+          f"{bench['peak_rss_mb']:.0f} MB): "
+          f"{'proceed with the complete frozen grid' if ok else 'STOP and report to the author (D-111)'}")
 
 
 if __name__ == "__main__":
