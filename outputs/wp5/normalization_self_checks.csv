@@ -1,0 +1,17 @@
+check,detail,result
+dimensional consistency,"B b has units mm^2 and B b^2 mm^3; full-size 10 mm x 8 mm = 80 mm^2 and 10 mm x (8 mm)^2 = 640 mm^3; every NF is a ratio of like quantities (dimensionless); every shift is in deg C; ln(B b^2) takes mm^3, which is the unit the published constants were fitted in",pass
+identity: energy NF at full size,ligament volume B b^2 (Lucas et al.): NF = 1,pass (exactly 1)
+identity: energy NF at full size,fracture volume (B b)^3/2 (Corwin et al.): NF = 1,pass (exactly 1)
+identity: energy NF at full size,fracture area B b (Corwin first factor; Sokolov NF_brittle): NF = 1,pass (exactly 1)
+identity: temperature shift at full size,"M = 98 - 15.1 ln(B b^2) (Sokolov & Alexander, NUREG/CR-6379 Eq. 22): M = +0.4318 deg C","pass (|M| = 0.43 deg C, the rounding of the published coefficients; the source states the fit was forced through zero at the full-size specimen)"
+identity: temperature shift at full size,M = 92.7 - 14.34 ln(B b^2) (Lucon et al.): M = +0.0425 deg C,"pass (|M| = 0.04 deg C, the rounding of the published coefficients; the source states the fit was forced through zero at the full-size specimen)"
+identity: temperature shift at full size,M = 0.7 (10 - B)^2 (Towers): M = +0.0000 deg C,pass (exactly 0)
+identity: temperature shift at full size,M = -51.4 ln(2 (B/10)^0.25 - 1) (Wallin): M = -0.0000 deg C,pass (exactly 0)
+"hand-calculated example (23.6 x 5 x 5 mm, a = 0.76 mm)",b = W - a = 5.00 - 0.76 = 4.24 mm; B b^2 = 5.00 x 4.24^2 = 5.00 x 17.9776 = 89.8880 mm^3; NF_E = 640 / 89.8880 = 7.1200; M = 98 - 15.1 x ln(89.8880) = 98 - 15.1 x 4.4986 = 30.07 deg C,"pass (code gives NF_E = 7.1200, M = 30.07 deg C)"
+round trip,T_fse - M and E_fse / NF_E return the measured temperatures and energies,"pass (max |dT| = 0.00e+00 deg C, max relative |dE| = 1.48e-16)"
+no-op shift,"the full-size geometry gives NF_E = 1 and M = +0.4318 deg C, so the transformed temperatures move by +0.4318 deg C and the energies not at all",pass
+monotonicity,"over the 5.0, 3.33, 2.5 and 1.5 mm cross-sections the energy factor rises 7.1 -> 311.7 and the shift rises 30.1 -> 87.1 deg C as the ligament volume falls",pass
+reproduces NUREG/CR-6379 for its type 1,"Table 2 ratios published Bb 3.77, Bb^2 7.12, (Bb)^3/2 7.33; recomputed 3.78, 7.13, 7.34. Eq. (22) gives M = 30.1 deg C against the type-specific Eq. shift +30 (+/- 28) deg C",pass (largest Table 2 difference 0.1 %)
+reproduces NUREG/CR-6379 for its type 2,"Table 2 ratios published Bb 8.52, Bb^2 24.2, (Bb)^3/2 24.8; recomputed 8.51, 24.13, 24.84. Eq. (22) gives M = 48.5 deg C against the type-specific Eq. shift +53 (+/- 24) deg C",pass (largest Table 2 difference 0.3 %)
+reproduces NUREG/CR-6379 for its type 3,"Table 2 ratios published Bb 4.0, Bb^2 8.0, (Bb)^3/2 8.0; recomputed 4.00, 8.00, 8.00. Eq. (22) gives M = 31.8 deg C against the type-specific Eq. shift +34 (+/- 20) deg C",pass (largest Table 2 difference 0.0 %)
+reproduces NUREG/CR-6379 for its type 4,"Table 2 ratios published Bb 8.9, Bb^2 23.7, (Bb)^3/2 26.5; recomputed 8.89, 23.70, 26.50. Eq. (22) gives M = 48.2 deg C against the type-specific Eq. shift +38 (+/- 30) deg C",pass (largest Table 2 difference 0.1 %)

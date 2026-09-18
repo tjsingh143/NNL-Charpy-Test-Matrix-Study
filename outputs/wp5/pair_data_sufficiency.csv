@@ -1,0 +1,5 @@
+subset,comparisons,families,studies,heats,geometry_combinations,both_wp3_usable,product_forms,irradiation_states
+STRICT matches,18,10,5,6,8,6,forging: 5; plate: 10; weld metal: 3,unirradiated: 11; irradiated: 7
+PARTIAL matches,0,0,0,0,0,0,,
+STRICT + PARTIAL,18,10,5,6,8,6,forging: 5; plate: 10; weld metal: 3,unirradiated: 11; irradiated: 7
+STRICT and both WP3 fits usable (candidate PRIMARY analysis set),6,4,3,3,4,6,forging: 1; plate: 5,unirradiated: 1; irradiated: 5

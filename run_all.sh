@@ -34,4 +34,10 @@ EOF
                                                                  # accounting, coverage of WP3 scenarios (D-060); 47-60 min measured with 3 workers
 .venv/bin/python src/wp4_uncertainty.py                          # WP4 per-curve bootstrap uncertainty of the 170 primary curves: pairs (primary) and
                                                                  # fixed-design wild (sensitivity), B = 2,000 each; stability, scatter, cross-check; 41-76 min measured
+.venv/bin/python src/wp5_pairs.py                                # WP5 specimen-size pair inventory: which published curves are genuinely the same material and
+                                                                 # condition at two specimen geometries, and the data-sufficiency assessment (D-068 to D-071); seconds
+.venv/bin/python src/wp5_size_effect.py                          # WP5 classical size normalization of the matched pairs, residual DT_size, sensitivities and the
+                                                                 # WP6 handoff (D-072 to D-086); runs the normalization self-checks first; seconds
+.venv/bin/python src/wp5_tests.py                                # WP5 independent checks: pairing audit, leakage, sign convention, round trip, raw-data
+                                                                 # immutability and the pre-registered evidence thresholds (D-086); seconds
 echo "All outputs regenerated."
