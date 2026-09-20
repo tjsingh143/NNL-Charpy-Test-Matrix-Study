@@ -22,8 +22,8 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP3 Transition curve fitting | done (CP3 approved; merged into `main`) |
 | WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
 | WP5 Specimen size effect | done (CP4 approved; merged into `main`) |
-| WP6 Monte Carlo test matrix study | done on branch `wp6`; **CP5 awaiting the author's approval**; not merged |
-| WP7 | not started |
+| WP6 Monte Carlo test matrix study | done (CP5 approved; merged into `main`) |
+| WP7 Report and repository | next permitted work package; NOT started |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
 not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
@@ -34,7 +34,7 @@ family-weighted standard deviation of about 11 °C, and the dataset contains too
 analysis set, 10 in total) to establish a size-correction uncertainty for any individual specimen geometry
 (`outputs/wp5/wp5_summary.md`).
 
-WP6 finding, in one line (SYNTHETIC Monte Carlo, awaiting CP5 approval): a miniature-specimen programme carries an
+WP6 finding, in one line (SYNTHETIC Monte Carlo; CP5 approved, stated in the conditional form the author approved): a miniature-specimen programme carries an
 error floor of about 12 deg C in the recovered full-size T41J - the size-correction residual, which does not average away
 with specimen count - so miniature specimens win only at the smallest budget tested (four full-size specimens' worth of
 material, and never with a clustered design); from eight full-size specimens' worth they win no comparison under any

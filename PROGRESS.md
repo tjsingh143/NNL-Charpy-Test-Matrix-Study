@@ -14,9 +14,12 @@
   APPROVED (D-075 as a sensitivity set, D-085 as a chronology, D-087 as the record of results); D-089 deliberately left OPEN as a
   WP6 planning decision. Merged into `main` with an explicit merge commit; branch `wp5` is kept. The CP4 approval session changed
   documentation and status only — no code, number, generated table or generated figure moved (D-088).
-- **WP6 (Monte Carlo test matrix study) complete on branch `wp6` — CP5 AWAITING THE AUTHOR'S APPROVAL.** The plan was
-  approved in WP6 Plan Mode over three review rounds (D-090 to D-112, pre-registered in commit `3714fe7` before any
-  headline cell ran). `wp6` is NOT merged into `main`; WP7 has NOT started; no report text has been drafted.
+- **WP6 (Monte Carlo test matrix study) complete — CP5 APPROVED** (author, 2026-09-19): D-090 to D-112 FINAL APPROVED,
+  including the whole D-112 chronology; the headline approved in CONDITIONAL form. The plan was approved in WP6 Plan Mode
+  over three review rounds and pre-registered in commit `3714fe7` before any headline cell ran. Merged into `main` with an
+  explicit merge commit; branch `wp6` is kept. The CP5 approval session changed documentation and status only — no code,
+  number, generated table or generated figure moved, and no WP6 computation was rerun (D-112 step 13).
+- **WP7 (report and repository, PROJECT_BRIEF.md §5 and §6) is the next permitted work package. WP7 has NOT started.**
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -260,7 +263,7 @@ found after the WP6 results existed); this file; then `outputs/wp6/wp6_summary.m
 `outputs/wp6/geometry_reachability.csv`, `outputs/wp6/validation_results.csv` and `outputs/wp6/wp6_check_results.csv`.
 Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published measurements).
 
-## WP6 results (CP5 AWAITING APPROVAL; all SYNTHETIC; regenerate with `./run_all.sh`; summary `outputs/wp6/wp6_summary.md`)
+## WP6 results (CP5 approved 2026-09-19; all SYNTHETIC; regenerate with `./run_all.sh`; summary `outputs/wp6/wp6_summary.md`)
 - **Method, pre-registered** (commit `3714fe7`, before any headline cell): a simulated test programme starts from a known
   true full-size tanh, places test temperatures by a declared strategy using only the prior, generates specimens from the
   approved WP4-derived scatter model, maps a miniature programme through the approved WP5 correction with ONE
@@ -318,19 +321,30 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   No estimator, rule, threshold, grid cell, archetype, scatter model, correction value, prior level, replicate count or
   seed was changed because of a result.
 
-## Decisions CP5 must take (WP6 results exist; nothing here was changed after seeing them)
-1. **The adaptive delta sequence (D-112 step 10).** D-101's "delta cycling 0, -0.5, +0.5, -1.0, +1.0, -1.5, +1.5, ..." was
-   implemented, before any result, as EXTENDING beyond +/- 1.5 C_hat; a WRAPPING reading is also possible. No full-size
-   result depends on it; miniature adaptive programmes spread later specimens onto the shelves (RMSE change at most about
-   0.6 deg C). Keep as run, or add the wrapping reading as a labelled sensitivity.
-2. **The -195 deg C grid floor (D-112 step 5c).** The -196 deg C liquid-nitrogen floor is not on the 5 deg C grid, so
-   clipped specimens are tested at -195 deg C (22 rather than 21 of the 104 fits unreachable for `20x1.5x1.5`). Confirm, or
-   ask for testing exactly at -196 deg C.
-3. **Approve WP6 (D-090 to D-112) and the CP5 headline**, and authorise merging `wp6` into `main` and starting WP7.
+## CP5 decisions (author, 2026-09-19) — see the CP5 approval record in DECISIONS.md for the full text
+1. **Adaptive delta sequence: the pre-registered EXTENDING reading is KEPT**; the wrapping reading is **not** added as a
+   sensitivity, because the implementation was frozen before results existed, no full-size result depends on it, the
+   miniature effect is small, and tier T7 already demonstrates that adaptive conclusions can depend on the algorithm.
+   **The wording ambiguity stays an explicit limitation and the original wording is not rewritten** (D-101, D-112 step 10).
+2. **Coldest raw test temperature CONFIRMED at -195 deg C**, the coldest point both at or above the -196 deg C physical
+   floor and on the 5 deg C grid; the consequence (22 rather than 21 of the 104 truths unreachable for `20x1.5x1.5`) is
+   kept, as an implementation clarification and not a post-result tuning decision (D-112 step 5c).
+3. **D-090 to D-112 FINAL APPROVED**, including the whole chronology: the implementation defects found after the first
+   run and corrected TO the pre-registered plan, the determinism test that originally proved nothing, the reporting
+   fixes, the adaptive wording ambiguity, the ~21 h cold run stretched by the machine sleeping, and the two awake cold
+   runtimes of about 381-390 min. **The transparent chronology is part of the reproducibility evidence.**
+4. **The headline is approved in CONDITIONAL form.** The report **must not** claim that full-size specimens are
+   universally better; the generated tables remain authoritative over prose. The approved conditions, the dominance of
+   the correction assumption over the scatter model, the WEAKLY SUPPORTED pooled correction, the idealized volume
+   accounting, the MCVN-not-E23 scope and the unresolved irradiation x geometry interaction are all preserved.
+5. **T6** is approved as a mismatch between sampling/fitting uncertainty and full-size-equivalent uncertainty after an
+   uncertain size correction - **not** as a failure of the WP4 bootstrap.
+6. **Physical reachability is a first-class result**; feasibility failures are never collapsed into RMSE comparisons.
 
 ## Next permitted work package
-- **None until CP5 is approved.** WP6 is complete on branch `wp6` and CP5 awaits the author. `wp6` is not merged, WP7
-  has not started and no report text has been drafted.
+- **WP7 (report and repository, PROJECT_BRIEF.md §5, §6 and §10).** All five checkpoints are approved: CP1 (WP0, WP1),
+  CP2 (WP2), CP3 (WP3), the internal WP4 review, CP4 (WP5) and CP5 (WP6). **WP7 has NOT started** and no report text has
+  been drafted. The report must present the WP6 headline in the conditional form CP5 approved.
 
 ## Unresolved data issues carried forward
 - WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and

@@ -2882,7 +2882,9 @@ its regenerated file at full precision at run time, never typed from prose.
 
 **Status legend for this section:** `PRE-REGISTERED (WP6)` = written and committed before any headline WP6 cell was run
 (the commit is named in D-112). `APPROVED (WP6 plan)` = approved by the author in WP6 Plan Mode, before any WP6 result
-existed, over three review rounds (2026-09-17/18). Every entry below was approved before implementation began.
+existed, over three review rounds (2026-09-17/18); every entry below was approved before implementation began.
+`FINAL APPROVED (CP5)` = approved by the author at the official checkpoint CP5 (2026-09-19) after reviewing the completed
+WP6 results; the earlier statuses follow it as history and no pre-registered text is rewritten.
 
 **WP6 plan-approval record (author, 2026-09-18).** The author reviewed a written WP6 implementation plan in three rounds
 and approved it. Round 1 produced the plan; round 2 issued 14 amendments; round 3 issued a temperature-frame correction
@@ -2891,6 +2893,77 @@ is recorded in the entry it changed and in the chronology D-112. **Nothing in th
 simulation result**; the only WP6 numbers that existed at approval were planning-stage calibration diagnostics and
 feasibility checks, all listed in D-112.
 
+**CP5 approval record (author, 2026-09-19).** The author reviewed the completed WP6 state and **approved WP6**;
+`wp6` is merged into `main` with an explicit merge commit once these decisions are recorded and verified. **These
+approvals are documentation and status only: no code, estimator, grid cell, scatter model, correction value, seed,
+threshold, number, generated table or generated figure changed, and no WP6 computation was rerun** (author's CP5
+instruction 7). Each item is recorded in full in the entry named.
+
+1. **Adaptive step pattern (D-101, D-112 step 10): KEEP the pre-registered EXTENDING interpretation as implemented.**
+   The wrapping interpretation is **not** added as a WP6 sensitivity. Reasons, as the author gave them: the extending
+   implementation was frozen before headline results existed; the ambiguity was found afterwards and is transparently
+   recorded; no full-size result depends on the ambiguous portion; the measured effect on miniature T1 RMSE is small;
+   and tier T7 already provides a genuinely different adaptive/staircase sensitivity, so the project already
+   demonstrates that adaptive-design conclusions can depend on the algorithm. **The wording ambiguity is preserved as
+   an explicit limitation, and the original wording is not rewritten to look unambiguous.**
+2. **Coldest test temperature (D-101, D-112 step 5c): CONFIRMED at −195 °C.** The approved simulation requires both a
+   raw specimen temperature of at least −196 °C and a temperature on the 5 °C grid; −196 °C is not on that grid, so
+   −195 °C is the coldest point satisfying both. The consequence is kept: **22 rather than 21** of the 104 usable
+   full-size truths are unreachable for the `20x1.5x1.5` geometry. Recorded as an **implementation clarification, not a
+   post-result tuning decision**.
+3. **D-090 to D-112 FINAL APPROVED** as the final WP6 record, **including the whole D-112 chronology**. Nothing is
+   deleted or sanitised: the implementation defects found after the first run and the fact that they were corrected TO
+   the pre-registered plan; the determinism test that originally passed without genuinely testing worker-count
+   independence; the reporting fixes; the adaptive wording ambiguity; the ~21 h cold reproducibility run stretched by
+   the machine sleeping on battery; and the two awake cold-run runtimes of about 381–390 min. **The transparent
+   chronology is part of the project's reproducibility evidence.**
+4. **The WP6 headline is approved in CONDITIONAL form.** The final report **must not** claim that full-size specimens
+   are universally better than miniature specimens. The approved statement is: under the CENTRAL scenario the WP5
+   programme-level size-correction bias is about −3.49 °C with a residual SD of about 11.43 °C, which produces an
+   approximately **12 °C full-size-equivalent RMSE floor for miniature programmes that does not average away as the
+   specimen count rises**; and under the idealized finished-specimen material-volume accounting, at k = 4 miniature
+   wins for uniform, anchored and model-based adaptive placement while clustered placement gives it no general win;
+   around k = 6 the answer is placement-dependent and often tied; from k = 8 miniature wins no CENTRAL T1 comparison;
+   and from k = 18 full-size wins every CENTRAL T1 comparison. **The generated tables remain authoritative over prose.**
+   Also preserved: that **correction uncertainty, not the WP4 scatter model, is the dominant assumption**; that the
+   correction SD would have to be roughly 5.3–9.7 °C at k = 8 for the median archetype (1.3–12.3 °C over all three
+   archetypes) to reach the full-size RMSE, against the measured central 11.43 °C; that the conservative / all-STRICT
+   and several published-normalization sensitivities favour full-size more strongly; that **no individual miniature
+   geometry had a DIRECTLY SUPPORTED WP5 correction distribution** and the central correction is pooled and **WEAKLY
+   SUPPORTED**; that the material-volume comparison is **idealized finished-specimen accounting, not a
+   surveillance-capsule machining-yield model**; that the smaller specimens studied are **miniature/MCVN-type, not
+   conventional ASTM E23 sub-size evidence**; and that **irradiation × geometry interaction remains unresolved**.
+5. **The T6 interval finding is approved, with its interpretation preserved prominently** (D-109): a WP4-style
+   bootstrap on a miniature-derived programme can cover that programme's **own corrected estimand** well while severely
+   under-covering the **true full-size T41J**, because the programme-level size-correction error lies outside an
+   ordinary specimen-resampling bootstrap. **This is not described as a failure of the WP4 bootstrap**; it is a
+   mismatch between sampling/fitting uncertainty and full-size-equivalent uncertainty after an uncertain specimen-size
+   correction. The generated coverage results for N = 126 / 252 / 504 stand exactly as produced.
+6. **Physical reachability is approved as a first-class WP6 result** (D-092, D-093): the raw floor of −195 °C on the
+   declared grid; the geometry-dependent full-size-equivalent floor of −195 + M; that some cold transitions therefore
+   cannot be adequately sampled by particular miniature geometries; that V16 at T41J = −150 °C makes **every** tested
+   miniature comparison ineligible; and that the 104-real-curve breadth check shows cold-transition cases becoming
+   unreliable **before** the hard mathematical reachability boundary. **Feasibility failures are not collapsed into
+   ordinary RMSE comparisons.**
+7. **No further expensive WP6 runs.** The project has already completed two full cold WP6 runs on an awake machine, a
+   corrected rerun after the implementation deviations were fixed, the final full `./run_all.sh` from raw data with the
+   WP6 cache moved aside, raw checksum verification, upstream WP0–WP5 regeneration, 19 simulator tests (20 validation
+   rows), 11 independent checks and byte-identical regenerated outputs. This session therefore made documentation and
+   status changes only. Had any executable WP6 source file required modification, the session was to stop and explain
+   before merging; none did.
+8. **Status and merge.** WP0–WP6 are complete and approved (CP1, CP1, CP2, CP3, internal review, CP4, CP5); **WP7 is
+   the next permitted work package and has NOT started.** `wp6` is merged into `main` with an explicit merge commit,
+   the branch is kept, nothing is pushed to any remote, and `AGENTS.md` stays untouched and untracked.
+
+**Generated text keeps its generated wording** (the D-067 step 9c and D-088 precedent): `method_configuration.md` still
+says the −195 °C clarification is recorded "for the author to confirm or reverse", and `wp6_summary.md` still lists the
+adaptive delta reading as open for the author. Changing that text would require editing executable code and rerunning the
+analysis, which this approval session did not do. **This file and `PROGRESS.md` are the authoritative record of the CP5
+decisions.**
+
+Not authorized by this approval: WP7 work of any kind, report drafting, any change to WP0–WP6 code, data, cohorts or
+generated outputs, and any new simulation.
+
 **Sources cited in WP6** (all previously read and cited in WP3–WP5; no new source is introduced)
 - [Marini2020], [Switzner2023], [NIST-TN2158], [EfronTibshirani1986] — listed under WP3/WP4.
 - [NUREG/CR-6379], [LuconNIST], [ML2026], [E2248-18], [descriptor] — listed under WP5.
@@ -2898,7 +2971,7 @@ feasibility checks, all listed in D-112.
 No number in WP6 comes from a source that this repository has not already read and recorded.
 
 ## D-090 — What WP6 simulates, and what it must never do
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** WP6 answers PROJECT_BRIEF.md §2 by Monte Carlo simulation of complete test programmes against a **known**
 true full-size transition curve. One replicate = one simulated test programme: choose a true curve, a specimen geometry and
@@ -2917,7 +2990,7 @@ refusals (the tested-range rule), the failure modes, the adaptive designs, or th
 and the size correction — all of which are the substance of the question. **If chosen.** A smooth but unfaithful answer.
 
 ## D-091 — The fixed-material-volume accounting
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
 
 **Decision.** The material budget is spent in **gross rectangular finished-specimen volume** L × W × B. The number of
 specimens is `N = floor(V_budget / V_specimen)`: **integer floor, unused remainder discarded**, no partial specimens, no
@@ -2945,7 +3018,7 @@ number. **Why not.** (1) would understate consumption, because the specimen is m
 particular would decide the headline by assumption rather than by evidence.
 
 ## D-092 — Which specimen geometries WP6 simulates, and how geometry enters
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
 
 **Decision.** WP6 simulates the full-size geometry G0 (55 × 10 × 10 mm, a = 2 mm, B b² = 640 mm³, NF_E = 1, M = 0) and
 **all seven miniature geometry classes that D-083 hands over as WEAKLY SUPPORTED**:
@@ -2988,7 +3061,7 @@ Equivalence is therefore **tested, not assumed** (validation test 12A interior, 
 would leave the handoff unreconciled; the second would assume an equivalence the physical envelope breaks.
 
 ## D-093 — The true transition curves
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
 
 **Decision.** Central: a 3 × 3 factorial of the marginal quantiles of the **104 usable full-size WP3 fits with a calculated
 T41J** — USE ∈ {100, 200, 270} J (p10, median, p90) × C ∈ {28, 46, 60} °C (p10, median, p90), with LSE = 2.7 J (the
@@ -3024,7 +3097,7 @@ shape carry the headline; the second alone gives no factorial attribution to USE
 centrally and the real curves as the breadth check.
 
 ## D-094 — The three scatter-model candidates and how each is calibrated
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
 
 **Decision.** The five regions are WP4's (D-061), evaluated on the **true** curve: lower shelf x ≤ −1.5; lower transition
 −1.5 < x ≤ −0.5; central −0.5 < x < 0.5; upper transition 0.5 ≤ x < 1.5; upper shelf x ≥ 1.5, with x = (T − T0_true)/C_true.
@@ -3057,7 +3130,7 @@ would be a model invented after the WP4 results; D-066 found no product-form str
 in most strata). **If chosen.** An unfalsifiable scatter model, or strata too thin to interpret.
 
 ## D-095 — The CENTRAL scatter model is C1, changing the D-066 planning preference
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This supersedes the planning preference
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This supersedes the planning preference
 recorded in D-066** (C2 central), and the change was made **before any headline WP6 result existed**.
 
 **Decision.** The **CENTRAL** WP6 scatter model is **C1 with the ordinary SD scale**. C2 and C3-centred are **mandatory**
@@ -3086,7 +3159,7 @@ curve the estimand depends on. **If chosen.** A smoother scatter model, a lower 
 biased toward full-size by an amount the sensitivity analysis would then have to undo.
 
 ## D-096 — Miniature scatter: magnitude, coordinate and the un-modelled resolution floor
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
 
 **Decision — magnitude.** Centrally, the **same relative scatter profile applies at both specimen sizes**, so that the
 energy normalization is exactly variance-preserving in relative terms and the comparison isolates the test-programme design
@@ -3125,7 +3198,7 @@ named with its direction and magnitude rather than invented, and the G1 results 
 not.** The first fabricates a number; the second would make a 13-curve, 6-reference estimate the central assumption.
 
 ## D-097 — How the size correction is injected into the simulated truth
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** The size-correction discrepancy enters as a **temperature-domain displacement of the simulated truth**. With
 Δ the programme's discrepancy, the true miniature response is
@@ -3147,7 +3220,7 @@ optional labelled sensitivity (T4 variant V20), not as the central form. **Why n
 mis-centring and make the correction error purely additive, which is not what a wrong correlation does to a test programme.
 
 ## D-098 — The correction residual is ONE programme-level draw
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** Δ is drawn **once per simulated test programme** and shared by every specimen in that programme. It is **not**
 redrawn per specimen in any central or headline analysis.
@@ -3169,7 +3242,7 @@ one modelling choice. It is never the headline and never presented as an alterna
 attempting from these data.
 
 ## D-099 — The distribution of the correction residual, and the two approved WP5 scenarios
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
 
 **Decision — scenarios and their exact values,** read at run time from the regenerated WP5 outputs at full precision,
 never typed from prose (D-083):
@@ -3215,7 +3288,7 @@ contains WP4 fit noise and between-study variation; no deconvolution is attempte
 conservative. It is not a geometry-specific law, not pure material scatter and not an ASTM uncertainty (CP4 item 7).
 
 ## D-100 — The normalization-method bias sensitivity (resolves the open D-089)
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This resolves D-089**, which CP4 deliberately
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6). **This resolves D-089**, which CP4 deliberately
 left open as a WP6 planning decision.
 
 **Decision.** Each pre-declared published normalization is treated as a **complete, self-consistent scenario carrying its
@@ -3247,7 +3320,7 @@ is √(3.494² + 11.434²) = 11.9 °C under Sokolov and √(23.234² + 11.784²)
 correlation may matter more than the scatter model. That is reported explicitly rather than assumed either way.
 
 ## D-101 — Test-temperature placement: the physical frame, the grid, and the five strategies
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2, 3 and 4); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2, 3 and 4); PRE-REGISTERED (WP6)
 
 **Decision — the physical frame (author's amendment, review round 3).** The **−196 °C to +300 °C envelope is a physical
 raw-specimen test-temperature envelope** (−196 °C is the liquid-nitrogen floor; the range also covers the −196…+300 °C span
@@ -3314,7 +3387,7 @@ history, ...)` has no truth parameter, and the simulator never passes one (valid
 whole comparison.
 
 ## D-102 — The prior-knowledge axis
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** `e_prior = T_assumed_fse − T41J_true`, symmetric and declared in advance, nine levels:
 **{0, ±10, ±20, ±40, ±80} °C**. Basis: 80 °C is about 1.7 × the median fitted C (46 °C) and about twice a typical
@@ -3327,7 +3400,7 @@ any result and are not adjusted afterwards.**
 testing, but says to determine rather than assume it. The sweep (tier T2) is what determines it.
 
 ## D-103 — The estimator is the approved WP3 and WP5 analysis, unchanged
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** Every simulated programme is analysed exactly as the corresponding real programme would be:
 `wp3_fitter.fit_curve(t, e, lse_fixed=2.7)` (the approved full-size convention of D-042, which D-077 also approved for
@@ -3345,7 +3418,7 @@ proves the WP6 analysis path reproduces `wp3_fitter` on stored published curves,
 measure a different estimator from the one this project reports.
 
 ## D-104 — The primary performance metric and the availability gate
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** The **primary metric is the RMSE of (T̂41J − T41J_true) in °C**, computed over the replicates in which the
 approved estimator produced a value. The **eligibility gate is availability ≥ 95 % of the replicates requested** — the same
@@ -3366,7 +3439,7 @@ flagged explicitly rather than resolved silently.
 replicates with a conditional RMSE of 14–25 °C — which without the gate would look merely mediocre instead of unusable.
 
 ## D-105 — Win, practical tie, flip, and the label-threshold robustness matrix
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 2); PRE-REGISTERED (WP6)
 
 **Decision.** With ΔRMSE = RMSE(full-size) − RMSE(miniature) for one budget, strategy, archetype and scenario:
 - **τ = max(2.0 °C, 5 % of the smaller RMSE)**. Basis: 2 °C is this project's own distinct-test-temperature convention
@@ -3394,7 +3467,7 @@ would manufacture winners from Monte Carlo noise at large replicate counts; the 
 rather than the rule, because it is not tied to any project convention.
 
 ## D-106 — The correction-uncertainty threshold SD*
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** The headline threshold quantity is **SD\*** = the correction residual SD at which
 RMSE(miniature at N_mini) = RMSE(full-size at N_full), at the declared bias, for a given budget, strategy and archetype.
@@ -3410,7 +3483,7 @@ mis-centres the miniature test temperatures (D-097), which the algebra cannot ca
 strategy rather than as one global number.
 
 ## D-107 — Replicates, seeds, common random numbers, the paired Monte Carlo SE, and stability
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
 
 **Decision — replicates.** R = 1,000 in tiers T1, T2, T3 and T7; R = 500 in T4; R = 400 in T5; R = 200 programmes in T6.
 Fixed before any result. **R is never chosen by which value makes a curve smoother**, and no cell receives a different R
@@ -3452,7 +3525,7 @@ every winner label unchanged, and the interpolated flip budget and SD\* each mov
 than τ in RMSE terms). Reported whether or not it passes.
 
 ## D-108 — The frozen experiment grid
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review rounds 2 and 3); PRE-REGISTERED (WP6)
 
 **Decision.** Every cell of every tier is enumerated **before** implementation, so that no "representative" arm can be
 chosen after results are visible. Archetypes A1–A9; reduced set {A1, A5, A9}; geometries G0–G7; budgets
@@ -3482,7 +3555,7 @@ k ∈ {4, 6, 8, 12, 18, 24}; strategies U, C, A, S (and SS in T7).
 D-111.
 
 ## D-109 — The bounded interval-coverage sub-study
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
 
 **Decision.** Tier T6 measures how a bootstrap interval behaves on a *simulated* programme, using the **approved WP4 pairs
 bootstrap, unchanged** (D-052 to D-057). Two coverage quantities are reported **separately and never merged**:
@@ -3500,7 +3573,7 @@ affected, and nothing in WP6 may be described as a change to the WP4 bootstrap. 
 improve coverage.**
 
 ## D-110 — WP2 cohort propagation
-**Status:** APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18); PRE-REGISTERED (WP6)
 
 **Decision.** PROJECT_BRIEF.md §5 requires the headline to be tested against looser and stricter inclusion rules. WP6
 propagates the CP2-frozen cohorts on the frozen T4 grid (variants V21, V22) through the two inputs it can legitimately
@@ -3518,7 +3591,7 @@ not worked around. No frozen cohort is touched, and the CP2 membership check run
 approved decision (D-039), and CP4 did not approve one.
 
 ## D-111 — Computational architecture, memory, determinism and the runtime stop rule
-**Status:** APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: APPROVED (WP6 plan, author 2026-09-18, amended at review round 3); PRE-REGISTERED (WP6)
 
 **Decision.** WP6 is built for the 8 GB project machine from the start, applying the WP4 lesson (D-067 steps 3–5):
 - execution through the existing `wp4_bootstrap.stream_map` — spawn context, **3 worker processes by default**
@@ -3545,7 +3618,7 @@ precedent).
 are `run_all.sh`, `DECISIONS.md`, `PROGRESS.md` and `README.md`.
 
 ## D-112 — How the WP6 method was arrived at (chronological, including everything computed before pre-registration)
-**Status:** record. PRE-REGISTERED (WP6) for steps 1–4; extended as work proceeds. No step is rewritten later.
+**Status:** FINAL APPROVED (CP5, author 2026-09-19). Earlier: record. PRE-REGISTERED (WP6) for steps 1–4; extended as work proceeds. No step is rewritten later.
 
 1. *State reconstruction and planning, before any WP6 code existed (2026-09-17/18).* The approved state was verified
    read-only: branch, CP4 merge, 213 tracked files, the exact CP4 handoff numbers, the WP4 residual profile and the WP3
@@ -3708,3 +3781,26 @@ are `run_all.sh`, `DECISIONS.md`, `PROGRESS.md` and `README.md`.
     on battery during the run (125 sleep entries in the system power log) and the computation advanced only during brief
     dark wakes; the processing rate was the benchmark's until then. The two complete cold runs on an awake machine, 389.5
     and 381.4 min, are the runtime figures recorded in `run_all.sh` and `README.md`.
+13. *CP5 approval session (author, 2026-09-19; every result it concerns already existed, in the committed state
+    `26c8a84`).*
+    a. *Decided:* D-090 to D-112 FINAL APPROVED, including the whole chronology; the pre-registered EXTENDING reading of
+       the adaptive delta sequence kept, with the wrapping reading **not** added as a sensitivity and the wording
+       ambiguity preserved as a limitation; −195 °C confirmed as the coldest raw test temperature, with the 22-of-104
+       consequence kept and recorded as an implementation clarification; the headline approved in CONDITIONAL form with
+       the "not universally better" constraint; the T6 interval finding approved as a mismatch of two uncertainties
+       rather than a failure of the WP4 bootstrap; physical reachability approved as a first-class result, with
+       feasibility failures kept separate from RMSE comparisons; no further expensive WP6 runs (CP5 approval record).
+    b. *Changed:* documentation and status wording only, in `DECISIONS.md` (the CP5 approval record, the status line of
+       every WP6 entry, this step), `PROGRESS.md` and `README.md`. The pre-registered text of every entry is unchanged.
+    c. *Not changed:* any code, data, cohort, estimator, rule, threshold, seed, grid cell, scatter model, correction
+       value, label, number, generated table or generated figure. No WP6 computation was rerun, so generated text keeps
+       its generated wording (D-067 step 9c precedent): `method_configuration.md` still records the −195 °C
+       clarification as awaiting the author's confirmation, and `wp6_summary.md` still lists the adaptive delta reading
+       as open. This file and `PROGRESS.md` are authoritative for the CP5 decisions.
+    d. *Checks (lightweight; no cold recomputation, author's CP5 instruction 7):* `git diff` showed **0 changed files**
+       under `data/`, `outputs/`, `src/` and `run_all.sh` against the approved results commit `26c8a84`; the 11
+       independent checks of `src/wp6_tests.py` passed, including that WP0–WP5 outputs and sources are byte-identical to
+       `main` and that the 11 raw-data checksums verify; the frozen grid still holds 6,188 cells with the tier counts
+       1,728 / 864 / 576 / 1,296 / 1,664 / 6 / 54.
+    e. `wp6` is merged into `main` with an explicit merge commit and kept; no remote, no push; `AGENTS.md` untouched and
+       untracked. **WP7 has not started.**
