@@ -40,4 +40,18 @@ EOF
                                                                  # WP6 handoff (D-072 to D-086); runs the normalization self-checks first; seconds
 .venv/bin/python src/wp5_tests.py                                # WP5 independent checks: pairing audit, leakage, sign convention, round trip, raw-data
                                                                  # immutability and the pre-registered evidence thresholds (D-086); seconds
+.venv/bin/python src/wp6_validation.py                           # WP6 simulator validation: 19 tests (zero scatter, estimator identity, no truth leakage,
+                                                                 # raw-temperature feasibility, geometry equivalence and non-equivalence, single subtraction
+                                                                 # of M, ...) plus the declared runtime/memory benchmark (D-111); 1-2 min of tests, plus 1.5-2.5 min of
+                                                                 # benchmark on a cold cache (skipped on a warm one)
+.venv/bin/python src/wp6_experiment.py                           # WP6 Monte Carlo test-matrix study: the frozen 6,188-cell grid T1-T7, the paired
+                                                                 # comparisons, the correction-uncertainty threshold, the interval-coverage sub-study, the
+                                                                 # stability subset, nine figures and wp6_summary.md; 381 min measured from a cold cache
+                                                                 # with 3 workers on the 8 GB development Mac (6.4 h; a first
+                                                                 # cold run took 389 min), peak memory 321 MB
+                                                                 # WP6 reuses fingerprinted checkpoints in the git-ignored cache/wp6/, so a repeat run takes
+                                                                 # about 1.5 min (measured 86 s); delete cache/wp6/ to force a full recomputation.
+.venv/bin/python src/wp6_tests.py                                # WP6 independent checks: budget arithmetic, the nine-row geometry reconciliation, the
+                                                                 # correction values and family pools read back at full precision, reachability, failure
+                                                                 # accounting, clip fractions, the D-078 sign convention and that WP0-WP5 is untouched; seconds
 echo "All outputs regenerated."

@@ -1,0 +1,12 @@
+data_type,cell_id,tier,archetype_id,geom_code,strategy,k_budget,n,rmse_R1000_c,rmse_R4000_c,delta_rmse_c,availability_R1000,availability_R4000,eligible_R1000,eligible_R4000,eligibility_unchanged,within_tau
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00865,T1,A5,G5,U,4,84,12.595320810522137,12.180979146675316,-0.41434166384682136,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00866,T1,A5,G5,C,4,84,12.177088867855877,12.030387200340105,-0.14670166751577263,0.999,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00867,T1,A5,G5,A,4,84,12.352799743856771,12.020404187052742,-0.33239555680402866,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00868,T1,A5,G5,S,4,84,12.542762086732171,12.15247404548513,-0.3902880412470413,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00869,T1,A5,G5,U,6,126,12.341799162848766,12.031326271824351,-0.3104728910244141,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00871,T1,A5,G5,A,6,126,12.23393402020874,11.923093153986652,-0.31084086622208673,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00872,T1,A5,G5,S,6,126,12.341848420856904,12.150559087961518,-0.1912893328953853,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00885,T1,A5,G5,U,24,504,12.147884438606038,11.893417702648245,-0.25446673595779323,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00886,T1,A5,G5,C,24,504,11.932956787201068,11.848760754502052,-0.08419603269901543,0.999,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00887,T1,A5,G5,A,24,504,12.063296456434454,11.83323699472292,-0.23005946171153369,1.0,1.0,True,True,True,True
+SYNTHETIC (Monte Carlo test-matrix study; not published measurements),T1-00888,T1,A5,G5,S,24,504,12.242021234422811,11.985194077211323,-0.25682715721148774,1.0,1.0,True,True,True,True
