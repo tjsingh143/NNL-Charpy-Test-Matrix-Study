@@ -4164,3 +4164,180 @@ forging (2 families) and weld metal (1 family) have no standalone estimate at al
    gate, committing the PDF and making the lint a hard build failure were taken as recommended.
    D-113 to D-124 and the report outline were then committed **before any report prose, any report build or
    any PDF existed**.
+3. *Implementation, first build (2026-09-19).* `src/wp7_report.py` was written with the claim registry, the
+   substitution and lint passes and the `PdfPages` typesetter, and `report/report.md` with the prose. The
+   first successful build produced 111 numeric claims resolved from 23 generated files, 8 figures, 8 tables
+   and 16 pages, byte-identical across two consecutive builds. Three registry errors that the selector guard
+   caught during this stage are recorded because they show the guard working: a wrong bootstrap method label
+   (`fixed design` for `wild`); a selector that returned the family count where the comparison count was
+   wanted; and an SD* range quoted over all archetypes and geometries where the generated summary quotes one
+   archetype at one geometry. Each was corrected to match the approved record before any prose depended on it.
+4. *Two author amendments during implementation, after the first build and before the prose was finalised
+   (2026-09-19).* Neither is part of the pre-registration and neither is presented as such; D-113 to D-124 are
+   unchanged. **Amendment 1 is recorded as D-125** (the invalid 2026-paper magnitude comparison removed;
+   mixed evidence classes permitted; brief figure 3 delivered as one two-panel figure; the absent conventional
+   E23 sub-size arm stated as a negative result; the page budget read as a total; the downstream
+   version-sensitivity requirement recorded as an approved waiver; the A3/A4/A6/A7 approvals recorded as
+   approvals; a mandatory visual QA gate). **Amendment 2 is recorded as D-126** (the evidence taxonomy made
+   internally consistent; the plate-only wording rule, which corrects an overstatement in D-123 without
+   rewriting it; the constant registry replacing the regex whitelist; and the three delivery-integrity QA
+   clarifications issued with the approval). The byline was verified with the author rather than inferred.
+
+## D-125 — Author amendment during implementation (Amendment 1)
+**Status:** APPROVED (author, 2026-09-19), during WP7 implementation, after the first successful build and
+before the report prose and PDF were finalised. **Not pre-registered, and not presented as such.** D-113 to
+D-124 stand unchanged; this entry amends D-115, D-117, D-119 and D-122 by superseding specific provisions,
+in the pattern D-095 (superseding the D-066 preference) and D-100 (resolving D-089) already established.
+
+**1. The comparison with the 2026 machine-learning paper is methodological, never numerical (amends D-119).**
+The draft prose asserted that this project's residual correction scale "sits inside the range they report for
+classical methods". That is **removed**, for two reasons. Arithmetically it is false. More importantly the
+quantities are not commensurable: that study reports prediction and correlation performance against full-size
+DBTT — RMSE and R² — on its own matched SA533B subset with its own index definition, while this project
+reports the family-weighted bias and standard deviation of the residual left by an **out-of-sample classical
+correction** applied to T41J, on a differently matched subset under different evidentiary filters, answering
+a different question. **Rule:** each side's numbers may be stated factually; **neither is presented as a
+numerical validation or cross-check of the other**; no "inside the range", "between", "comparable magnitude"
+or equivalent framing appears; and the report states explicitly that the metrics, populations, targets and
+purposes differ enough that **direct magnitude comparison is not valid**. The comparison that is made is
+methodological: prediction and correlation accuracy there, uncertainty characterization for test-programme
+design here. The no-novelty paragraph of D-119 is preserved unchanged.
+**Recorded rather than hidden:** the approved, frozen `outputs/wp5/wp5_summary.md` contains its own magnitude
+statement ("The scale found here sits between Sokolov's own quoted sigma and the RMSE the 2026 paper reports
+for classical methods"). D-118 forbids editing it. The report therefore **does not carry that framing
+forward**, and says so, so that a reader meets the explanation rather than the inconsistency.
+
+**2. A figure or table may carry more than one evidence class (amends D-117).** D-117 required exactly one.
+That is wrong: a single figure legitimately carries several kinds of evidence, and forcing one label would
+misdescribe it. One **or more** classes are now required per figure, table and caption, and the caption must
+say which visual component carries which provenance. The label set is revised again by D-126.
+
+**3. Brief figure 3 is delivered as one numbered figure with two panels (amends D-115).** D-115 described the
+requirement as carried by two figures, 3a and 3b. The report instead presents **Figure 3** as one numbered
+figure with panels (a) before and after normalization and (b) the residual by geometry and product form,
+under one common caption, composed **at the typesetting layer** from the two approved WP5 PNGs. No new WP5
+output is created and no WP5 source changes, so D-118 and `src/wp6_tests.py::c10` are unaffected; the build
+records both panel source digests and the WP7 tests assert they equal the untouched approved files.
+
+**4. The absent conventional sub-size arm is a stated negative result (new).** PROJECT_BRIEF.md §6.2 figure 4
+asks for full-size versus sub-size versus miniature. D-071 established that the dataset's only two ASTM
+E23-type sub-size curves have four points each and fail every screening rule, so no correction for that class
+was ever estimated. The seven simulated MCVN geometry scenarios **must not stand in for a supported
+conventional sub-size arm**. The Figure 4 caption, the results text and the limitations each state: full-size
+is simulated; the seven approved smaller MCVN/miniaturized geometry scenarios are simulated; **conventional
+E23-type sub-size performance is not estimable from this dataset under the approved rules**; and **no external
+correction was invented** to fill the gap. A callout accompanies the figure: "Conventional E23 sub-size: not
+estimated — insufficient included evidence."
+
+**5. The page budget is the total PDF (amends the D-115 layout).** "Roughly 10 to 15 pages" is read as the
+total principal document, not a body count with appendices on top. Target about 12 to 15 pages. The full
+claim map is **not** printed into the PDF; it lives in the repository and the appendix is a short pointer.
+Figures and tables are not shrunk into illegibility to hit a number: if more than 15 pages are needed to stay
+readable, the actual count and the reason are reported at the final author review.
+
+**6. Downstream version sensitivity is an approved waiver, not a satisfied requirement (amends D-122).** The
+CP1-approved amendment A1 (D-001) required later stages to test whether the choice of release changes
+important conclusions. WP1 and WP2 did; **WP3 to WP6 did not.** The author has decided not to run the
+downstream re-run, and that decision is recorded as an **amendment to, and waiver of, the earlier downstream
+requirement** — not as the requirement being met. The report states: WP1/WP2 version sensitivity was
+performed; WP3–WP6 downstream version sensitivity was not; refs 107 and 109 are the known release difference
+relevant downstream; ref 107 contributes one of the seven primary WP5 families; downstream version
+sensitivity **remains an explicit unresolved limitation**; and **no claim is made that the release choice has
+been shown irrelevant.** The earlier phrase "very unlikely to matter" is withdrawn as a statement of fact.
+What the frozen sensitivities show may be offered only as a **reasoned expectation, labelled as such**, with
+the rider that no calculation on the 2024.206 release was performed.
+
+**7. Four author decisions are recorded as approvals.** A3 (report and appendix policy, subject to item 5),
+A4 (the **final author review**, not a fictional CP6, is the merge gate), A6 (the regenerable PDF and its
+source are committed) and A7 (the honesty and forbidden-phrase lint is a **hard build failure**) were
+explicitly approved by the author, not adopted by default as D-124 step 2 recorded. A1, A2 and A5 stand as
+previously answered, and the byline was verified with the author rather than inferred from repository
+metadata.
+
+**8. A mandatory visual QA gate (new).** Byte-identical rebuild hashing is necessary and not sufficient.
+Before the final author review the PDF is rendered to page images and every page inspected for: the actual
+page count; clipped or overflowing text; table column overflow; equation rendering; figure labels readable at
+print scale; grayscale legibility; axis labels and units; figure and caption numbering; that Figure 3 appears
+as one numbered figure with two panels; that no page is obviously over-dense or nearly empty from pagination;
+and the title-page byline exactly as confirmed. Page images are written outside the repository.
+
+**Not authorized by this amendment:** rerunning WP3–WP6, changing a frozen result, adding a post-hoc Monte
+Carlo cell, editing an approved WP0–WP6 output, or changing the CP5 headline.
+
+## D-126 — Author follow-on clarification (Amendment 2), and the delivery-integrity QA gates
+**Status:** APPROVED (author, 2026-09-19), issued after D-125 and before the prose was finalised. D-125 and
+the D-124 chronology stand; this entry adds to them.
+
+**1. The evidence taxonomy, made internally consistent (supersedes the D-117 labels and D-125 item 2's set).**
+Two defects were found on review: Figure 3(b) had been given an **undefined** label, and Tables 1 and 2 had
+been classified as published data although their counts are **produced by this project's cleaning and
+screening**, not published by any source study. The taxonomy is therefore:
+
+| label | meaning |
+|---|---|
+| **PUBLISHED SOURCE DATA** | observations and values published by the source studies and compiled in the dataset |
+| **ANALYSIS-DERIVED FROM PUBLISHED DATA** | reconciliation and cohort counts, cohort membership, fitted parameters, index temperatures, bootstrap intervals, residuals — anything this project calculated from published data |
+| **TRANSFORMED ESTIMATE FROM PUBLISHED DATA** | published smaller-specimen observations mapped into the full-size-equivalent domain by the approved normalization. Never a measurement |
+| **SYNTHETIC** | known-truth validation data, or simulated test programmes |
+
+Multiple classes per float remain allowed. Minimum assignments: Figure 1 PUBLISHED SOURCE + ANALYSIS-DERIVED;
+Figure 3(a) PUBLISHED SOURCE + TRANSFORMED + ANALYSIS-DERIVED; Figure 3(b) ANALYSIS-DERIVED + TRANSFORMED;
+Figures 2, 4, 5, 6, 7 SYNTHETIC; Tables 1–4 ANALYSIS-DERIVED; Table 5 ANALYSIS-DERIVED + TRANSFORMED;
+Tables 6–8 SYNTHETIC. Captions still attribute which visual component carries which provenance. The labels
+`MEASURED (published)`, `FITTED / DERIVED FROM PUBLISHED DATA` and `TRANSFORMED ESTIMATE / DERIVED RESIDUAL`
+are retired: the first implies the measuring happened here, the other two were inconsistently defined.
+
+**2. The plate-only floor is arithmetic and carries no WP6 verdict (corrects an overstatement in D-123).**
+The plate-only value of about 14.8 °C stays as **labelled arithmetic on approved WP5 values**. What is
+withdrawn is any statement that WP6 showed the plate-only scenario to favour full-size: **that scenario was
+never inserted into the frozen WP6 grid**, so no winner, tie or ineligible label exists for it. The bound
+wording, which must appear in the report, `README.md` and this log, is:
+
+> The plate-only arithmetic gives a larger correction-error floor than the pooled CENTRAL case. No WP6
+> winner/tie labels were recomputed for this plate-only scenario.
+
+and, only where a directional reading is offered at all:
+
+> This would be expected to reduce rather than improve the miniature advantage, but this is a directional
+> inference, not a simulated WP6 result.
+
+**D-123 as committed says the plate-only scenario "would raise the miniature floor and favour full-size more
+strongly than the pooled one does".** That overstates what exists. **D-123 is not rewritten** — this project
+does not rewrite pre-registered text — and this entry records the correction and binds all later prose. The
+lint fails the build if "plate-only" appears in a sentence that also asserts a win, a favouring or a WP6
+verdict.
+
+**3. Every literal numeric constant is provenance-tracked (tightens D-114).** The whitelist of regular
+expressions added during implementation is replaced by a **registry**, so that it cannot become a loophole
+through which an uncited external number reaches the report. Every literal number in the authored content
+that does not resolve from a generated WP0–WP6 table must be a registered constant of exactly one provenance
+category: **A**, a method or configuration constant, with its decision entry recorded; or **B**, an
+externally cited value, with its source recorded. Each entry stores a symbolic name, the value, the category,
+and the decision entry and/or citation. Registered examples include 41 J (B; 10 CFR 50 App. G, ASTM E185),
+2.7 J (A; D-042, from Sokolov & Nanstad), the nominal 95 % interval level and the 95 % availability gate
+(A; D-056, D-057, D-104), the bootstrap replicate counts (A; D-055, D-109), the physical temperature bounds
+and the 5 °C grid (A; D-101), and the normalization coefficients 98 and 15.1 (B; NUREG/CR-6379 Eq. 22).
+**The build fails on any unregistered literal number**, the only exemption being unavoidable document
+metadata — section, figure, table and reference numbering. The registry is emitted as
+`report/constant_source_map.csv` beside the claim map, and a WP7 test asserts every entry carries a
+non-empty category and source.
+
+**4. Provenance coverage is total (author QA clarification).** The claim and constant rules apply to **all
+authored report content**, not only body paragraphs: front matter, the abstract, figure captions, table
+titles and notes, callout and plain-language boxes, the conclusions, the appendices, and any manually
+authored table cell. **No numerical assertion may bypass provenance because it sits outside ordinary prose.**
+
+**5. Final repository cleanliness is reported in full (author QA clarification).** At the final author review
+the complete `git status --short` is reported, in addition to the proof that nothing under `data/`,
+`outputs/wp0`–`outputs/wp6` or the WP0–WP6 sources changed. **Every remaining path must be explained**, and a
+completely clean working tree after the planned WP7 commits is preferred. No scratch page renders, temporary
+files or uncommitted final deliverables are left in the repository.
+
+**6. A delivery-integrity text check on the final PDF (author QA clarification).** In addition to page-image
+inspection and byte-identical hashing, text is extracted from the built PDF and asserted to contain at
+minimum: the report title; the exact author byline; sections 1 through 9; "Uncertainty and limitations";
+"Conclusions"; "References"; and the CP5 conditional headline language. This is a delivery-integrity check,
+**not a new analysis**.
+
+**Not authorized by this clarification:** rerunning WP3–WP6, adding a WP6 sensitivity, editing an approved
+WP0–WP6 output, or changing the CP5 headline.
