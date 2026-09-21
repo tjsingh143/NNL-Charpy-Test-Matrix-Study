@@ -562,11 +562,21 @@ TABLES: dict[str, dict] = {
                       "in the table."),
     "5": dict(file=W5SUM, cols=["subset", "weighting", "n", "n_families", "n_studies", "mean_c",
                                 "sd_c", "min_c", "max_c"], classes=(DERIVED, TRANSFORMED),
+              relabel={"subset": {"PRIMARY analysis set": "PRIMARY",
+                                  "all STRICT comparisons with a residual "
+                                  "(primary + held as sensitivity)": "ALL STRICT"},
+                       "weighting": {"family-weighted (each family's mean counts once)":
+                                     "family-weighted"}},
               caption="The residual index-temperature disagreement left by the classical size "
                       "normalization. Each residual is ANALYSIS-DERIVED from a TRANSFORMED "
                       "ESTIMATE: the difference between a mapped smaller-specimen index "
-                      "temperature and the matched full-size one. The family is the unit of "
-                      "independence, so the family-weighted rows are the ones carried forward."),
+                      "temperature and the matched full-size one. Row labels are shortened for "
+                      "the page: PRIMARY is the pre-registered primary analysis set, and ALL "
+                      "STRICT is every strictly matched comparison with a residual, that is the "
+                      "primary set together with those held as sensitivity; family-weighted means "
+                      "each family contributes the mean of its own comparisons and then counts "
+                      "once. The family is the unit of independence, so the family-weighted rows "
+                      "are the ones carried forward."),
     "7": dict(file=W6SENS, cols=["variant", "median_delta_rmse_c", "miniature_wins",
                                  "full_size_wins", "tied", "ineligible", "changes_conclusion"],
               classes=(SYNTHETIC,),
@@ -813,6 +823,10 @@ def table_markdown(num: str) -> str:
     if missing:
         raise SystemExit(f"WP7: table {num}: outputs/{spec['file']} lacks columns {missing}")
     df = df[spec["cols"]]
+    # Concise display labels, applied ONLY here, at the report-layout layer. The generated CSV is
+    # untouched and the full definitions are carried in the caption and the surrounding prose.
+    for col, mapping in spec.get("relabel", {}).items():
+        df[col] = df[col].astype(str).str.strip().map(lambda v, m=mapping: m.get(v, v))
     from common import md_table
     return md_table(df)
 
@@ -888,6 +902,7 @@ PAGE_W, PAGE_H = 8.27, 11.69            # A4 portrait, inches
 MARGIN_X, MARGIN_TOP, MARGIN_BOT = 0.82, 0.68, 0.60
 COL_W = PAGE_W - 2 * MARGIN_X
 SIZES = dict(title=17, h1=13, h2=10.5, h3=9.0, body=8.4, caption=7.0, table=6.1, foot=6.2)
+TABLE_MIN_PT = 5.8                      # a table shrinks no further than this
 FIG_MIN_SCALE = 0.82                    # a figure may shrink at most this much to avoid
                                         # blanking the rest of a page
 MIN_TABLE_ROWS = 4                      # a continued table carries at least this many rows
@@ -1182,15 +1197,21 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
                 widths = [max(len(r[c]) for r in rows) for c in range(ncol)]
                 # Shrink the type to fit before truncating anything; truncate only as a last
                 # resort, and mark it, so a clipped cell is never mistaken for a short value.
+                # Shrink the type a little to fit, but never past TABLE_MIN_PT, and NEVER
+                # truncate a cell: a table that still does not fit is a layout error the author
+                # must resolve with a shorter display label (see `relabel`), not something the
+                # build may quietly clip mid-word.
                 size = SIZES["table"]
                 need = sum(widths) + 2 * ncol
-                while size > 5.2 and need > int(COL_W * 72.0 / (0.60 * size)):
+                while size > TABLE_MIN_PT and need > int(COL_W * 72.0 / (0.60 * size)):
                     size -= 0.1
-                while need > int(COL_W * 72.0 / (0.60 * size)):
-                    widths[widths.index(max(widths))] -= 1
-                    need -= 1
-                rows = [[(c if len(c) <= w else c[:max(1, w - 1)] + "\u2026")
-                         for c, w in zip(r, widths)] for r in rows]
+                if need > int(COL_W * 72.0 / (0.60 * size)):
+                    widest = widths.index(max(widths))
+                    raise SystemExit(
+                        f"WP7: a table does not fit the text column even at {size:.1f} pt and "
+                        f"would have to truncate column {widest} ({max(widths)} characters wide). "
+                        f"Add a concise display label for it via the table's `relabel` map rather "
+                        f"than clipping a cell mid-word.")
                 text = []
                 for j, r in enumerate(rows):
                     text.append("  ".join(c.ljust(w) for c, w in zip(r, widths)))

@@ -369,6 +369,9 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   so the report masks the top 44 rows when embedding; the source file and its digest are unchanged, and a WP7 check verifies
   the masked strip contains no plot structure and that the plot frame survives (D-124 step 7a).
 - **19 WP6 validation tests producing 20 validation rows, all passing** (test 12 is split into 12A and 12B).
+- **No table truncates.** Long raw column values are shortened by a per-table display-label map applied at the
+  report-layout layer, with the full definitions carried in the caption; the generated CSVs are untouched and no
+  numerical value changes. Truncation is a hard build failure, not a silent ellipsis (D-124 step 8).
 - **Version sensitivity beyond WP2 was WAIVED by the author** (D-125 item 6), not satisfied: WP1/WP2 were run on both releases,
   WP3–WP6 on the primary release only. Recorded as an explicit unresolved limitation, with no claim that the release choice has
   been shown irrelevant.

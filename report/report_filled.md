@@ -225,14 +225,14 @@ Of the candidate pairs enumerated across the cohort, 18 are strictly matched geo
 
 The normalization helps substantially: the median absolute disagreement in mid-transition temperature falls from 66.9 to 16.2 °C, and 8 of the 10 primary comparisons improve on that measure, 9 on upper-shelf energy. It does not, however, collapse the curves.
 
-*Table 5. The residual index-temperature disagreement left by the classical size normalization. Each residual is ANALYSIS-DERIVED from a TRANSFORMED ESTIMATE: the difference between a mapped smaller-specimen index temperature and the matched full-size one. The family is the unit of independence, so the family-weighted rows are the ones carried forward.* **[ANALYSIS-DERIVED FROM PUBLISHED DATA + TRANSFORMED ESTIMATE FROM PUBLISHED DATA]** *Source: `outputs/wp5/size_correction_summary_overall.csv`.*
+*Table 5. The residual index-temperature disagreement left by the classical size normalization. Each residual is ANALYSIS-DERIVED from a TRANSFORMED ESTIMATE: the difference between a mapped smaller-specimen index temperature and the matched full-size one. Row labels are shortened for the page: PRIMARY is the pre-registered primary analysis set, and ALL STRICT is every strictly matched comparison with a residual, that is the primary set together with those held as sensitivity; family-weighted means each family contributes the mean of its own comparisons and then counts once. The family is the unit of independence, so the family-weighted rows are the ones carried forward.* **[ANALYSIS-DERIVED FROM PUBLISHED DATA + TRANSFORMED ESTIMATE FROM PUBLISHED DATA]** *Source: `outputs/wp5/size_correction_summary_overall.csv`.*
 
 | subset | weighting | n | n_families | n_studies | mean_c | sd_c | min_c | max_c |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PRIMARY analysis set | comparison-weighted | 10 | 7 | 5 | -3.494 | 16.66 | -33.82 | 18.32 |
-| PRIMARY analysis set | family-weighted (each family's mean counts once) | 7 | 7 | 5 | -3.494 | 11.43 | -14.01 | 18.32 |
-| all STRICT comparisons with a residual (primary + held as sensitivity) | comparison-weighted | 17 | 10 | 5 | -9.141 | 26.05 | -83.88 | 18.32 |
-| all STRICT comparisons with a residual (primary + held as sensitivity) | family-weighted (each family's mean counts once) | 10 | 10 | 5 | -10.8 | 21.09 | -48.94 | 18.32 |
+| PRIMARY | comparison-weighted | 10 | 7 | 5 | -3.494 | 16.66 | -33.82 | 18.32 |
+| PRIMARY | family-weighted | 7 | 7 | 5 | -3.494 | 11.43 | -14.01 | 18.32 |
+| ALL STRICT | comparison-weighted | 17 | 10 | 5 | -9.141 | 26.05 | -83.88 | 18.32 |
+| ALL STRICT | family-weighted | 10 | 10 | 5 | -10.8 | 21.09 | -48.94 | 18.32 |
 
 The residual index-temperature disagreement has a family-weighted mean of -3.49 °C and a family-weighted standard deviation of 11.43 °C, with individual comparisons spanning -33.8 to 18.3 °C; a robust scale computed from the median absolute deviation gives 11.34 °C, so the spread is not an artefact of one extreme comparison. Weighting by family rather than by comparison matters, because several geometries measured on one plate are not independent observations of the size effect. The more conservative pool, using every strictly matched comparison rather than only those meeting the primary fit-quality requirement, gives -10.80 °C and 21.09 °C from 10 families; it is carried forward as a required sensitivity.
 

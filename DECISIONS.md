@@ -4261,6 +4261,22 @@ forging (2 families) and weld metal (1 family) have no standalone estimate at al
       report built twice byte-identically; all 15 pages rendered and inspected with no overflow, orphan or
       large-gap defect remaining.
 
+8. *Final author review, one remaining layout defect (author, 2026-09-20).* The author rendered the
+   revised 15-page PDF and found that Table 5 still truncated cell text mid-word, and that the table had
+   been shrunk to 5.1 pt trying to make the long raw CSV strings fit. Fixed at the report-layout layer only:
+   a. **Concise display labels**, declared per table in a `relabel` map that is applied when the table is
+      rendered. Table 5 now prints `PRIMARY` / `ALL STRICT` and `family-weighted`, at the normal 6.1 pt.
+      **The WP5 CSV is untouched and no numerical value changed**; the full definitions of each label are
+      carried in the Table 5 caption and in the surrounding prose.
+   b. **Truncation is now a hard build failure.** A table may shrink to at most `TABLE_MIN_PT` (5.8 pt);
+      if it still does not fit, the build stops and names the offending column, instructing the author to
+      add a display label rather than clipping a cell. The silent ellipsis fallback is removed.
+   c. Verified afterwards: all 8 tables fit without truncation (Table 5 now needs 90 of 130 available
+      character widths against 114 of 90 before); **zero ellipsis characters anywhere in the built
+      document**; still 15 pages; 8 WP7 checks passing; the report built twice byte-identically; all 15
+      pages re-rendered and inspected with no overflow, orphan or large-gap defect; 0 changed files under
+      `data/`, `outputs/` and every WP0-WP6 source.
+
 ## D-125 — Author amendment during implementation (Amendment 1)
 **Status:** APPROVED (author, 2026-09-19), during WP7 implementation, after the first successful build and
 before the report prose and PDF were finalised. **Not pre-registered, and not presented as such.** D-113 to
