@@ -1,0 +1,21 @@
+name,value,provenance_category,source,pattern
+criterion_energy,41 J,B: externally cited value,"10 CFR 50 App. G II.E and ASTM E185-82 4.15, adopted in D-044",\b41 J\b
+full_size_lower_shelf,2.7 J,A: method/configuration constant,D-042; value from Sokolov & Nanstad (1995) p. 7,\b2\.7 J\b
+subsize_lower_shelf_cited,0.1 J,B: externally cited value,Sokolov & Nanstad (1995) p. 7; cited in D-042 and deliberately NOT adopted,\b0\.1 J\b
+nominal_level_and_gate,95 %,A: method/configuration constant,D-056 interval level; D-057 finite-target rule; D-104 availability gate,\b95 ?%
+digest_algorithms,"SHA-256, MD5",A: method/configuration constant,D-005 checksum regime,\bSHA-?256\b|\bMD5\b
+full_size_specimen,"55x10x10 mm, ligament 8 mm, notch 2 mm",B: externally cited value,ASTM E23; ISO 148-1; convention fixed in D-008,\b55 ?[x\u00d7] ?10 ?[x\u00d7] ?10 ?mm\b|\b10 mm\b|\b8 mm\b|\b2 mm\b
+ligament_volume,B b^2,B: externally cited value,Lucas et al. (1986) via NUREG/CR-6379 p. 14 and the dataset descriptor Table 2; adopted in D-073,\bB b\^?2\b|\bB\(W ?[-\u2212] ?A\)\^?2\b
+sokolov_coefficients,"98, 15.1",B: externally cited value,NUREG/CR-6379 Eq. (22); adopted in D-074,\b98 ?[-\u2212] ?15\.1\b|\b15\.1\b|\bM = 98\b
+marini_matrix_size,N = 18,B: externally cited value,"Marini (2020) Table 6, the RCC-M matrix; used in the D-063 cross-check",\beighteen-specimen\b
+curve_identifiers,e.g. curve 3-17,B: externally cited value,"dataset curve identifiers; record identity D-006, curve definition D-033","\b[Cc]urve \d{1,3}-\d{1,3}(\.\d+)?\b"
+standards,standard and regulation designations,B: externally cited value,cited clause recorded with each use in DECISIONS.md,\b(ASTM )?(E23|E185|E2248|E1921|E900)(-\d+)?\b|\bISO 148-1(:\d+)?\b|\bISO 14556\b|\bDIN 50115\b|\b10 CFR (Part )?50(\.61a?)?\b
+report_numbers,report and publication numbers,B: externally cited value,WP3-WP6 source lists in DECISIONS.md,\bNUREG/CR-\d{4}\b|\bORNL-\d{4}\b|\bEPRI NP-\d{4}\b|\bBLG-\d{4}\b|\b(ASTM )?STP \d{4}\b|\b(Technical )?Note \d{4}\b
+material_designations,specification designations,B: externally cited value,ASTM A533/A508/A302; D-012 harmonization,\bS?A-?(533|508|302)[A-Z]?(-\d)?\b|\b20MnMoNi55\b|\bSS316\b|\b15Cr2MoV-A\b|\bGr\.? ?(1A|3|4N)\b
+dataset_records,Materials Cloud record identifiers,B: externally cited value,D-001; data/README.md,\bMaterials Cloud (2024\.206|2025\.30)\b|\b(q4x6v-dyt25|eny5v-www93)\b
+dois_and_preprints,DOIs and preprint identifiers,B: externally cited value,reference list,"\b10\.\d{4,5}/[^\s)]+|\barXiv \d{4}\.\d{4,5}\b"
+licence,CC BY 4.0,B: externally cited value,dataset licence; data/LICENSE-CC-BY-4.0.txt,\bCC BY 4\.0\b
+citation_years,publication years,B: externally cited value,reference list,\b(19|20)\d{2}\b
+cross_references,"section, figure, table and appendix numbering",M: document metadata (numbering),document structure,\bsections? \d(\.\d)*\b|\b(Figure|Table|Appendix) \d[ab]?\b|\bpanel \([ab]\)
+project_identifiers,"decision, work-package, checkpoint, question, archetype, geometry and variant ids",M: document metadata (numbering),DECISIONS.md and the WP6 frozen grid,"\bD-\d{3}\b|\bWP[0-7]\b|\bCP[1-5]\b|\bQ[1-4]\b|\bA[1-9]\b|\bG[0-7]\b|\bV\d{1,2}\b"
+sqrt_n_notation,1/sqrt(N),M: document metadata (numbering),mathematical notation,1 ?/ ?sqrt\(N\)
