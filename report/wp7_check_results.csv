@@ -1,9 +1,9 @@
 check,passed,detail
-every placeholder resolves and every registry entry is used,True,"112 placeholders, 112 registry entries, 0 unresolved in the built document"
-"every claim re-reads from its named file, row and column",True,"112 claims in the map, 72 direct lookups re-read and matched"
+every placeholder resolves and every registry entry is used,True,"114 placeholders, 114 registry entries, 0 unresolved in the built document"
+"every claim re-reads from its named file, row and column",True,"114 claims in the map, 76 direct lookups re-read and matched"
 "every embedded figure is the approved generated file, and any crop removes no content",True,"8 images, all present in outputs/; Figure 3 carries its two approved panels (0c23e8d9be87, e6ec7c2f4216); 1 presentation crop(s), each verified to contain no plot structure and to leave the plot frame intact"
 "every float carries at least one valid evidence class, combinations as declared",True,7 figures and 8 tables tagged; 3 carry more than one class; 3 declared combinations present
 every registered numeric constant is provenance-tracked,True,"20 constants: 3 method/configuration, 14 externally cited, 3 document metadata; all carry a source"
 the honesty lint holds and the conclusions stay conditional,True,0 forbidden phrases; the conclusions carry all 3 required conditional phrases; the plate-only statement carries its no-verdict rider
 README definition-of-done names an existing file per brief item,True,"11 checklist rows naming 15 paths, all present"
-"the built PDF contains its title, byline, sections 1-9 and the conditional conclusion",True,"117,042 characters extracted over 15 pages; all 12 required elements present"
+"the built PDF contains its title, byline, sections 1-9 and the conditional conclusion",True,"117,538 characters extracted over 15 pages; all 12 required elements present"

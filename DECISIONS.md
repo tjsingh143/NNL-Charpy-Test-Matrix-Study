@@ -4277,6 +4277,38 @@ forging (2 families) and weld metal (1 family) have no standalone estimate at al
       pages re-rendered and inspected with no overflow, orphan or large-gap defect; 0 changed files under
       `data/`, `outputs/` and every WP0-WP6 source.
 
+9. *Final author review, text-only corrections (author, 2026-09-20).* The layout was approved and four
+   report-language corrections were required. No science reopened, no numerical value changed, no approved
+   output touched.
+   a. **The sensitivity paragraph no longer implies that the correction-side variants differ only in which
+      paper is cited.** It now reads that the conservative residual pool, the ten-family empirical pool and
+      two alternative published temperature correlations each produce full-size wins in every comparison
+      run, each remaining a conditional fixed-volume scenario altering only the stated correction assumption
+      relative to the central case.
+   b. **"Two variants favour miniature specimens" became "Two machining-allowance variants favour miniature
+      specimens."** The earlier wording was misleading because the specimen-level correction draw (V14) also
+      changes the conclusion in the miniature direction; its separate discussion immediately before is kept.
+   c. **The smallest-budget threshold is now stated exactly rather than as "comfortably clears".** The text
+      gives the four strategy-specific thresholds for the median true curve — 31.08, 30.71 and 17.55 deg C
+      for the anchored, model-based adaptive and uniform designs and 10.79 deg C for the clustered one — and
+      states that the 11.43 deg C analysis-derived correction standard deviation lies below the first three
+      and above the clustered threshold, which is exactly the observed winner pattern. **Naming note:** the
+      author's instruction called the S arm "staircase"; in this project S is the model-based batched
+      adaptive design and the staircase is SS, which appears only in tier T7 and not in this table, so the
+      accurate name is used.
+   d. **The conclusions now say "a miniature-derived full-size-equivalent index temperature"** rather than
+      "sub-size-derived", preserving the report's own distinction between conventional ASTM E23 sub-size
+      specimens and the miniaturized specimens actually studied.
+   e. **"Below roughly half the analysis-derived value" was replaced by the exact result**: below the
+      strategy-dependent 5.3 to 9.7 deg C thresholds at a budget of eight full-size equivalents, for the
+      median true curve and geometry of that simulated scenario. "Roughly half" was not generally accurate
+      against 11.43 deg C.
+   f. Re-verified: `./run_all.sh` exit 0 in 9 min 04 s; 0 changed files under `data/`, `outputs/` and every
+      WP0-WP6 source; 19 validation tests / 20 rows, 11 WP6 checks and 8 WP7 checks passing; 15 pages; built
+      twice byte-identically; all four revised passages and the absence of all four superseded phrasings
+      confirmed in text extracted from the built PDF; all 15 pages re-rendered and inspected with no
+      overflow, orphan, gap or truncation defect.
+
 ## D-125 — Author amendment during implementation (Amendment 1)
 **Status:** APPROVED (author, 2026-09-19), during WP7 implementation, after the first successful build and
 before the report prose and PDF were finalised. **Not pre-registered, and not presented as such.** D-113 to
