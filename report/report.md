@@ -1,103 +1,331 @@
 <!--
-REPORT SOURCE — PRE-REGISTERED OUTLINE (WP7, DECISIONS.md D-113 to D-124)
+REPORT SOURCE. Hand-written prose; every result number is a placeholder resolved by
+src/wp7_report.py from a table that WP0-WP6 regenerated (DECISIONS.md D-114).
 
-This file is the hand-written source of the technical report. It is committed in outline form
-BEFORE any prose, any build or any PDF exists (D-124 step 2).
+MARKUP
+  {{key}} / {{=key}}   a numeric claim / a derived numeric claim, from the registry.
+  [[FIG n]] [[TAB n]]  embed report figure or table n (D-115); each carries an evidence class.
+  [[BOX title]] ... [[/BOX]]   an "In plain terms" box (D-120).
+  lint:allow-digits    on a line, exempts the NEXT line from the literal-digit check.
 
-MARKUP CONTRACT (fixed here; src/wp7_report.py implements it)
-  {{key}}                  a numeric claim, resolved from the registry in src/wp7_report.py.
-                           The registry names, per key: the generated file, the row selector,
-                           the column and the print format. The build fails on an unresolved
-                           key, a missing file, a selector matching != 1 row, or an unused
-                           registry entry (D-114).
-  {{=key}}                 a DERIVED numeric claim. The registry records the inputs and the
-                           expression as well, and claim_source_map.csv prints them (D-114, D-123).
-  [[FIG n]]                embed report figure n (see the FIGURES block below).
-  [[TAB n]]                render report table n from its generated file (see TABLES below).
-  [[BOX ...]] ... [[/BOX]] an "In plain terms" box (D-120).
-  <!-- lint:allow-digits --> marks the NEXT line as a protected span, for dates, section and
-                           equation numbers, citation years and dimensions quoted from a
-                           standard. Everything else containing a digit must be a placeholder
-                           or a rendered table, or the build fails (D-114).
-
-EVIDENCE CLASSES (D-117). Every [[FIG]] and [[TAB]] carries exactly one; the build fails otherwise.
-  MEASURED (published) | FITTED (derived from published data)
-  TRANSFORMED ESTIMATE (derived from published smaller-specimen measurements) | SYNTHETIC
-
-FIGURES (D-115; every file already exists and regenerates; WP7 creates no new figure)
-  1   outputs/wp4/worked_example_t41j_bootstrap.png      FITTED          brief fig 1
-  2   outputs/wp6/rmse_vs_specimen_count.png             SYNTHETIC       brief fig 2
-  3a  outputs/wp5/before_after_normalization.png         TRANSFORMED     brief fig 3
-  3b  outputs/wp5/size_correction_residuals.png          TRANSFORMED     brief fig 3
-  4   outputs/wp6/fixed_volume_comparison.png            SYNTHETIC       brief fig 4
-  5   outputs/wp6/correction_uncertainty_flip.png        SYNTHETIC
-  6   outputs/wp6/prior_error_vs_performance.png         SYNTHETIC
-  7   outputs/wp3/synthetic_error_vs_specimens.png       SYNTHETIC
-
-TABLES (D-115)
-  1  outputs/wp1/reconciliation_table.csv                                    MEASURED
-  2  outputs/wp2/population_accounting.csv + outputs/wp2/cohort_manifest.csv MEASURED
-  3  outputs/wp3/fit_outcomes.csv + outputs/wp3/index_availability_by_geometry.csv  FITTED
-  4  outputs/wp4/interval_curve_accounting.csv + outputs/wp4/published_uncertainty_crosscheck.csv  FITTED
-  5  outputs/wp5/size_correction_summary_overall.csv (+ _by_product_form, _by_irradiation)  TRANSFORMED
-  6  outputs/wp6/fixed_volume_comparison.csv                                 SYNTHETIC
-  7  outputs/wp6/correction_threshold.csv                                    SYNTHETIC
-  8  outputs/wp6/sensitivity_summary.csv                                     SYNTHETIC
-
-PAGE BUDGET (D-115, brief 6.1: roughly 10-15 pages of body)
-  front 0.5 | 1: 1.5 | 2: 1.0 | 3: 1.5 | 4: 2.0 | 5: 1.5 | 6: 3.5 | 7: 2.5 | 8: 1.0 | 9: 1.0
-  = 16.0 target, trimmed to 13-15 at build; appendices A and B sit outside the body count.
+RULES ENFORCED AT BUILD TIME
+  no literal result number in the prose; no unresolved or unused placeholder; no figure or
+  table without an evidence class; no forbidden phrase; every miniature win/loss claim carries
+  the conditional wording (D-114, D-116, D-117).
 -->
 
 # Charpy Transition Temperature Uncertainty and Test-Matrix Design for Reactor Pressure Vessel Steels
 
-## Front matter
-<!-- byline, date, abstract (150 words), honesty statement, dataset attribution + CC BY 4.0,
-     descriptor citation, the four evidence classes defined once (D-117) -->
+## An analysis of published Charpy V-notch test data
+
+Taij Singh · Materials Science and Engineering, University of California, Irvine
+
+**This is an analysis of published Charpy V-notch test data. No Charpy tests were performed for this project, no test equipment was operated, and no irradiated material was handled.** Every measurement used here was produced and published by the original investigators credited below.
+
+### Abstract
+
+A reactor pressure vessel surveillance capsule holds a small, fixed volume of irradiated steel. That volume can be spent on a few full-size Charpy specimens or on many miniature ones. This work asks which choice yields a better-determined ductile-to-brittle transition temperature once both curve-fitting uncertainty and sub-size-to-full-size correction uncertainty are counted. Working from a published compilation of Charpy V-notch records for ferritic reactor pressure vessel steels, it fits transition curves, quantifies their index-temperature uncertainty by resampling, measures the residual disagreement left by a classical specimen-size correction, and propagates both through a Monte Carlo study of complete simulated test programmes. The size-correction residual enters once per programme and therefore does not average away, which places a floor on what a miniature programme can achieve. Under the central assumptions that floor is {{=floor.central}} °C, so miniature specimens help only at the smallest material budgets and full-size specimens dominate as the budget rises. The conclusion is conditional: the correction distribution rests on a handful of independently matched material families, no individual miniature geometry is supported on its own, and the result is stated with those conditions attached throughout.
+
+### Evidence classes used in this report
+
+Every figure and table below carries **one or more** of these labels, and its caption says which
+visual component carries which provenance. The distinction matters because it is the difference
+between a measurement, an estimate calculated from measurements, and a simulation.
+
+- **PUBLISHED SOURCE DATA** — observations and values published by the source studies and compiled in the dataset.
+- **ANALYSIS-DERIVED FROM PUBLISHED DATA** — reconciliation and cohort counts, fitted parameters, index temperatures, bootstrap intervals and residuals: quantities this project calculated from published data.
+- **TRANSFORMED ESTIMATE FROM PUBLISHED DATA** — a published smaller-specimen observation mapped into the full-size-equivalent domain by the classical correction. Never a measurement.
+- **SYNTHETIC** — generated by this project from known truth, to validate a method or to simulate a test programme. Not a measurement of anything.
+
+<!--pagebreak-->
 
 ## 1. Objective and scope
+
 ### 1.1 The research question
-### 1.2 [[BOX why a surveillance capsule makes this a real choice]]
-### 1.3 Scope, and the relationship to published work
+
+A surveillance capsule is irreplaceable. The steel inside it has seen the same neutron exposure as the vessel wall, and when it is gone there is no more of it. The engineer designing the test programme must therefore decide how to spend a fixed volume of material. Full-size specimens give an index temperature that needs no size correction, but a fixed volume yields few of them. Miniature specimens yield many more, at the cost of a correction from the miniature geometry back to full-size behaviour — and that correction carries its own uncertainty.
+
+The question this work answers is which choice gives the better-determined transition temperature once **both** sources of uncertainty are counted. Four supporting questions follow from it, and each is answered in section 6: how well-determined the index temperature is for a given curve and what property of the sampling drives that (Q1); how that uncertainty depends on specimen count and on where the test temperatures are placed (Q2); how much additional uncertainty the sub-size to full-size correction introduces and whether it differs by product form (Q3); and under what conditions the answer flips (Q4).
+
+[[BOX why this is a real engineering choice]]
+Charpy specimens are destroyed by the test, and irradiated steel cannot be replaced. A standard specimen is a bar fifty-five millimetres long with a ten-by-ten millimetre cross-section; a miniature one may be a fifth of that in each direction, so the same lump of steel yields tens or hundreds of them instead of a handful. More specimens mean a better-sampled curve. But a small specimen is not a scale model of a large one: it bends and breaks differently, so its transition temperature must be corrected before it can be compared with the full-size number the regulations are written around. This work asks whether the correction costs more than the extra specimens buy.
+[[/BOX]]
+
+### 1.2 What this work is, and is not
+
+This is a test-programme **design** study. It is not an attempt to predict full-size properties from sub-size measurements; that is a different problem, addressed by a recent machine-learning correlation study discussed in section 7.8. No model is trained here and no prediction is attempted.
+
+In scope: ferritic reactor pressure vessel steels and their welds, absorbed energy against temperature, the index temperature and upper-shelf energy as the extracted properties, the statistical uncertainty in those properties, and the specimen-size effect as it bears on them. Out of scope, and excluded deliberately: austenitic stainless steel, which is face-centred cubic and does not show the ferritic ductile-to-brittle transition the model describes; fracture mechanics and the determination of reference temperatures to the pressure vessel code; and the prediction of embrittlement from composition and fluence.
 
 ## 2. Data source, provenance and license
 
+The primary dataset is the Materials Cloud 2025.30 release, record q4x6v-dyt25, DOI 10.24435/materialscloud:p6-5y. It holds {{data.records_total}} Charpy V-notch records compiled from {{data.publications}} peer-reviewed publications, covering the A533, A508, A302 and 20MnMoNi55 families in base metal and weld, irradiated and unirradiated, at full-size, sub-size and miniature geometries. The earlier Materials Cloud 2024.206 release, record eny5v-www93, is retained as a version-sensitivity dataset. Which release is primary, and why, is a recorded decision taken at the first checkpoint.
+
+**Attribution, as the license requires.** Lee, I., Merickel, J. W., Kasala Sreenivasulu, Y., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., and Song, R. *Dataset of Charpy V-notch impact test records of nuclear structural materials.* Materials Cloud Archive. Licensed CC BY 4.0. The accompanying data descriptor is Lee et al., *Comprehensive Toughness Dataset of Nuclear Reactor Structural Materials using Charpy V-Notch Impact Testing*, Scientific Data. Both workbooks are vendored in this repository with their archive record snapshots; their SHA-256 digests and the MD5 values published by the archive are verified on every run.
+
+**The single most important fact about this dataset** is that it is a compilation of {{data.publications}} separate studies. Different laboratories, machines, calibration practices and reporting conventions are mixed together, and most curves were digitized from figures published in those papers rather than transcribed from tables. Between-study variability is therefore built into any scatter estimate derived from the compilation, and it cannot be separated from real material scatter. That limitation is not a caveat added at the end of this report; it constrains what several of its numbers can mean, and it is carried explicitly wherever they appear.
+
+
 ## 3. Data cleaning and inclusion criteria
-### 3.1 Reconciliation  [[TAB 1]]
-### 3.2 Republished tests
-### 3.3 What defines one transition curve, and which curves are fittable  [[TAB 2]]
+
+### 3.1 Reconciliation
+
+Records leave the dataset only for a stated reason, and each is counted once, at the first step that applies. Out-of-scope materials go first, so that no judgement is spent on data that would leave anyway; duplicate curves go last, so that a valid copy is never removed in favour of one that a later step would itself have removed.
+
+[[TAB 1]]
+
+Of the {{data.records_total}} records in the workbook, {{clean.removed_total}} are removed and {{clean.retained}} retained. The largest single exclusion is austenitic stainless steel, {{clean.e1_ss316}} records, removed because it has no ductile-to-brittle transition of the kind the model describes. Nothing is imputed at any step: a blank cell means "not reported", and a standard notch depth is never assumed for a specimen that does not report one.
+
+### 3.2 The same tests, reported more than once
+
+The second-largest exclusion, {{clean.e8_dupes}} records, is the one that most affects how much confidence the data can support. Several research groups republished the same Charpy curves across conference and journal papers, and the compilers digitized each figure separately. Counting a republication as a new experiment would overstate the amount of independent evidence and understate scatter. Copies are identified by one-to-one point matching within a tolerance scaled to the plotted energy axis, and the copy retained is chosen by a hierarchy fixed before any curve was fitted: directly tabulated values over digitizations, then the original experimental source over a later republication, then the copy with fewer unresolved labelling problems, then a deterministic tie-break independent of the data values. Two series matched only after a single constant temperature offset was allowed, which is the signature of two digitizations of one figure with differently calibrated axes; that test runs only on publication pairs with documented shared provenance, under safeguards recorded with the decision. An alternative keep rule is carried forward as a sensitivity cohort so the influence of the choice can be measured rather than assumed.
+
+### 3.3 What defines one curve, and which curves are fittable
+
+Records form one transition curve only if they come from one publication and one source figure and agree on material identity and heat chemistry, specimen geometry, irradiation condition, material condition and test-condition statement. A curve never spans two publications, because between-laboratory differences would then enter what is read as a single curve's scatter. Applying the population rules — removing records whose condition labels the source contradicts, records whose irradiation status could not be resolved, and two secondary material groups — leaves a primary population of {{pop.primary_records}} records in {{pop.primary_curves}} curves from {{pop.primary_refs}} publications.
+
+A pre-fit screening rule then selects the curves sufficiently sampled to **attempt** a fit: a minimum number of specimens, at least two distinct temperatures inside the transition band, enough upper-band points to show the rise has stopped, and a coldest point low enough relative to the curve's own upper reference. Passing means only that a fit may be attempted. It does not establish that the model will fit, that the fit will be well conditioned, or that the resulting parameters will be reasonable — and a curve whose fit later fails is reported, never quietly dropped. The rule yields the primary cohort of {{coh.primary_curves}} curves and {{coh.primary_records}} records; a deliberately looser rule would admit {{coh.looser_curves}} curves and a deliberately stricter one, matching historical surveillance-programme specimen counts, only {{coh.stricter_curves}}.
+
+[[TAB 2]]
+
+All seven cohorts were frozen at the second checkpoint, fingerprinted, and are re-checked on every run; the pipeline stops if any membership drifts. Later stages read them rather than regenerating them, so no downstream result can be improved by quietly adjusting an inclusion threshold.
+
 
 ## 4. Methods
-### 4.1 The transition-curve model and the lower shelf
-### 4.2 Upper shelf, index temperature, and why miniature curves get no index
+
+### 4.1 The transition-curve model and its lower shelf
+
+Absorbed energy against temperature is described by the conventional hyperbolic tangent form, in which energy rises from a lower shelf to an upper shelf through a mid-transition temperature with a characteristic half-width. The model is empirical. It has no physical derivation, it is symmetric where real transitions often are not, and it cannot represent a falling upper shelf; where it misfits, the misfit is diagnosed rather than removed.
+
+The lower shelf is fixed at 2.7 J for full-size specimens, the value used in the Oak Ridge sub-size Charpy work, and fitted for miniature geometries, for which no single defensible fixed value exists across the nine geometries present. The split rests on the literature, the estimand and synthetic evidence that predated the choice, not on how many published curves it made succeed. Fitting the shelf everywhere is regenerated on every run as a named sensitivity, and moves the full-size index temperature by a median of well under a degree.
+
+### 4.2 Upper shelf, index temperature, and why miniature curves get none
+
+Upper-shelf energy is the fitted upper asymptote, reported together with a diagnostic saying whether any specimen was actually tested high enough to support it. The index temperature is the temperature at which the fitted curve crosses 41 J, solved analytically. It is computed for full-size V-notch curves only, and only when the crossing lies inside the tested temperatures; an extrapolated crossing is not reported as a value.
+
+Two support diagnostics travel with every index temperature, and neither withholds it: one says where 41 J sits on the fitted rise, exposing a crossing that rests on a nearly flat part of the curve; the other says whether the measured energies bracket 41 J, exposing a crossing supplied mainly by the model. They answer different questions and are reported separately, because a curve can pass one and fail the other.
+
+No index temperature is computed for miniature curves. The applicable standard states that miniaturized transition data are not directly comparable with full-size data and that correlation procedures must be employed, and the published procedures need inputs this dataset lacks. Multiplying 41 J by a volume ratio is supported by no source read here, so no such criterion was invented; comparing the two sizes is the job of the correction in section 4.4, with its uncertainty attached.
+
 ### 4.3 Per-curve uncertainty
+
+Uncertainty is obtained by resampling. The primary method is a nonparametric pairs bootstrap: each replicate draws complete specimen records — temperature and energy together — with replacement and refits them with the unchanged procedure. It assumes no scatter model, does not assume the model is correct, and exposes how fragile an estimate is to which test temperatures happen to be present, which is the question at issue. A fixed-design wild bootstrap, holding the temperatures and perturbing only residuals, runs on every curve as a sensitivity and is never promoted, because validation showed it anti-conservative.
+
+Intervals are **nominal 95 % percentile bootstrap intervals**. They were not calibrated to exact coverage, and section 5 reports what coverage they actually achieved on synthetic data. A formal interval is reported only when the target is finite in at least 95 % of the replicates requested; failed replicates stay in the denominator. That rule was fixed before any interval existed and was not relaxed afterwards.
+
 ### 4.4 The classical size normalization
+
+Smaller-specimen curves are mapped into the full-size-equivalent domain by two published relations. Energy is scaled by the ratio of nominal fracture volumes, the ligament-volume convention the dataset's own descriptor writes as B(W − A)². Temperature is shifted by a logarithmic function of that same ligament volume, taken from the Oak Ridge correlation report developed on this material family. Both depend only on the smaller specimen's own published dimensions and fixed published constants, so **no full-size answer can enter its own correction** — a property checked numerically on every run. The transformed points are refitted with the unchanged fitter under the full-size convention, and the residual is the difference between the resulting index temperature and the measured full-size one, signed so that a positive residual means the correction places the transition warmer, the conservative direction.
+
+Several published procedures could not be run, and none of their inputs was invented. The procedure the correlation report itself recommends weights a brittle and a ductile factor by percent shear, and this dataset has no shear-fracture column for any record. Two others need a stress-concentration factor tabulated for only a few geometries, and two more need exponents calibrated against the very full-size values a correction would then be scored on, which is circular.
+
 ### 4.5 The Monte Carlo test-programme simulator
-### 4.6 [[BOX what a bootstrap is, and why one correction draw per programme]]
+
+The design question is answered by simulating complete test programmes against a known true curve. One replicate picks a true curve, a geometry and a material budget; derives the specimen count; places temperatures by a declared strategy using only prior information a designer would have; draws energies from a scatter model calibrated to the published residuals; for a smaller geometry applies the classical correction back into the full-size domain; fits with the unchanged procedure; and records the error in the recovered index temperature.
+
+Three features of the design matter more than the rest. **Test temperatures live in the real world**: they are snapped to a five-degree grid and clipped to a physical envelope whose cold end is liquid nitrogen, in raw specimen temperature, not in the corrected frame — so a geometry with a large temperature shift physically cannot reach a cold transition, and that shows up as infeasibility rather than as a poor number. **The correction residual is drawn once per programme**, not once per specimen, because the quantity measured in section 4.4 is defined per matched curve, not per specimen; a per-specimen draw would average away and imply, absurdly, that testing enough small specimens removes a systematic correlation error. **The estimator is the one this project reports**, including its refusals: a programme whose crossing falls outside its own tested range has no index temperature and is counted as unavailable.
+
+Performance is the root-mean-square error of the recovered index temperature; a cell is unusable if the estimator produced a value in fewer than 95 % of replicates. A winner needs a difference exceeding both a practical tolerance and three times its paired Monte Carlo standard error; otherwise the comparison is a tie.
+
+[[BOX what a bootstrap does, and why the correction is drawn once per programme]]
+A bootstrap answers "how much would this answer have moved if the experiment had come out slightly differently?" by building many pretend experiments out of the data actually collected, refitting each one, and looking at the spread of answers. It measures scatter and sampling luck. It cannot measure an error shared by every specimen in the programme. The size correction is exactly such an error: one formula, applied to one curve, either fits that material or does not. Drawing it once per programme keeps that distinction honest, and it is why testing more miniature specimens narrows the curve fit without moving the correction error at all.
+[[/BOX]]
+
 
 ## 5. Fitter validation
-<!-- SYNTHETIC throughout; where the method stops working -->  [[FIG 7]]
+
+Nothing was trusted on real data before it was shown to recover known truth on synthetic data. All results in this section are SYNTHETIC: curves generated from known parameters, with controlled scatter, at a fixed seed.
+
+[[FIG 1]]
+
+The fitter recovers its parameters well where the sampling identifies them and badly where it does not, and the failures are reported rather than tuned away. Three limits matter and are stated plainly. Where every specimen lies below the true transition, a small fraction of fits still pass every diagnostic while the upper-shelf energy is wrong by most of its value — the diagnostics are computed on the fitted curve, so a confidently wrong fit can look supported. Where scatter is high, many specimens do not rescue the fit. And near a threshold the diagnostics are conservative, declining fits whose index temperature is in fact accurate.
+
+The resampling procedure was validated the same way. On data lying exactly on the model it reproduces the original fit; its results do not depend on the number of worker processes; and every replicate is accounted for, including those that produce no value. Coverage was measured, not assumed, and it is not exactly the nominal level: the primary pairs intervals covered the truth in about {{val.cov_well_t41j}} of well-sampled synthetic cases, {{val.cov_high_t41j}} at high scatter and {{val.cov_weak_t41j}} for a weakly sampled design, with a Monte Carlo standard error of about {{val.cov_se}}. The fixed-design alternative under-covered everywhere, reaching only {{val.cov_wild_weak}} in the weak design, which is why it is reported as a sensitivity and never as the primary result.
+
+The simulator was validated in turn: {{w6.val_rows}} validation rows, {{w6.val_passed}} of them passing, covering exact reproduction of the real fits by the simulator's own analysis path, the absence of any route by which the true answer could leak into the design, the physical reachability of the requested temperatures, and the requirement that the temperature shift be applied exactly once. A further {{w6.checks}} independent checks recompute the published results from the raw geometry and the declared rules without importing the code they check, and {{w5.checks}} do the same for the size normalization.
+
 
 ## 6. Results
-### 6.1 Fitting the published curves (Q1)  [[TAB 3]]
-### 6.2 Per-curve uncertainty and its cross-check (Q1, Q2)  [[FIG 1]] [[TAB 4]]
-### 6.3 The specimen size effect (Q3)  [[FIG 3a]] [[FIG 3b]] [[TAB 5]]
-### 6.4 The test-matrix study (Q2, Q4)  [[BOX the answer in plain terms]] [[FIG 2]] [[FIG 4]] [[FIG 5]] [[FIG 6]] [[TAB 6]] [[TAB 7]]
-### 6.5 Sensitivities  [[TAB 8]]
+
+### 6.1 Fitting the published curves (Q1)
+
+All {{fit.total}} curves of the primary cohort were fitted: {{fit.full_size}} full-size and {{fit.miniature}} miniature. Each receives exactly one outcome, and the categories are exhaustive.
+
+[[TAB 3]]
+
+There were {{fit.optimizer_failure}} optimizer failures and {{fit.nonphysical}} inadmissible solutions. {{fit.boundary}} fits rest on a bound and {{fit.weak}} converged but are not identified by their sampling; these are reported as such rather than presented as results. {{fit.usable_index}} curves yield a usable fit with an index temperature, and {{fit.usable_no_index}} yield a usable fit with none, all miniature, because no index criterion exists for those geometries. The answer to Q1 begins here: whether an index temperature is well determined is decided less by how many specimens were tested than by how many of them landed in the transition rather than on a shelf.
+
+### 6.2 Per-curve uncertainty and its cross-check (Q1, Q2)
+
+[[FIG 2]]
+
+Across the full-size curves with a usable fit and a reportable primary interval, the bootstrap standard deviation of the index temperature has a median of {{unc.sd_median}} °C, with a tenth-to-ninetieth percentile range of {{unc.sd_p10}} to {{unc.sd_p90}} °C, and a median nominal interval width of {{unc.width_median}} °C.
+
+[[TAB 4]]
+
+The accounting itself carries a finding. Of the {{unc.t41j_all}} full-size curves, {{unc.t41j_primary_ci}} receive a primary interval, {{unc.t41j_diagnostic}} a diagnostic-only interval, and {{unc.t41j_unavailable}} none: in those, enough resampled test matrices lose the cold specimens that place the crossing that no nominal interval can honestly be quoted. Holding the temperatures fixed leaves only {{unc.t41j_unavail_fixed}} unavailable. That gap **is** part of the answer to Q2: a test matrix whose index temperature rests on one or two cold specimens is fragile, and that fragility is invisible to any method conditioning on the temperatures actually tested.
+
+Against published work the magnitudes are sane and honestly larger. Over the {{xchk.curves}} curves with a primary interval and a median of {{xchk.median_n}} specimens, the median bootstrap standard deviation is {{xchk.median_sd}} °C against {{xchk.marini_sigma}} °C for a designed eighteen-specimen matrix on one well-characterized forging — a ratio of about {{xchk.ratio}} — and it falls with specimen count close to the inverse square root, slope {{xchk.slope}}. Being larger than a single-material, single-laboratory study is the expected result for curves drawn from many studies with uneven temperature layouts, and is reported as such rather than as agreement.
+
+### 6.3 The specimen size effect (Q3)
+
+Of the candidate pairs enumerated across the cohort, {{size.strict_comparisons}} are strictly matched geometry comparisons, drawn from {{size.strict_families}} independent material-condition families in {{size.strict_studies}} publications. {{size.primary_comparisons}} comparisons from {{size.primary_families}} families in {{size.primary_studies}} publications reach the pre-registered primary analysis set. No cross-study comparison survives: without a heat identifier, the reported composition is the only heat proxy, and it never matches exactly across publications.
+
+[[FIG 3]]
+
+The normalization helps substantially. The median absolute disagreement in mid-transition temperature falls from {{ba.t0_before}} °C before normalization to {{ba.t0_after}} °C after, and {{ba.improved_t0}} of the {{ba.comparisons}} primary comparisons improve on that measure, {{ba.improved_use}} on upper-shelf energy. It does not, however, collapse the curves.
+
+[[TAB 5]]
+
+The residual index-temperature disagreement has a family-weighted mean of {{size.bias}} °C and a family-weighted standard deviation of {{size.sd}} °C, with individual comparisons spanning {{size.min}} to {{size.max}} °C; a robust scale computed from the median absolute deviation gives {{size.robust}} °C, so the spread is not an artefact of one extreme comparison. Weighting by family rather than by comparison matters, because several geometries measured on one plate are not independent observations of the size effect. The more conservative pool, using every strictly matched comparison rather than only those meeting the primary fit-quality requirement, gives {{size.cons_bias}} °C and {{size.cons_sd}} °C from {{size.cons_families}} families; it is carried forward as a required sensitivity.
+
+**Q3's second half is answered negatively, and that is a result.** No individual miniature geometry reaches the pre-registered evidence threshold of three independent families from two publications — a threshold that was not lowered after it turned out that nothing met it. Among product forms, only plate qualifies, with {{size.plate_families}} families from {{size.plate_studies}} publications giving a family-weighted mean of {{size.plate_bias}} °C and a standard deviation of {{size.plate_sd}} °C; forging has {{size.forging_families}} families and weld metal {{size.weld_families}}, so no standalone estimate is made for either. By irradiation state, unirradiated material qualifies with {{size.unirr_families}} families, giving {{size.unirr_bias}} °C and {{size.unirr_sd}} °C; irradiated material has {{size.irr_families}} families, so **no separate irradiated correction is estimated, and it is not assumed that irradiation and geometry fail to interact.**
+
+The two comparisons that the normalization makes worse are both from one severely embrittled, low-toughness plate, where the miniature specimens transitioned at or above the full-size temperature — the opposite of the direction the published shift assumes. Adding a positive shift to data whose measured shift runs the other way necessarily worsens the agreement. This is reported, not removed.
+
+Finally, the choice of published correlation moves the answer more than the scatter in it: across the pre-declared alternatives the family-weighted bias runs from {{ns.bias_max}} to {{ns.bias_min}} °C while the family-weighted standard deviation stays between {{ns.sd_min}} and {{ns.sd_max}} °C. The scatter about a chosen correlation is stable; the location of the correction is not.
+
+
+### 6.4 The test-matrix study (Q2, Q4)
+
+[[BOX the answer, before the numbers]]
+Fitting a curve gets more accurate as specimens are added, roughly as one over the square root of the count. Correcting a miniature curve to full-size behaviour does not: that error is set by how well the correlation suits the material, and testing more specimens does not improve it. So a miniature programme's total error falls with specimen count only until it reaches the correction error, and then stops. A full-size programme has no such floor. The question is simply whether the budget is small enough that the extra miniature specimens still matter more than the floor.
+[[/BOX]]
+
+**What is compared, and what could not be.** Full-size is simulated, and so are the seven smaller MCVN/miniaturized geometry scenarios the size analysis supports. **Conventional ASTM E23-type sub-size specimens are not represented at all**: the dataset's only two such curves have four points each and fail every screening rule, so no correction for that class was ever estimated, and none was invented to fill the gap. The brief asks for full-size against sub-size against miniature; this dataset can answer only two of those three, and the third is reported as a negative result rather than approximated by the miniature arms.
+
+The headline comparison holds material volume fixed and asks which geometry spends it better, across {{w6.archetypes}} true curves, {{w6.geometries}} miniature geometries, six budgets and four placement strategies — {{w6.t1_comparisons}} paired comparisons in total. The outcome is {{w6.full_wins}} full-size wins, {{w6.mini_wins}} miniature wins, {{w6.tied}} practical ties and {{w6.ineligible}} ineligible. Every one of these is a conditional fixed-volume scenario using the pooled, WEAKLY SUPPORTED correction.
+
+[[FIG 4]]
+
+[[FIG 5]]
+
+The mechanism is visible in both figures: every miniature geometry converges to the same floor, because under a pooled correction what limits them is the correction, not how many specimens each geometry fits. That floor is {{=floor.central}} °C, the root-sum-square of the correction bias and its residual standard deviation, and it does not move with specimen count. Under the conservative correction it is {{=floor.conservative}} °C.
+
+Stated in the conditional form these results support: at the smallest budget tested, miniature specimens win for the uniform, anchored and model-based adaptive placements, while clustered placement gives them no general win; around the next budget up the answer is placement-dependent and often tied, and miniature specimens still win some comparisons up to a budget of {{w6.mini_win_max_k}} full-size equivalents; from a budget of {{w6.no_mini_win_from_k}} they win no comparison under any strategy, true curve or geometry; and from {{w6.full_sweep_from_k}} full-size specimens' worth of material, full-size wins every comparison. This is a conditional fixed-volume scenario using the pooled, WEAKLY SUPPORTED correction; it is not a geometry-specific claim, and it is not a statement that full-size specimens are preferable in general.
+
+**How well would the correction have to be known?** The threshold quantity is the correction residual standard deviation at which a miniature programme would match a full-size one.
+
+[[TAB 6]]
+
+[[FIG 6]]
+
+For the median true curve at a budget of eight full-size equivalents, that threshold lies between {{w6.sdstar_k8_a5g5_min}} and {{w6.sdstar_k8_a5g5_max}} °C depending on the placement strategy — **below the measured {{size.sd}} °C**. Across all three true curves examined it spans {{w6.sdstar_k8_min}} to {{w6.sdstar_k8_max}} °C. At the smallest budget the threshold rises to between {{w6.sdstar_k4_a5g5_min}} and {{w6.sdstar_k4_a5g5_max}} °C for that true curve, and {{w6.sdstar_k4_min}} to {{w6.sdstar_k4_max}} °C across all three, which the measured value comfortably clears. That is the whole mechanism behind the flip: in this conditional fixed-volume scenario the measured correction uncertainty sits below the threshold at the smallest budget and above it thereafter. The simulated and semi-analytic thresholds agree closely, which confirms the floor arithmetic rather than merely restating it.
+
+**Placement and prior knowledge (Q2, Q4).**
+
+[[FIG 7]]
+
+For full-size programmes the placement strategy matters a great deal. A tightly clustered design is best when the transition location is known to within a few tens of degrees and collapses when it is not, failing the availability gate rather than merely losing accuracy — the design misses the transition altogether. A wide uniform design is robust and never best. A simple up-and-down staircase, which spends every specimen near the criterion energy instead of on shelf anchors, outperforms the batched model-based adaptive design by a wide margin. That last finding is itself a caution: **the adaptive conclusion depends on which adaptive algorithm is used**, so no general claim about adaptive designs is made here. For miniature programmes placement barely matters, because the correction floor dominates whatever the design.
+
+**Physical reachability, which no penalty assumption can change.** The coldest full-size-equivalent temperature a geometry can reach is liquid nitrogen plus that geometry's own temperature shift. Of the {{reach.real_curves}} real fitted curves used as truths, {{reach.g1_unreachable}} have transitions the smallest geometry cannot reach and {{reach.g5_unreachable}} are beyond an intermediate one. The limit bites before the hard boundary: curves reachable but close to it lose the sub-criterion specimens from too many programmes to be usable. For a cold-transition material the question is not which size is more precise but whether the smaller one can be tested at all, so feasibility failures are reported separately, never averaged into a performance number.
+
+### 6.5 Sensitivities
+
+[[TAB 7]]
+
+Of the {{w6.sens_variants}} pre-registered variants, {{w6.sens_changes}} change the conclusion, and which ones do is informative. **The size-correction assumptions dominate.** Replacing the central correction with the conservative one, with the ten-family empirical pool, or with either of two alternative published temperature correlations makes full-size win every comparison run — each again a conditional fixed-volume scenario using the pooled correction, differing only in which published correction is assumed. **The scatter model matters much less**, shifting the median difference by at most about a degree and never reversing its sign — which is worth stating plainly, because the scatter model was identified in advance as the weak link and turns out not to be the one that decides the answer. **The programme-level correction draw is decisive**: redrawing the residual per specimen, carried as a labelled illustration precisely to show this, lets the correction error average away and reverses the conclusion.
+
+Two variants favour miniature specimens. A machining allowance applied to every geometry costs the smaller specimens proportionally more specimens, yet improves their standing, because it cuts the full-size count into the range where full-size error is steep in specimen count while the miniature error already sits at its floor. The idealized volume accounting used throughout is therefore, if anything, **favourable to full-size**; it does not flatter the smaller specimens.
+
+Product form was never tested in the simulation. Substituting the plate stratum's own bias and residual scale into the floor arithmetic gives {{=floor.plate}} °C rather than {{=floor.central}} °C. **The plate-only arithmetic gives a larger correction-error floor than the pooled central case. No simulated winner or tie labels were recomputed for this plate-only scenario**, because it was never part of the frozen experiment grid. A larger floor would be expected to reduce rather than improve the miniature advantage, but that is a directional inference, not a simulated result.
+
+**Interval coverage: a practical warning.**
+
+[[TAB 8]]
+
+A bootstrap interval computed on a miniature-derived index temperature covers the programme's own corrected estimand well, reaching {{w6.cov_a_g5_k24}} at the largest count tested. It covers the **true full-size index temperature** only {{w6.cov_b_g5_k6}}, {{w6.cov_b_g5_k12}} and {{w6.cov_b_g5_k24}} of the time at {{w6.cov_n_g5_k6}}, {{w6.cov_n_g5_k12}} and {{w6.cov_n_g5_k24}} specimens. The interval narrows as specimens are added while the correction residual does not, so the quoted uncertainty becomes steadily more misleading the more specimens are tested. This is not a failure of the resampling method: it is a mismatch between sampling uncertainty and full-size-equivalent uncertainty after an uncertain size correction. A confidence interval quoted on a sub-size-derived index temperature describes sampling scatter only, and must not be read as the uncertainty of the full-size index.
+
 
 ## 7. Uncertainty and limitations
+
+This section is the most important in the report. Nothing in section 6 should be read without it.
+
 ### 7.1 What the data are
+
+The compilation draws on {{data.publications}} source publications with different machines, calibrations and reporting conventions, and most of its curves were digitized from published figures. Between-study variance is therefore present in every scatter estimate here and **cannot be separated from real material scatter**. The dataset contains no heat or lot identifier, so reported composition is the only heat proxy — which is what empties the cross-study matched class and confines the size analysis to five publications. It contains no shear-fracture-appearance and no lateral-expansion data at all, which is why the fracture-mode-weighted procedure the correlation report itself recommends could not be run; nothing was imputed to run it. Exact notch dimensions are unreported for the majority of full-size curves; they are treated as full-size V-notch data and flagged, and are never described as confirmed standard geometry.
+
+Several sources were read only in part, and the report does not pretend otherwise: one key fitting paper was available only as an abstract, and the abstract does not contain the statements attributed to it earlier in this project's history; one uncertainty paper was read as a non-peer-reviewed preprint; and a lower-shelf convention attributed to surveillance-report practice could not be retrieved and is therefore not used. The irradiation status of four references could not be resolved from accessible full texts, and those records sit outside the primary population rather than being guessed.
+
 ### 7.2 What the model is
+
+The hyperbolic tangent form is empirical and has no physical derivation. Charpy absorbed energy is an empirical index, not a fracture-mechanics material property, and the index temperature is a correlation parameter used by regulation, not a material constant. The intervals reported here are nominal, not calibrated, and their measured synthetic coverage is given in section 5 rather than assumed. The scatter pool used to calibrate the simulator is **empirical published-data residual scatter** and is never treated as pure material scatter: it mixes specimen-to-specimen variation, laboratory and machine differences, calibration and reporting differences, digitization error and model-shape mismatch.
+
 ### 7.3 What the correction is
+
+The correction distribution rests on {{size.primary_families}} independent matched families from {{size.primary_studies}} studies. Every summary statistic behind it is a single-digit sample. **No individual miniature geometry is directly supported**, so no geometry-specific correction or performance claim is made anywhere in this report; the pooled distribution assumes one correction across geometries whose ligament volumes differ by more than an order of magnitude, an assumption these data neither establish nor refute. The evidence is entirely from miniaturized specimens, which the applicable standard distinguishes explicitly from conventional reduced-thickness sub-size specimens; the dataset contains no usable curve of the latter kind, so nothing here is evidence about them.
+
+A scalar volume ratio cannot remove the size effect, for reasons that are physical rather than statistical. Thickness changes the constraint at the notch root: a thick specimen is closer to plane strain, where the stress state is strongly three-dimensional and favours cleavage, while a thin one can deform out of plane and behaves more ductilely at the same temperature. That is a temperature effect, not an energy effect, which is why a second and separate temperature correction is needed at all. A larger specimen also samples more material and is more likely to contain the worst defect, pushing it towards brittle behaviour. And the components of absorbed energy — initiation, propagation, and the shear lips at the specimen sides — do not scale together. The miniature specimens here are not photographic reductions of a full-size specimen: their notch angles, root radii and relative notch depths differ from the standard, and a sharper notch root is known to raise the transition temperature by an amount no volume ratio contains.
+
 ### 7.4 What the simulation assumes
+
+The material budget is an **idealized finished-specimen accounting**: gross rectangular volume, integer specimen counts, remainder discarded. It is not a prediction of how many specimens fit in, or can be machined from, a real surveillance capsule; capsule layout, holders, orientation constraints, archive requirements and reconstitution are not modelled. Specimen scatter is independent conditional on the programme-level correction draw, so **no within-programme correlated laboratory or instrument systematic is modelled** — one machine, one operator, one calibration applied to every specimen. An independent error averages away with specimen count; a correlated one does not, so every large-count miniature gain reported here is conditional on that assumption and is potentially optimistic. No extra variance component was invented to cover it.
+
+An absolute energy-resolution floor is named, quantified and deliberately not modelled: mapped back through its normalization factor, a typical material gives the smallest geometry a raw curve spanning well under a joule in total, smaller than anything in the dataset's own miniature fits. No citable resolution value was found in the sources read, so the effect is stated with its direction rather than fabricated.
+
+Finally, one wording ambiguity in the adaptive placement algorithm was found after results existed. The pre-registered reading was kept, the alternative was not added, and the ambiguity is recorded here as a limitation rather than rewritten to look unambiguous. No full-size result depends on it.
+
 ### 7.5 Sensitivity to the inclusion criteria and the scatter model
-### 7.6 Physical reachability
-### 7.7 What the analysis could not determine
-### 7.8 Relationship to the 2026 machine-learning correlation paper
+
+Both were tested rather than asserted. Propagating the deliberately looser and deliberately stricter curve cohorts through the simulation changes no conclusion. Across every scatter-model variant — a robust-scale version, a smooth calibrated form, empirical resampling with and without its region means, and an inflated miniature profile — the median difference moves by about a degree at most and never changes sign. The inclusion rule and the scatter model are not what the answer rests on. The size correction is.
+
+### 7.6 What the analysis could not determine
+
+A geometry-resolved size correction. A product-form-specific correction for forging or weld metal. A correction specific to irradiated material, or whether irradiation and geometry interact. The separation of real material scatter from between-study scatter. A resolution floor for the smallest geometries. The true within-programme correlated error. And whether the choice of dataset release changes the downstream conclusions. This one needs stating precisely, because the project's own governing decision asked for it. The release comparison **was** performed through cleaning and curve definition, where the two releases differ by exactly two publications. It was **not** propagated through fitting, per-curve uncertainty, the size effect or the simulation. One of those two publications supplies one of the matched families behind the size correction, so the pooled correction values would move by an amount this work has not computed. The requirement to test the release choice downstream was therefore **waived by an explicit author decision**, on the ground that resolving it means re-running every downstream stage; it is **not** a requirement this report claims to have met. **No claim is made that the choice of release has been shown irrelevant.** The frozen correction sensitivities already span a wider range than this difference plausibly spans, and all of them move the answer the same way, which is a reason to expect the conclusion to survive — but that is a reasoned expectation, not a calculation performed on the earlier release.
+
+### 7.7 Relationship to the 2026 machine-learning correlation paper
+
+A recent study by the authors of this dataset uses machine learning to predict standard-size Charpy properties from sub-size measurements, on largely the same matched sub-population. **That is a prediction problem; this is a design problem**, and the two need different things from the same data.
+
+The difference that matters is not accuracy but what the numbers mean. Their transformation builds each training target from the paired full-size curve, which is legitimate and necessary for supervised learning; their cross-validation correctly holds out whole specimen sets, so their reported accuracy is an honest measure of predictive performance. It is not, and is not claimed by them to be, an independent estimate of how much uncertainty a classical correction adds to a test programme. This project needs precisely that second quantity, so its correction is never allowed to see the paired full-size curve — a restriction checked numerically on every run. Their benchmark of classical correlations is larger and more systematic than anything here.
+
+**The two sets of numbers are not comparable, and this report does not compare them.** That study reports prediction and correlation performance against a full-size transition temperature, on its own matched subset, with its own index definition. This work reports the family-weighted bias and spread of the residual left by an out-of-sample classical correction applied to a different index, on a differently matched subset selected under different evidentiary filters. The metrics, the populations, the targets and the purposes all differ, so neither set of values validates, corroborates or bounds the other, and no magnitude comparison between them would mean anything. What can be compared is method: that study measures how accurately sub-size data predict full-size properties; this one measures how much uncertainty a classical correction contributes, and spends that uncertainty on a test-programme design question. One consequence is worth stating rather than leaving for a reader to notice: the project's own frozen size-effect summary in `outputs/` does place this work's residual scale alongside the magnitudes that study reports for classical corrections. That summary is an approved generated output and is not edited retrospectively, but the comparison is not repeated here, for the reason just given.
+
+**No novelty is claimed beyond the following**: a strictly matched, fully audited pairing in which every rejection reason is preserved; a correction applied out of sample; an explicit residual-uncertainty estimate carrying an evidence status; a statement of where the dataset is too thin to support one at all; and the propagation of that uncertainty into a test-matrix design answer. This project trains no model and attempts no prediction.
+
 
 ## 8. Conclusions
 
+**The main question has a quantitative answer with its conditions attached.** Spending a fixed volume of irradiated material on many miniature specimens rather than few full-size ones improves the recovered full-size index temperature only while the material budget is very small. Under the central assumptions the miniature error reaches a floor of {{=floor.central}} °C — the root-sum-square of the measured correction bias and its residual standard deviation — and no number of additional miniature specimens lowers it, because the correction error is a property of the programme, not of the specimens. Miniature specimens win at the smallest budget tested for three of the four placement strategies, are placement-dependent and often tied around the next budget, win no comparison from a budget of {{w6.no_mini_win_from_k}} full-size equivalents, and from {{w6.full_sweep_from_k}} lose every comparison. This is a conditional fixed-volume scenario using the pooled, WEAKLY SUPPORTED correction, under the tested assumptions; **it is not a finding that full-size specimens are preferable in general.**
+
+**The conditions are as much the result as the number is.** The correction distribution rests on {{size.primary_families}} independent families from {{size.primary_studies}} studies, no individual geometry is supported on its own, and the evidence is miniaturized rather than conventional sub-size. The correction assumption, not the scatter model, is what the answer depends on: the threshold correction uncertainty at which the comparison would turn is {{w6.sdstar_k8_a5g5_min}} to {{w6.sdstar_k8_a5g5_max}} °C at a budget of eight, against a measured {{size.sd}} °C. And some comparisons cannot be made at all: for cold-transition materials the smaller geometries cannot physically reach their own transition.
+
+**For a test-programme designer**, three practical conclusions follow. First, where the transition location is poorly known before testing, placement matters more than specimen size, and a clustered design that misses the transition produces no usable answer at any specimen count. Second, a confidence interval quoted on a sub-size-derived index temperature describes sampling scatter only; it does not contain the size-correction error, and it becomes more misleading, not less, as specimens are added. Third, the most valuable thing that could be done for miniature-specimen surveillance is not more miniature specimens but better-supported correction data: matched full-size and miniature curves on the same heats, across product forms and irradiation states, which is exactly what this compilation is too thin to provide.
+
+**What would change the answer.** A correction residual standard deviation below roughly half the measured value at moderate budgets; a correction supported geometry by geometry rather than pooled; evidence that irradiation and geometry do not interact; or a demonstration that the correction error behaves partly like independent specimen noise rather than wholly like a programme-level offset. The last of these was tested as a labelled illustration and does reverse the conclusion, which is precisely why the programme-level treatment is argued for explicitly rather than assumed.
+
 ## 9. References
 
+Sources are marked with what was actually read. Nothing is cited from memory.
+
+- Lee, I., Merickel, J. W., Kasala Sreenivasulu, Y., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., and Song, R. *Dataset of Charpy V-notch impact test records of nuclear structural materials.* Materials Cloud Archive, records q4x6v-dyt25 and eny5v-www93. CC BY 4.0. *Data files read in full.*
+- Lee, I., et al. *Comprehensive Toughness Dataset of Nuclear Reactor Structural Materials using Charpy V-Notch Impact Testing.* Scientific Data. *Full text read, including its specimen-size-effect section and correlation tables.*
+- Sokolov, M. A., and Alexander, D. J. *An Improved Correlation Procedure for Subsize and Full-Size Charpy Impact Specimen Data.* NUREG/CR-6379, ORNL-6888. *Full report read; source of the primary temperature correction and of its stated applicability limits.*
+- Sokolov, M. A., and Nanstad, R. K. *On Impact Testing of Subsize Charpy V-Notch Type Specimens.* ASTM STP 1270. *Full scanned text read; source of the fixed full-size lower shelf.*
+- Lucon, E., McCowan, C. N., and Santoyo, R. L. *Overview of NIST Activities on Sub-size and Miniaturized Charpy Specimens.* Journal of Pressure Vessel Technology. *Full text read; source of the miniaturized-specimen definitions and normalization factors.*
+- Marini, B. *Empirical estimation of uncertainties of Charpy impact testing transition temperatures for an RPV steel.* EPJ Nuclear Sciences and Technologies. *Full text read; the principal published cross-check for per-curve uncertainty.*
+- Switzner, N. T., et al. *Algorithms to Estimate the Ductile to Brittle Transition Temperature, Upper Shelf Energy, and Their Uncertainties for Steel Using Charpy V-Notch Shear Area and Absorbed Energy Data.* Metals. *Full text read.*
+- Wallin, K., and Baer, W. *Evaluation of Charpy-V transition curve fitting based on distribution-free statistical assessment.* International Journal of Pressure Vessels and Piping. **Abstract only**; the full text could not be accessed, and statements attributed to it earlier in this project's history are not supported by the accessible abstract.
+- Miura, N., Shinko, T., and Nomoto, A. *Variation of ductile-brittle transition temperature for Charpy curve provided by hyperbolic tangent function.* **Read as the non-peer-reviewed preprint**; the published version was not accessible.
+- Efron, B., and Tibshirani, R. *Bootstrap Methods for Standard Errors, Confidence Intervals, and Other Measures of Statistical Accuracy.* Statistical Science. *Scanned pages read; source of the percentile interval and replicate-count guidance.*
+- MacKinnon, J. G. *Thirty Years of Heteroskedasticity-Robust Inference*, and Davidson, R., and Flachaire, E. *The Wild Bootstrap, Tamed at Last.* *Working-paper versions read; sources for the wild bootstrap sensitivity. Freedman, Wu, Liu and Mammen are cited only through these.*
+- Lucon, E., Splett, J., Koepke, A., and Newton, D. *NIST Software Package for Obtaining Charpy Transition Curves.* NIST Technical Note 2158. *Full text read; method reference.*
+- Kasala Sreenivasulu, Y., et al. *Machine Learning-based Correlation of Charpy Impact Properties Between Sub-sized and Standard-sized Specimens for Nuclear Structural Materials.* Scientific Reports; arXiv 2607.10412. *Full text read; the study this work distinguishes itself from in section 7.7.*
+- ASTM E23, ASTM E185, ASTM E2248, ASTM E1921, ASTM E900, ISO 148-1, and 10 CFR Part 50. *Cited for specific clauses; the clause read is recorded with each use in the decision log.*
+- Lucas et al., Corwin et al., Louden et al., Kayano et al., Towers, and Wallin are **cited second-hand**, through the sources above that tabulate their equations; their original papers were not read, and every equation taken from them names the route.
+
 ## Appendix A — Claim-to-source map
+
+Every numeric claim in this report is substituted at build time from a table regenerated by the pipeline. The build fails if any placeholder is unresolved, if a row selector matches other than exactly one row, or if a literal result number appears in the prose. The complete map, one row per claim, giving the value, the generated file, the row selector and the column, is written to `report/claim_source_map.csv` alongside this document, and the derived quantities additionally record their inputs and the expression used. Every other literal number in this report — criterion energies, method constants, standard designations, cited coefficients — is a registered constant carrying a provenance category and a source, listed in `report/constant_source_map.csv`, so an externally cited value can be audited as readily as a generated one.
+
 ## Appendix B — Reproducibility
+
+**One command.** `./run_all.sh` recreates the pinned environment if absent, refuses to run with any other package versions, verifies the raw-data checksums, regenerates every output from the vendored raw data, and rebuilds this report. The report's figures are the approved generated figures, embedded rather than redrawn, so the document cannot drift from the analysis.
+
+**Determinism.** Every stochastic stage draws from an independent seeded stream per replicate, so results do not depend on the number of worker processes, the chunking or the execution order — a property that is tested, not asserted. Figures and this PDF are written with document metadata suppressed, so repeated runs produce byte-identical files.
+
+**Runtime.** The fitting and validation stages take minutes. The resampling and Monte Carlo stages are the expensive ones and reuse fingerprinted checkpoints outside version control, so a repeat run takes a few minutes while a cold run takes several hours. The measured cold and warm times are recorded in the repository README and in the pipeline script.
+
+**Provenance and frozen state.** The raw workbooks are never modified and their digests are verified on every run. The curve cohorts were frozen at the second checkpoint, fingerprinted, and are re-checked by every later stage, which stops the pipeline on any drift. Each work package was committed on its own branch and merged only after the author approved it, so the repository history carries one commit per approved checkpoint.
+
+**A convention worth knowing before reading the generated summaries.** Each work package's generated summary carries the approval status it had when it was written, because changing that text would require editing and rerunning an approved analysis. The decision log and the progress file are authoritative for approval status. Three such lines remain: the per-curve uncertainty summary describes its review as awaiting the author, the size-effect summary describes its checkpoint as awaiting approval, and the simulation summary lists the adaptive-algorithm wording as open. All three were true when generated and all three have since been decided.
