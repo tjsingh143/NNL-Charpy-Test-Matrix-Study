@@ -4219,6 +4219,48 @@ forging (2 families) and weld metal (1 family) have no standalone estimate at al
    0.92 of its height, so no page is sparse, and nothing was shrunk below legibility to reach 15. Reported
    to the author for decision rather than resolved by compressing the document.
 
+7. *Final author review, corrections required before merge (author, 2026-09-20).* The author read the
+   rendered 16-page PDF independently and required nine corrections. None reopened the science; all were
+   report, typesetting or provenance fixes. What was changed:
+   a. **Figure 5's clipped source title is masked at the report layer.** The approved
+      `outputs/wp6/rmse_vs_specimen_count.png` carries a title clipped at both edges in the file itself.
+      D-118 forbids editing it, so the top 44 rows are masked when the image is embedded. Rows 42-48 of the
+      source are blank and the plot frame begins at row 49, so no axis, tick, legend, annotation or data mark
+      is removed. The crop is declared in `CROPS`, stated on the figure's Source line, and verified by a WP7
+      check that fails if the masked strip contains any long continuous horizontal run (plot structure) or if
+      the plot frame does not survive. **The approved file is unchanged and its digest remains the
+      provenance.**
+   b. **A table caption now stays with its table**, and a heading with the opening lines of what follows it.
+      A long table may continue on the next page with its header repeated rather than moving wholesale.
+   c. **A stale cross-reference was corrected** (the 2026 study is discussed in section 7.7, not 7.8), and a
+      build check now fails on any reference to a section, figure or table that does not exist. The check was
+      confirmed to catch the original defect.
+   d. **"Measured" no longer describes an analysis-derived correction quantity.** The size-correction bias
+      and standard deviation are analysis-derived from matched published curves; seven occurrences of
+      "measured correction", "measured value" and similar were replaced with "analysis-derived" or "estimated
+      from the matched published curves", in the prose and in two figure and table captions. A lint rule now
+      fails the build on any recurrence. **No numerical value changed.**
+   e. **Figure 3's caption grammar was corrected** and panel (a) is no longer described as "measured curves",
+      since it also carries transformed estimates. All captions were re-read.
+   f. **Section 7.7's evaluative wording was made factual**: "an honest measure of predictive performance"
+      became a statement of what the reported metric evaluates under that cross-validation split, and
+      "larger" became "broader" so it cannot read as a prohibited magnitude comparison. The explicit
+      non-comparability statement is unchanged.
+   g. **The page count was reduced from 16 to 15** by pagination and editing, not by shrinking anything:
+      a float-reordering pre-pass moves a figure that cannot fit past the following paragraphs that can,
+      carrying its callout and caption so nothing is orphaned; long tables may continue with a repeated
+      header; and about 350 words of duplication between section 6, Appendix B and the README were cut.
+      Fonts, figures and tables are unchanged in size. A bug introduced earlier in implementation was found
+      and fixed here: a regular expression intended for `LEAD` had also rewritten `TABLE_LEAD` from 1.18 to
+      1.30, inflating every table.
+   h. **The WP6 validation count wording was standardised** against the authoritative output: the test
+      identifiers run 01 to 19 with test 12 split into 12A and 12B, so the exact statement is **19 WP6
+      validation tests producing 20 validation rows, all passing**.
+   i. Re-verified afterwards: `./run_all.sh` exit 0 in 8 min 56 s; 0 changed files under `data/`, `outputs/`
+      and every WP0-WP6 source; 19 validation tests / 20 rows, 11 WP6 checks and 8 WP7 checks passing; the
+      report built twice byte-identically; all 15 pages rendered and inspected with no overflow, orphan or
+      large-gap defect remaining.
+
 ## D-125 — Author amendment during implementation (Amendment 1)
 **Status:** APPROVED (author, 2026-09-19), during WP7 implementation, after the first successful build and
 before the report prose and PDF were finalised. **Not pre-registered, and not presented as such.** D-113 to

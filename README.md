@@ -131,6 +131,12 @@ One further wording rule, recorded as D-126: the plate-only arithmetic gives a l
 correction-error floor than the pooled central case, and **no simulated winner or tie labels were
 recomputed for this plate-only scenario** — it was never part of the frozen experiment grid.
 
+One presentation-only rendering operation is declared, recorded as D-124 step 7a. The title of
+`outputs/wp6/rmse_vs_specimen_count.png` is clipped at both edges **in the approved WP6 file
+itself**. That file is not edited; instead the report masks its top 44 rows when embedding it, and
+a check verifies the masked strip contains no plot structure and that the plot frame survives. The
+source file and its digest are unchanged and remain the provenance.
+
 ## Data attribution (required)
 
 Lee, I., Merickel, J. W., Kasala Sreenivasulu, Y., Xu, F., Tang, Y., Rittenhouse, J. E., Vakanski, A., & Song, R.

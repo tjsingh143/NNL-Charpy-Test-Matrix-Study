@@ -78,11 +78,39 @@ def c3_figure_hashes():
     digests = {p: hashlib.sha256((OUTPUTS / p).read_bytes()).hexdigest()[:12] for p in embedded
                if (OUTPUTS / p).exists()}
     panels = R.FIGURES["3"]["paths"]
-    check("every embedded figure is the approved generated file",
-          not bad and sorted(embedded) == sorted(declared) and len(panels) == 2,
+    # Any presentation-only crop must remove nothing but blank space and the broken source title:
+    # re-check that the masked strip carries no axis, tick, legend, annotation or data mark, by
+    # requiring the rows immediately above the crop line to be blank (D-118 keeps the file itself
+    # untouched, so its digest above is still the provenance).
+    import matplotlib.image as mpimg
+    crop_bad = []
+    for rel, n in R.CROPS.items():
+        img = mpimg.imread(str(OUTPUTS / rel))
+        ink = (img[..., :3].mean(axis=2) < 0.6)
+        w = ink.shape[1]
+        # Plot structure - axes, frame, gridlines, the legend box - shows as long continuous
+        # horizontal runs. Rendered text does not. The masked strip must contain no such run.
+        def longest_run(row):
+            best = cur = 0
+            for v in row:
+                cur = cur + 1 if v else 0
+                best = max(best, cur)
+            return best
+        worst = max((longest_run(ink[y]) for y in range(n)), default=0)
+        if worst > 0.15 * w:
+            crop_bad.append(f"{rel}: masked strip contains a {worst}px run (plot structure?)")
+        if not ink[n:].any():
+            crop_bad.append(f"{rel}: nothing survives the crop")
+        # and the plot frame must still be intact below the crop
+        if max((longest_run(ink[y]) for y in range(n, min(n + 20, ink.shape[0]))), default=0) < 0.5 * w:
+            crop_bad.append(f"{rel}: the plot frame does not survive the crop")
+    check("every embedded figure is the approved generated file, and any crop removes no content",
+          not bad and sorted(embedded) == sorted(declared) and len(panels) == 2 and not crop_bad,
           f"{len(embedded)} images, all present in outputs/; Figure 3 carries its two approved "
-          f"panels ({', '.join(digests[p] for p in panels)})"
-          + (f"; MISSING {bad}" if bad else ""))
+          f"panels ({', '.join(digests[p] for p in panels)}); "
+          f"{len(R.CROPS)} presentation crop(s), each verified to contain no plot structure "
+          f"and to leave the plot frame intact"
+          + (f"; MISSING {bad}" if bad else "") + (f"; CROP {crop_bad}" if crop_bad else ""))
 
 
 def c4_evidence_classes():

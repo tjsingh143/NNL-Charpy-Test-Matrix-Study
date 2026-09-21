@@ -361,11 +361,14 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   source, digest comparison of every embedded figure against `outputs/`, evidence-class combinations, constant provenance, the
   honesty lint, the README definition-of-done, and a PDF delivery-integrity text extraction confirming the title, byline,
   sections 1–9 and the conditional conclusion.
-- **Page count: 16**, against the 12–15 target of D-125 item 5. Every page is uniformly dense (ink spans 0.90–0.92 of the page
-  height on all 16); no page is sparse and nothing was shrunk below legibility to reach 15. Reported for the author's decision.
-- **Known cosmetic defect in an approved upstream output, NOT fixed:** the title of `outputs/wp6/rmse_vs_specimen_count.png` is
-  clipped at both edges in the approved WP6 PNG itself. D-118 forbids editing approved outputs, so the report embeds it as
-  generated and its caption carries the archetype the clipped title would have named.
+- **Page count: 15**, meeting the 12–15 target of D-125 item 5, reached by pagination and editing rather than by shrinking
+  anything: float reordering, table continuation with a repeated header, and removal of duplication between section 6,
+  Appendix B and the README (D-124 step 7g).
+- **A clipped title in an approved upstream output is masked at the report layer, not fixed upstream:** the title of
+  `outputs/wp6/rmse_vs_specimen_count.png` is clipped at both edges in the approved WP6 PNG itself. D-118 forbids editing it,
+  so the report masks the top 44 rows when embedding; the source file and its digest are unchanged, and a WP7 check verifies
+  the masked strip contains no plot structure and that the plot frame survives (D-124 step 7a).
+- **19 WP6 validation tests producing 20 validation rows, all passing** (test 12 is split into 12A and 12B).
 - **Version sensitivity beyond WP2 was WAIVED by the author** (D-125 item 6), not satisfied: WP1/WP2 were run on both releases,
   WP3–WP6 on the primary release only. Recorded as an explicit unresolved limitation, with no claim that the release choice has
   been shown irrelevant.

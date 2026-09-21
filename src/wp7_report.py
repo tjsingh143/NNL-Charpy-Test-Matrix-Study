@@ -466,6 +466,10 @@ REQUIRED_COMBINATIONS = {
     "T5": {DERIVED, TRANSFORMED},       # the residual summary table
 }
 
+# Presentation-only crops applied when embedding an approved figure (D-118 keeps the source file
+# untouched). Keyed by the path under outputs/; the value is the number of top rows masked.
+CROPS: dict[str, int] = {"wp6/rmse_vs_specimen_count.png": 44}
+
 FIGURES: dict[str, dict] = {
     "2": dict(paths=["wp4/worked_example_t41j_bootstrap.png"], classes=(PUBLISHED, DERIVED),
               caption="A worked example of one fitted transition curve. The plotted energies are "
@@ -474,7 +478,13 @@ FIGURES: dict[str, dict] = {
                       "ANALYSIS-DERIVED FROM PUBLISHED DATA. The band is a confidence band for the "
                       "mean curve, not a prediction interval for a new specimen. Curve 3-17, A533B "
                       "plate, irradiated."),
-    "5": dict(paths=["wp6/rmse_vs_specimen_count.png"], classes=(SYNTHETIC,),
+    # The approved WP6 PNG carries a title that is clipped at both edges in the source file
+    # itself. D-118 forbids editing an approved output, so the top strip is masked HERE, at the
+    # report layer, and the report's own caption serves as the figure's description. Rows 0-43 of
+    # the source image contain only that clipped title: rows 42-48 are blank and the plot frame
+    # begins at row 49, so no axis, tick, legend, annotation or data mark is removed. Verified by
+    # src/wp7_tests.py, which re-checks that the masked strip contains no plot content.
+    "5": dict(paths=["wp6/rmse_vs_specimen_count.png"], classes=(SYNTHETIC,), crop_top_px=44,
               caption="Index-temperature uncertainty against specimen count for the median true curve "
                       "(archetype A5), one series per test-temperature placement strategy, with the "
                       "square-root-of-N reference. "
@@ -483,7 +493,7 @@ FIGURES: dict[str, dict] = {
                       "miniature programme stops at the floor. Simulated programmes throughout."),
     "3": dict(paths=["wp5/before_after_normalization.png", "wp5/size_correction_residuals.png"],
               classes=(PUBLISHED, DERIVED, TRANSFORMED),
-              panels=["(a) Measured curves before and after the classical size normalization, for "
+              panels=["(a) Curves before and after the classical size normalization, for "
                       "four matched material-condition families.",
                       "(b) The residual disagreement that survives normalization, every comparison "
                       "shown individually, by smaller-specimen geometry and by product form."],
@@ -493,8 +503,9 @@ FIGURES: dict[str, dict] = {
                       "curves and the refit of the mapped points are ANALYSIS-DERIVED FROM "
                       "PUBLISHED DATA. In panel (b) each plotted residual is ANALYSIS-DERIVED: the "
                       "difference between a transformed estimate and a fitted full-size index "
-                      "temperature. Individual points, not a fitted distribution — there are too "
-                      "few independent families to smooth."),
+                      "temperature. Individual points are shown rather than a fitted "
+                      "distribution, because there are too few independent families to justify "
+                      "smoothing."),
     "4": dict(paths=["wp6/fixed_volume_comparison.png"], classes=(SYNTHETIC,),
               callout="Conventional E23 sub-size: not estimated — insufficient included evidence.",
               caption="The fixed-material-volume comparison, one panel per placement strategy. "
@@ -509,7 +520,7 @@ FIGURES: dict[str, dict] = {
               caption="How uncertain the size correction may be before extra miniature specimens "
                       "stop paying. Miniature programme error against the correction residual "
                       "standard deviation, against the matching full-size programme, with the "
-                      "measured central and conservative values marked. Simulated programmes."),
+                      "analysis-derived central and conservative values marked. Simulated programmes."),
     "7": dict(paths=["wp6/prior_error_vs_performance.png"], classes=(SYNTHETIC,),
               caption="Prior knowledge of the transition location. Error and estimator availability "
                       "against the error in the assumed transition temperature, with the "
@@ -567,8 +578,8 @@ TABLES: dict[str, dict] = {
               where=dict(archetype_id="A5", geom_code="G5"), classes=(SYNTHETIC,),
               caption="How well the size correction would have to be known for a miniature "
                       "programme to match a full-size one, for the median true curve at one "
-                      "geometry. Simulated; compare with the measured correction standard "
-                      "deviation reported in the text."),
+                      "geometry. Simulated; compare with the analysis-derived correction "
+                      "standard deviation reported in the text."),
     "8": dict(file=W6COV, cols=["geom_code", "k_budget", "n", "coverage_A_own_estimand",
                                 "coverage_B_true_t41j", "median_width_c"], classes=(SYNTHETIC,),
               caption="Interval coverage on simulated programmes. Coverage A is of the programme's "
@@ -601,6 +612,14 @@ FORBIDDEN = [
      r"|TRANSFORMED ESTIMATE \(derived from published smaller-specimen measurements\)"
      r"|FITTED \(derived from published data\)"
      r"|carries exactly one of these labels", "retired evidence label or rule (D-126 item 1)"),
+    # The size-correction bias and SD are ANALYSIS-DERIVED from matched published curves. This
+    # project measured nothing, so "measured" may not describe them (D-126 item 1).
+    (r"\bmeasured\b(?:(?!\.)[^.]){0,45}?\bcorrection\b"
+     r"|\bcorrection\b(?:(?!\.)[^.]){0,35}?\bmeasured\b"
+     r"|\bmeasured (?:value|central|conservative|residual|bias|SD|standard deviation)\b"
+     r"|\bthe measured \d",
+     "the size-correction bias and standard deviation are analysis-derived from matched published "
+     "curves, not measured by this project (D-126 item 1); say analysis-derived or estimated"),
 ]
 
 # D-125 item 1: the 2026 study's prediction accuracy and this project's correction residual are not
@@ -822,8 +841,13 @@ def expand_slots(text: str) -> str:
         head = spec["caption"].split(". ", 1)
         body = (f"{head[0]}.{panels}{head[1]}" if spec.get("panels") and len(head) == 2
                 else f"{spec['caption']}{panels}")
+        note = ""
+        if spec.get("crop_top_px"):
+            note = (f" The top {spec['crop_top_px']} pixels of the source image, which contain "
+                    f"only a title clipped in the source file itself, are masked at the report "
+                    f"layer; the approved file is unchanged and no plot content is removed.")
         return (f"{imgs}{callout}\n\n*Figure {num}. {body.strip()}* "
-                f"**[{classes}]** *Source: {srcs}.*")
+                f"**[{classes}]** *Source: {srcs}.{note}*")
 
     def tab(num: str) -> str:
         if num not in TABLES:
@@ -864,7 +888,11 @@ PAGE_W, PAGE_H = 8.27, 11.69            # A4 portrait, inches
 MARGIN_X, MARGIN_TOP, MARGIN_BOT = 0.82, 0.68, 0.60
 COL_W = PAGE_W - 2 * MARGIN_X
 SIZES = dict(title=17, h1=13, h2=10.5, h3=9.0, body=8.4, caption=7.0, table=6.1, foot=6.2)
-TABLE_LEAD = 1.30                       # tighter than prose; a monospace grid needs less air
+FIG_MIN_SCALE = 0.82                    # a figure may shrink at most this much to avoid
+                                        # blanking the rest of a page
+MIN_TABLE_ROWS = 4                      # a continued table carries at least this many rows
+CAPTION_KEEP_LINES = 3                  # caption lines that must start beside the figure
+TABLE_LEAD = 1.18                       # tighter than prose; a monospace grid needs less air
 LEAD = 1.30                             # line spacing, multiples of the font size
 CHAR_W = 0.520                          # mean glyph width of DejaVu Sans, in units of font
                                         # size; deliberately a little conservative, so that a
@@ -966,6 +994,96 @@ def _clean(text: str) -> str:
     return text
 
 
+def layout_units(blocks: list[tuple]) -> list[list[tuple]]:
+    """Group blocks into units that must not be split: a figure travels with its callout and its
+    caption, so moving a figure never orphans its caption."""
+    units, i = [], 0
+    while i < len(blocks):
+        if blocks[i][0] == "figs":
+            unit, i = [blocks[i]], i + 1
+            while i < len(blocks) and blocks[i][0] in ("box", "p"):
+                if blocks[i][0] == "box":
+                    unit.append(blocks[i]); i += 1
+                elif re.match(r"\*?Figure \d", _clean(blocks[i][1])):
+                    unit.append(blocks[i]); i += 1
+                    break
+                else:
+                    break
+            units.append(unit)
+        else:
+            units.append([blocks[i]]); i += 1
+    return units
+
+
+def _block_height(block: tuple) -> float:
+    """Simulated height of one block, mirroring what typeset() lays out. Used only to decide
+    ordering; the renderer measures again, so a small discrepancy costs at most a page break."""
+    import matplotlib.image as mpimg
+    kind = block[0]
+    if kind in ("h1", "h2", "h3"):
+        size = SIZES["title"] if kind == "h1" else SIZES[kind]
+        gap = {"h1": 0.26, "h2": 0.21, "h3": 0.155}[kind]
+        return len(wrap(_clean(block[1]), size, bold=True)) * size * LEAD / 72.0 + gap
+    if kind == "p":
+        return len(wrap(_clean(block[1]), SIZES["body"])) * SIZES["body"] * LEAD / 72.0 + 0.055
+    if kind == "bul":
+        return sum(len(wrap(_clean(i), SIZES["body"], COL_W - 0.12)) for i in block[1]) \
+            * SIZES["body"] * LEAD / 72.0 + 0.03 * len(block[1]) + 0.05
+    if kind == "box":
+        return len(wrap(_clean(block[1]), SIZES["body"], COL_W - 0.34)) \
+            * SIZES["body"] * LEAD / 72.0 + 0.27
+    if kind == "tab":
+        return (len(block[1]) + 1) * SIZES["table"] * TABLE_LEAD / 72.0 + 0.23
+    if kind == "figs":
+        h = 0.0
+        for path in block[1]:
+            img = mpimg.imread(str(ROOT / path))
+            crop = CROPS.get(path.replace("outputs/", ""), 0)
+            if crop:
+                img = img[crop:]
+            h += COL_W * (img.shape[0] / img.shape[1])
+        return h + 0.10 * (len(block[1]) - 1) + 0.12
+    return 0.0
+
+
+def reorder_floats(blocks: list[tuple]) -> list[tuple]:
+    """A tall figure that cannot fit the space left would blank the rest of the page. Move it past
+    the following paragraphs that DO fit, carrying its callout and caption with it, so the page
+    fills and nothing is orphaned. Reading order is preserved except that a figure may appear
+    slightly after the paragraph that introduces it, which is ordinary practice for a float."""
+    units = layout_units(blocks)
+    out, y, i = [], PAGE_H - MARGIN_TOP, 0
+    floor = MARGIN_BOT
+    while i < len(units):
+        unit = units[i]
+        need = sum(_block_height(b) for b in unit)
+        if unit[0][0] == "pb":
+            y = PAGE_H - MARGIN_TOP
+            out.extend(unit); i += 1
+            continue
+        if unit[0][0] == "figs" and need > y - floor and y < PAGE_H - MARGIN_TOP - 1e-9:
+            moved = False
+            for j in range(i + 1, min(i + 5, len(units))):
+                cand = units[j]
+                if cand[0][0] != "p":
+                    break
+                ch = sum(_block_height(b) for b in cand)
+                if ch <= y - floor:                      # this paragraph fills the gap
+                    out.extend(cand)
+                    y -= ch
+                    units.pop(j)
+                    moved = True
+                    break
+            if moved:
+                continue                                  # try the figure again in the new space
+        if need > y - floor:
+            y = PAGE_H - MARGIN_TOP
+        out.extend(unit)
+        y -= need
+        i += 1
+    return out
+
+
 def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
     """Flow the blocks onto A4 pages and write a deterministic PDF."""
     import matplotlib
@@ -1017,14 +1135,29 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
                 title = _clean(block[1])
                 size = SIZES["title"] if title.startswith("Charpy Transition") else SIZES["h1"]
                 put(wrap(title, size, bold=True), size, gap_before=0.16, gap_after=0.10, weight="bold", pdf=pdf)
-            elif kind == "h2":
-                put(wrap(_clean(block[1]), SIZES["h2"], bold=True), SIZES["h2"], gap_before=0.15,
-                    gap_after=0.06, weight="bold", pdf=pdf)
-            elif kind == "h3":
-                put(wrap(_clean(block[1]), SIZES["h3"], bold=True), SIZES["h3"], gap_before=0.11,
-                    gap_after=0.045, weight="bold", color="0.15", pdf=pdf)
+            elif kind in ("h2", "h3"):
+                key = "h2" if kind == "h2" else "h3"
+                gb, ga = (0.15, 0.06) if kind == "h2" else (0.11, 0.045)
+                head_lines = wrap(_clean(block[1]), SIZES[key], bold=True)
+                # keep a heading with the opening lines of what follows it
+                follow = blocks[bi + 1] if bi + 1 < len(blocks) else None
+                lead_h = 0.0
+                if follow and follow[0] == "p":
+                    lead_h = min(3, len(wrap(_clean(follow[1]), SIZES["body"]))) \
+                        * SIZES["body"] * LEAD / 72.0
+                space(len(head_lines) * SIZES[key] * LEAD / 72.0 + gb + ga + lead_h, pdf)
+                put(head_lines, SIZES[key], gap_before=gb, gap_after=ga, weight="bold",
+                    color="0.05" if kind == "h2" else "0.15", pdf=pdf)
             elif kind == "p":
-                put(wrap(_clean(block[1]), SIZES["body"]), SIZES["body"], gap_after=0.062, pdf=pdf)
+                lines_p = wrap(_clean(block[1]), SIZES["body"])
+                extra = 0.0
+                nxt = blocks[bi + 1] if bi + 1 < len(blocks) else None
+                if nxt and nxt[0] == "tab" and re.match(r"\*?Table \d", _clean(block[1])):
+                    # keep a table caption with the first rows of its own table
+                    extra = min(6, len(nxt[1]) + 1) * SIZES["table"] * TABLE_LEAD / 72.0 + 0.12
+                if extra:
+                    space(len(lines_p) * SIZES["body"] * LEAD / 72.0 + extra + 0.06, pdf)
+                put(lines_p, SIZES["body"], gap_after=0.055, pdf=pdf)
             elif kind == "bul":
                 for item in block[1]:
                     put(["• " + l if j == 0 else "  " + l
@@ -1063,14 +1196,32 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
                     text.append("  ".join(c.ljust(w) for c, w in zip(r, widths)))
                     if j == 0:
                         text.append("  ".join("-" * w for w in widths))
-                h = len(text) * size * TABLE_LEAD / 72.0
-                space(h + 0.12, pdf)
-                state["fig"].text(MARGIN_X / PAGE_W, state["y"] / PAGE_H, "\n".join(text),
-                                  ha="left", va="top", fontsize=size, color="0.05",
-                                  linespacing=TABLE_LEAD, family="DejaVu Sans Mono")
-                state["y"] -= h + 0.11
+                # A long table may continue on the next page with its header repeated, rather
+                # than moving wholesale and leaving a third of a page blank.
+                line_h = size * TABLE_LEAD / 72.0
+                head, rest = text[:2], text[2:]
+                while rest:
+                    avail_lines = int((state["y"] - MARGIN_BOT - 0.12) / line_h) - len(head)
+                    if avail_lines < MIN_TABLE_ROWS and len(rest) > MIN_TABLE_ROWS:
+                        new_page(pdf)
+                        avail_lines = int((state["y"] - MARGIN_BOT - 0.12) / line_h) - len(head)
+                    take = rest if len(rest) <= avail_lines else rest[:max(avail_lines, 1)]
+                    chunk = head + list(take)
+                    h = len(chunk) * line_h
+                    space(h + 0.12, pdf)
+                    state["fig"].text(MARGIN_X / PAGE_W, state["y"] / PAGE_H, "\n".join(chunk),
+                                      ha="left", va="top", fontsize=size, color="0.05",
+                                      linespacing=TABLE_LEAD, family="DejaVu Sans Mono")
+                    state["y"] -= h + 0.11
+                    rest = rest[len(take):]
+                    if rest:
+                        new_page(pdf)
             elif kind == "figs":
-                imgs = [mpimg.imread(str(ROOT / path)) for path in block[1]]
+                imgs = []
+                for path in block[1]:
+                    img = mpimg.imread(str(ROOT / path))
+                    crop = CROPS.get(path.replace("outputs/", ""), 0)
+                    imgs.append(img[crop:] if crop else img)
                 avail = PAGE_H - MARGIN_TOP - MARGIN_BOT - 0.45
                 sizes = []
                 for img in imgs:
@@ -1080,13 +1231,18 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
                 total = sum(h for _, h, _ in sizes) + 0.10 * (len(sizes) - 1)
                 # A figure must never be separated from its own caption, so reserve the caption's
                 # height as part of the group before deciding whether the group fits this page.
+                # Reserve the figure, any callout, and the OPENING LINES of its caption. A caption
+                # that begins on the figure's page is not orphaned; reserving all of a seven-line
+                # caption would push whole figures onto fresh pages and waste a third of a page.
                 cap_h = 0.0
                 for look in blocks[bi + 1:bi + 3]:      # a callout box may sit between the two
                     if look[0] == "box":
                         cap_h += (len(wrap(_clean(look[1]), SIZES["body"], COL_W - 0.34))
                                   * SIZES["body"] * LEAD / 72.0 + 0.20)
                     elif look[0] == "p" and re.match(r"\*?Figure \d", _clean(look[1])):
-                        cap_h += len(wrap(_clean(look[1]), SIZES["body"])) * SIZES["body"] * LEAD / 72.0
+                        n_cap = min(CAPTION_KEEP_LINES,
+                                    len(wrap(_clean(look[1]), SIZES["body"])))
+                        cap_h += n_cap * SIZES["body"] * LEAD / 72.0
                         break
                     else:
                         break
@@ -1095,7 +1251,15 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
                     for sz in sizes:
                         sz[0] *= k; sz[1] *= k
                     total = sum(h for _, h, _ in sizes) + 0.10 * (len(sizes) - 1)
-                space(total + cap_h + 0.18, pdf)        # panels and caption stay on one page
+                room = state["y"] - MARGIN_BOT - cap_h - 0.12
+                if total > room >= FIG_MIN_SCALE * total:
+                    # it misses by a little: shrink within a declared bound rather than blank the
+                    # rest of the page. Never below FIG_MIN_SCALE of the natural size.
+                    k = room / total
+                    for sz in sizes:
+                        sz[0] *= k; sz[1] *= k
+                    total = sum(h for _, h, _ in sizes) + 0.10 * (len(sizes) - 1)
+                space(total + cap_h + 0.12, pdf)        # panels and caption start on one page
                 for img, (w, h, _ar) in zip(imgs, sizes):
                     ax = state["fig"].add_axes([(MARGIN_X + (COL_W - w) / 2) / PAGE_W,
                                                 (state["y"] - h) / PAGE_H, w / PAGE_W, h / PAGE_H])
@@ -1171,6 +1335,24 @@ def build() -> None:
         if re.search(r"\d", residue):
             problems.append(f"{where}: literal number without provenance - use a placeholder or "
                             f"register the constant (D-126 items 3, 4): {residue.strip()[:90]}")
+    # Internal cross-references must point at something that exists (author review, item 3).
+    headings = set()
+    for line in body.splitlines():
+        m = re.match(r"#{2,3}\s+([0-9]+(?:\.[0-9]+)?)[.\s]", line.strip())
+        if m:
+            headings.add(m.group(1).rstrip("."))
+    for m in re.finditer(r"\bsections?\s+([0-9]+(?:\.[0-9]+)?)", body):
+        if m.group(1) not in headings:
+            line = body[:m.start()].count("\n") + 1
+            problems.append(f"report.md line {line}: cross-reference to section {m.group(1)}, "
+                            f"which is not a heading in this document")
+    for m in re.finditer(r"\b(Figure|Table)\s+([0-9]+)", body):
+        reg = FIGURES if m.group(1) == "Figure" else TABLES
+        if m.group(2) not in reg:
+            line = body[:m.start()].count("\n") + 1
+            problems.append(f"report.md line {line}: reference to {m.group(1)} {m.group(2)}, "
+                            f"which is not defined")
+
     used_figs = set(re.findall(r"\[\[FIG ([0-9a-z]+)\]\]", body))
     used_tabs = set(re.findall(r"\[\[TAB ([0-9a-z]+)\]\]", body))
     for num in sorted(set(FIGURES) - used_figs):
@@ -1191,7 +1373,8 @@ def build() -> None:
     (REPORT / "report_filled.md").write_text(filled)
     pd.DataFrame(claim_rows).to_csv(REPORT / "claim_source_map.csv", index=False)
     pd.DataFrame(constant_rows()).to_csv(REPORT / "constant_source_map.csv", index=False)
-    pages = typeset(parse_blocks(filled), REPORT / "charpy_test_matrix_study.pdf", FOOTER)
+    pages = typeset(reorder_floats(parse_blocks(filled)),
+                    REPORT / "charpy_test_matrix_study.pdf", FOOTER)
     print(f"WP7 report: {len(rendered)} numeric claims from "
           f"{len({r['file'] for r in claim_rows if r['file']})} generated files; "
           f"{len(CONSTANTS)} registered constants; {len(FIGURES)} figures, {len(TABLES)} tables; "
