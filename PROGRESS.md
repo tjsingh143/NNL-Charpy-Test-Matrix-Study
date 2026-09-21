@@ -19,7 +19,10 @@
   over three review rounds and pre-registered in commit `3714fe7` before any headline cell ran. Merged into `main` with an
   explicit merge commit; branch `wp6` is kept. The CP5 approval session changed documentation and status only — no code,
   number, generated table or generated figure moved, and no WP6 computation was rerun (D-112 step 13).
-- **WP7 (report and repository, PROJECT_BRIEF.md §5 and §6) is the next permitted work package. WP7 has NOT started.**
+- **WP7 (report and repository, PROJECT_BRIEF.md §5, §6 and §10) complete on branch `wp7` — AWAITING FINAL AUTHOR REVIEW.**
+  The brief defines no CP6, so the gate before merging is a final author review, not a numbered checkpoint. Two author amendments
+  were made during implementation and recorded as D-125 and D-126; D-113 to D-124 are unchanged. No WP0–WP6 code, output, cohort,
+  number or decision was touched.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -341,10 +344,35 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
    uncertain size correction - **not** as a failure of the WP4 bootstrap.
 6. **Physical reachability is a first-class result**; feasibility failures are never collapsed into RMSE comparisons.
 
-## Next permitted work package
-- **WP7 (report and repository, PROJECT_BRIEF.md §5, §6 and §10).** All five checkpoints are approved: CP1 (WP0, WP1),
-  CP2 (WP2), CP3 (WP3), the internal WP4 review, CP4 (WP5) and CP5 (WP6). **WP7 has NOT started** and no report text has
-  been drafted. The report must present the WP6 headline in the conditional form CP5 approved.
+## WP7 state (complete on branch `wp7`; awaiting final author review)
+- **Deliverables:** `report/charpy_test_matrix_study.pdf` (the technical report), `report/report.md` (its source),
+  `report/PLAIN_LANGUAGE.md`, `report/claim_source_map.csv`, `report/constant_source_map.csv`, `report/wp7_check_results.csv`.
+- **No number is typed into the report.** Every numeric claim is substituted at build time from a named file, row and column
+  (112 claims from 23 generated files); every other literal number is a registered constant carrying a provenance category and a
+  source (20 constants: 3 method/configuration, 14 externally cited, 3 document metadata). The build fails on an unresolved,
+  unused or stale placeholder, an unregistered literal number, an untagged figure or table, or a forbidden phrase (D-114, D-126).
+- **Figures and tables:** 7 figures and 8 tables, every one an existing approved generated file; WP7 created no new figure.
+  Brief §6.2 figure 3 is delivered as ONE numbered figure with two panels, composed at the typesetting layer from the two
+  untouched approved WP5 PNGs (D-125 item 3).
+- **Honesty enforcement:** the CP5 conditional headline is quoted, not paraphrased; a hard lint fails the build on unqualified
+  superiority claims, on a magnitude comparison with the 2026 machine-learning paper, and on any win/favouring label attached to
+  the plate-only scenario (D-116, D-125 item 1, D-126 item 2).
+- **Checks:** 8 independent WP7 checks pass (`report/wp7_check_results.csv`), including a re-read of every claim from its named
+  source, digest comparison of every embedded figure against `outputs/`, evidence-class combinations, constant provenance, the
+  honesty lint, the README definition-of-done, and a PDF delivery-integrity text extraction confirming the title, byline,
+  sections 1–9 and the conditional conclusion.
+- **Page count: 16**, against the 12–15 target of D-125 item 5. Every page is uniformly dense (ink spans 0.90–0.92 of the page
+  height on all 16); no page is sparse and nothing was shrunk below legibility to reach 15. Reported for the author's decision.
+- **Known cosmetic defect in an approved upstream output, NOT fixed:** the title of `outputs/wp6/rmse_vs_specimen_count.png` is
+  clipped at both edges in the approved WP6 PNG itself. D-118 forbids editing approved outputs, so the report embeds it as
+  generated and its caption carries the archetype the clipped title would have named.
+- **Version sensitivity beyond WP2 was WAIVED by the author** (D-125 item 6), not satisfied: WP1/WP2 were run on both releases,
+  WP3–WP6 on the primary release only. Recorded as an explicit unresolved limitation, with no claim that the release choice has
+  been shown irrelevant.
+
+## Next permitted work
+- **Final author review of WP7.** On explicit approval, merge `wp7` into `main` with an explicit non-fast-forward merge commit,
+  keep the branch, add no remote and push nothing. **Do not merge before that approval.**
 
 ## Unresolved data issues carried forward
 - WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and

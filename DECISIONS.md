@@ -4183,6 +4183,42 @@ forging (2 families) and weld metal (1 family) have no standalone estimate at al
    rewriting it; the constant registry replacing the regex whitelist; and the three delivery-integrity QA
    clarifications issued with the approval). The byline was verified with the author rather than inferred.
 
+5. *Implementation completed under the two amendments, and the visual QA gate (2026-09-19/20).* The
+   builder was extended to the amended rules: multi-class evidence tags with the D-126 taxonomy; Figure 3
+   composed as one numbered figure with two panels at the typesetting layer; the constant registry replacing
+   the regex whitelist; the magnitude-comparison and plate-only lint guards; and an environment-gated page
+   dump for the QA gate. `src/wp7_tests.py` was written with eight independent checks, including a
+   delivery-integrity text extraction from the built PDF using only the pinned environment.
+   **Defects the QA gate found, all in WP7's own work and all corrected:**
+   a. *The report's own front matter still defined the retired taxonomy* — "carries exactly one of these
+      labels", listing `MEASURED (published)` and the other retired labels — contradicting D-126 and every
+      figure caption. It survived because the retired-label lint pattern ended in `\b` after a closing
+      parenthesis, which can never match. The pattern was corrected and the front matter rewritten.
+   b. *Captions overflowed the text column*, because the line-width estimate used one average glyph width
+      while the all-capital evidence labels are markedly wider. The estimate is now proportional to the
+      capital fraction, and bold headings carry a further factor.
+   c. *Table columns were truncated mid-word.* Tables now shrink their type to fit before truncating, and a
+      truncated cell is marked with an ellipsis so it cannot be mistaken for a short value.
+   d. *A figure could be separated from its own caption* across a page break. A figure, any callout and its
+      caption are now laid out as one unbreakable group.
+   e. *A defined figure could go unreferenced.* Figure 7 as first numbered was defined but never cited; the
+      build now fails on any defined-but-unreferenced figure or table. Figures and tables were renumbered
+      into order of first appearance.
+   **A defect in an approved upstream output, found and deliberately NOT corrected:** the title of
+   `outputs/wp6/rmse_vs_specimen_count.png` is clipped at both edges in the approved WP6 PNG itself. D-118
+   forbids editing an approved output, so the report embeds the figure exactly as generated and its caption
+   carries the archetype the clipped title would have named. Reported to the author at the final review.
+6. *Verification of the WP7 state (2026-09-19/20).* `./run_all.sh` end to end with warm WP4 and WP6 caches:
+   **exit 0 in 9 min 04 s**; raw-data checksums verified; the CP2 cohort fingerprints verified; the 19 WP6
+   simulator validation rows, the 11 WP6 independent checks and the 8 WP7 independent checks all passed;
+   `src/wp6_tests.py::c10` confirmed **WP0-WP5 outputs and sources byte-identical to `main`**, and a direct
+   `git diff` against `main` over `data/`, `outputs/` and every WP0-WP6 source reported **0 changed files**.
+   The report was built twice: `charpy_test_matrix_study.pdf`, `report_filled.md`, `claim_source_map.csv`
+   and `constant_source_map.csv` were byte-identical across builds. Every page was rendered and inspected.
+   **Final page count 16**, against the 12-15 target of D-125 item 5: every page carries ink over 0.90 to
+   0.92 of its height, so no page is sparse, and nothing was shrunk below legibility to reach 15. Reported
+   to the author for decision rather than resolved by compressing the document.
+
 ## D-125 — Author amendment during implementation (Amendment 1)
 **Status:** APPROVED (author, 2026-09-19), during WP7 implementation, after the first successful build and
 before the report prose and PDF were finalised. **Not pre-registered, and not presented as such.** D-113 to
