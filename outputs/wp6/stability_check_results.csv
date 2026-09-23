@@ -1,0 +1,8 @@
+check,passed,detail
+selection and complete paired arms,True,"11 original miniature cells; 16 T1 pairs, 30 T3 pairs, 17 full-size arms"
+analytic crossing fixtures,True,independent hand-worked 7.5 crossing and below-grid case
+requested-replicate accounting,True,all 63 arms contain and account for 4000 programmes
+"paired RMSE, batch SE, gates and labels",True,all 46 pairs reconstructed directly from cached replicate errors without decision helpers
+paired-bootstrap SE cross-check,True,8 representative pairs independently resampled jointly 2000 times
+numerical thresholds and practical flip brackets,True,all 4 budget and 8 SD crossings/brackets reconstructed from paired values with independent interpolation
+fresh deterministic prefixes and paired streams,True,8 arms x 8 programmes recomputed in reverse order with one worker; replicate 3999 seed reconstructed independently

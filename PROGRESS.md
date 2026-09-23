@@ -19,10 +19,10 @@
   over three review rounds and pre-registered in commit `3714fe7` before any headline cell ran. Merged into `main` with an
   explicit merge commit; branch `wp6` is kept. The CP5 approval session changed documentation and status only — no code,
   number, generated table or generated figure moved, and no WP6 computation was rerun (D-112 step 13).
-- **WP7 (report and repository, PROJECT_BRIEF.md §5, §6 and §10) complete on branch `wp7` — AWAITING FINAL AUTHOR REVIEW.**
-  The brief defines no CP6, so the gate before merging is a final author review, not a numbered checkpoint. Two author amendments
-  were made during implementation and recorded as D-125 and D-126; D-113 to D-124 are unchanged. No WP0–WP6 code, output, cohort,
-  number or decision was touched.
+- **WP7 (report and repository, PROJECT_BRIEF.md §5, §6 and §10) complete — FINAL AUTHOR REVIEW APPROVED.**
+  Merged into `main` as `e752c7e`; branch `wp7` is kept. The brief defines no CP6. Two author amendments
+  were recorded as D-125 and D-126. That approved merge is the baseline for the author-authorized, bounded
+  post-audit remediation recorded in D-127, now complete with all required verification passed.
 
 ## Final CP2 numbers (2025.30 primary release; all regenerate with `./run_all.sh`)
 - WP1 retains 3,198 records (2024.206 sensitivity release: 3,050). E8 removes 69 duplicate series / 910 records, of which 2 series /
@@ -280,18 +280,19 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   (`wp6_check_results.csv`), including WP0-WP5 outputs and sources byte-identical to `main` and raw checksums verified.
 - **Headline (T1, 1,512 paired comparisons): 1,038 FULL-SIZE WINS, 234 MINIATURE WINS, 240 PRACTICALLY TIED, 0 INELIGIBLE.**
   The miniature RMSE sits at a floor of about 12 deg C (predicted sqrt(bias^2 + SD^2) = 11.96 deg C) whatever the
-  specimen count, because the size-correction residual does not average away. **Miniature wins only at the smallest
-  budget, k = 4** (all comparisons for the uniform, anchored and adaptive designs; none for the clustered design); **from
-  k = 8 it wins no comparison** under any strategy, archetype or geometry; **from k = 18 full-size wins every comparison.**
-  The flip is the same for all seven miniature geometries: under the pooled correction it is set by the correction floor,
-  not by how many specimens a geometry fits.
+  specimen count, because the size-correction residual does not average away. **Miniature wins 189 comparisons at k = 4
+  and 45 at k = 6** (29 adaptive, 16 uniform at k = 6; none clustered). **At tested budgets from k = 8 it wins no
+  comparison; from k = 18 full-size wins every comparison.** The pooled correction floor dominates, but the exact flip
+  can differ by geometry: A3 / S / k = 6 is MINIATURE WINS for G1 and PRACTICALLY TIED for G2-G7 (D-127 correction).
 - **Correction-uncertainty threshold SD\*** (T3): at k = 8 the correction SD would have to be 5.3-9.7 deg C for the
   miniature programme to match the full-size one, below the measured 11.4 deg C; at k = 4, 10.8-31.1 deg C.
 - **Sensitivities** (T4): the size-correction assumptions dominate — the CONSERVATIVE correction, the 10-family empirical
   pool and the Wallin and Towers normalizations make full-size win every comparison run (k = 6, 12); the scatter model
   moves the median difference by at most 1.3 deg C and never reverses it; the programme-level draw is decisive (the
-  labelled specimen-level illustration reverses the answer); the machining allowance favours miniature in RMSE terms
-  (full-size count at k = 6 falls from 6 to 4) — so the idealized accounting is, if anything, favourable to full-size.
+  labelled specimen-level illustration reverses the answer). Both machining allowances improve miniature standing;
+  V19 retains a slightly negative median RMSE difference. `changes_conclusion` compares the median of signs of
+  paired differences against CENTRAL, not the sign of the median difference. Full-size count at k = 6 falls from
+  6 to 4, so the idealized accounting is, if anything, favourable to full-size.
 - **Physical reachability**: the coldest reachable full-size-equivalent temperature is -195 + M. 22 of the 104 real
   full-size fits are unreachable for `20x1.5x1.5`, 7 for `20x2.5x2.5`, 2 for the 3.33 mm and KLST classes. In the 104-curve
   breadth check the 11 coldest-transition curves are INELIGIBLE for G5 — only 2 beyond its hard limit, 9 reachable but too
@@ -304,8 +305,10 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   the correction residual does not. B = 500 there is a bounded WP6 experiment; WP4's production B = 2,000 is unchanged.
 - **Robustness**: the availability gate (90 / 95 / 99 %) changes no T1 label; the tolerance moves wins into ties but never
   reverses a winner. Batch-means and paired-bootstrap SEs agree within a factor 1.5 in 97 % of T1 comparisons. The
-  R = 4,000 stability subset changes no label (every delta below tau; the common -0.25 deg C shift is the shared
-  correction-draw sample of the common-random-number design, D-112 step 8b).
+  original R = 4,000 subset checked single-arm RMSE and eligibility, not paired labels. D-127 completes the paired
+  check: all 16 selected CENTRAL labels (including the original eleven) remain unchanged; one supplemental T3
+  U/k=4/SD=20 label changes from full-size win to tie. The accepted CENTRAL results are unchanged. See the separately
+  generated paired-stability tables for SEs, eligibility and the numerical/practical crossing changes.
 - **Execution and reproducibility**: the complete frozen grid ran twice from a cold cache on an awake machine — 389.5 min
   and 381.4 min with 3 worker processes, peaks 313 and 321 MB — and every T1 value of the second run reproduces the first
   exactly. A repeat run reads the fingerprinted checkpoints in about 1.5 min. The declared pre-run benchmark projected
@@ -344,11 +347,11 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
    uncertain size correction - **not** as a failure of the WP4 bootstrap.
 6. **Physical reachability is a first-class result**; feasibility failures are never collapsed into RMSE comparisons.
 
-## WP7 state (complete on branch `wp7`; awaiting final author review)
+## WP7 state (final author review approved; merged in `e752c7e`)
 - **Deliverables:** `report/charpy_test_matrix_study.pdf` (the technical report), `report/report.md` (its source),
   `report/PLAIN_LANGUAGE.md`, `report/claim_source_map.csv`, `report/constant_source_map.csv`, `report/wp7_check_results.csv`.
 - **No number is typed into the report.** Every numeric claim is substituted at build time from a named file, row and column
-  (112 claims from 23 generated files); every other literal number is a registered constant carrying a provenance category and a
+  (114 claims from 23 generated files); every other literal number is a registered constant carrying a provenance category and a
   source (20 constants: 3 method/configuration, 14 externally cited, 3 document metadata). The build fails on an unresolved,
   unused or stale placeholder, an unregistered literal number, an untagged figure or table, or a forbidden phrase (D-114, D-126).
 - **Figures and tables:** 7 figures and 8 tables, every one an existing approved generated file; WP7 created no new figure.
@@ -357,10 +360,11 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
 - **Honesty enforcement:** the CP5 conditional headline is quoted, not paraphrased; a hard lint fails the build on unqualified
   superiority claims, on a magnitude comparison with the 2026 machine-learning paper, and on any win/favouring label attached to
   the plate-only scenario (D-116, D-125 item 1, D-126 item 2).
-- **Checks:** 8 independent WP7 checks pass (`report/wp7_check_results.csv`), including a re-read of every claim from its named
+- **Checks:** 9 WP7 checks pass (`report/wp7_check_results.csv`), including a re-read of every claim from its named
   source, digest comparison of every embedded figure against `outputs/`, evidence-class combinations, constant provenance, the
   honesty lint, the README definition-of-done, and a PDF delivery-integrity text extraction confirming the title, byline,
-  sections 1–9 and the conditional conclusion.
+  sections 1–9 and the conditional conclusion. D-127 adds negative build fixtures for authored numbers in prose,
+  headings and manual tables, unresolved placeholders and invalid selectors; legitimate numbering still passes.
 - **Page count: 15**, meeting the 12–15 target of D-125 item 5, reached by pagination and editing rather than by shrinking
   anything: float reordering, table continuation with a repeated header, and removal of duplication between section 6,
   Appendix B and the README (D-124 step 7g).
@@ -376,9 +380,21 @@ Every WP6 number is SYNTHETIC (Monte Carlo test-matrix study; not published meas
   WP3–WP6 on the primary release only. Recorded as an explicit unresolved limitation, with no claim that the release choice has
   been shown irrelevant.
 
-## Next permitted work
-- **Final author review of WP7.** On explicit approval, merge `wp7` into `main` with an explicit non-fast-forward merge commit,
-  keep the branch, add no remote and push nothing. **Do not merge before that approval.**
+## Final post-audit state (D-127)
+- The authorized remediation is complete. The bounded R=4,000 verification took 846.45 seconds: 63 arms, 46 pairs,
+  no tested CENTRAL label change, one supplemental T3 label change, no eligibility change. Accepted results stay frozen.
+- Checkpoints now hash resolved upstream calibration/scatter inputs and result-affecting code, including T6.
+  All 6,251 current checkpoints were explicitly adopted with every payload bit unchanged; the evidence is in
+  `outputs/wp6/checkpoint_upgrade_record.json`. Seven checkpoint and seven paired-stability regression checks pass.
+- Final warm `./run_all.sh`: **591.63 seconds, exit 0** (2026-09-23 05:50:40–06:00:32 UTC). All checks pass, including
+  raw checksums, fourteen frozen cohorts, nine WP5 checks, twenty WP6 validation rows, eleven WP6 checks and nine WP7 checks.
+  The six existing SciPy KS-test fallback warnings do not change validation results. No cold accepted-grid run was needed.
+- Independent post-run calculations reproduce all 4,636 paired labels, all 72 correction-SD thresholds and the budget
+  counts above. All 203 protected data/WP0–WP5 paths and 36 accepted WP6 artifacts remain byte-identical; only the
+  explicitly authorized WP6 summary is corrected. The final fifteen-page PDF was inspected on every page and is
+  deterministic; all 114 numeric claims and twenty constants retain their approved source maps.
+- WP7 review and its `e752c7e` merge are complete. No further scientific work, remote or push is authorized.
+  The project's own code/report license is the only remaining author choice; the dataset's CC BY 4.0 license is recorded.
 
 ## Unresolved data issues carried forward
 - WP4 sources: Miura et al. was read as the non-peer-reviewed SSRN preprint; the published IJPVP version was not accessible. Marini (2020) and

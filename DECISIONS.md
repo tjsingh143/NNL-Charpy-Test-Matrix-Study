@@ -4467,3 +4467,119 @@ minimum: the report title; the exact author byline; sections 1 through 9; "Uncer
 
 **Not authorized by this clarification:** rerunning WP3–WP6, adding a WP6 sensitivity, editing an approved
 WP0–WP6 output, or changing the CP5 headline.
+
+## D-127 — One post-audit remediation pass
+**Status:** COMPLETE within the author's 2026-09-22 remediation authorization; all required verification passed.
+
+**Authority and boundary.** The final end-to-end audit found no blocker and independently reproduced the accepted
+scientific headline at the approved baseline `e752c7e`. The author explicitly authorized correction of the audit's
+four important findings and named minor findings, targeted regression checks, a normal warm run and a final commit
+if those checks pass. This is a bounded exception to D-118/D-126 for these corrections, not a new work package or
+permission to alter raw data, frozen cohorts, the estimator, the scientific method or the accepted T1–T7 results.
+Historical decision text remains unchanged; this entry records the correction to its verification claims.
+
+**D-107 completion, selection fixed before the paired rerun.** The old `monte_carlo_stability.csv` checks only
+single-arm RMSE and eligibility for eleven A5/G5 miniature cells; it did not establish the claimed unchanged paired
+winner labels. Preserve that table as the original diagnostic. Run the original subset with each corresponding
+full-size arm at R=4,000 on the existing independent `|stability-4000` stream. To verify the numerical and practical
+budget flips, include both endpoints of every adjacent accepted A5/G5 T1 sign or winner-label transition. To verify
+SD*, include the two accepted T3 A5/G5 crossing endpoints at k=4 and k=8 for each strategy, plus one adjacent SD grid
+point on either side where available. This mechanical rule uses only accepted R=1,000 results; it does not adapt
+to R=4,000 outcomes. These are verification reruns of existing cells, not additional scientific scenarios.
+
+Save the selected arms, complete cell accounting, paired RMSE/SE/eligibility/labels and numerical/practical crossing
+comparisons in separately named `monte_carlo_stability_{selection,cells,paired,thresholds}.csv` files. Pair all 4,000
+replicate indices, compute the unchanged 20-batch SE and 2,000-resample paired-bootstrap cross-check, and apply the
+unchanged D-104/D-105 gates. Report differences, including a failed stability criterion, rather than replacing the
+accepted headline tables. If a central label changes, stop before the remaining remediation and report it to the
+author. Existing matching verification checkpoints may be reused; no complete cold WP6 rerun is authorized.
+
+**D-107 result (2026-09-22).** The mechanical selection contains 63 arms: 16 CENTRAL A5/G5 miniature arms,
+30 T3 SD-sweep miniature arms and 17 distinct matching full-size arms (including equivalent zero-prior T2
+comparators already used by the accepted pairing). Eleven miniature checkpoints were reused; 52 arms were
+computed at R=4,000 with three workers. Wall time was 846.45 seconds, including post-processing. All 16
+CENTRAL labels, including all eleven original D-107 labels, and all eligibility classifications are unchanged.
+Eight independent fresh one-worker/reversed-order prefixes agree exactly with the three-worker results.
+
+The supplementary T3 U/k=4/SD=20 comparison changes from FULL-SIZE WINS to PRACTICALLY TIED. Thus the old
+unqualified assertion that every label is stable must not be generalized to all supplemental threshold cells.
+All eight SD* movements are below their grid spacing (maximum 0.882182 deg C). The numerical C budget
+crossing changes from below the tested grid to k=4.000981, but the C/k=4 practical label stays tied. The
+D-107 alternative criterion in RMSE terms applies at that boundary: every tested paired RMSE-difference
+movement is below tau (maximum 0.940919 deg C). All four practical CENTRAL budget-flip brackets are unchanged.
+These verification outcomes do not change an accepted CENTRAL headline result; the author's stop condition
+is not triggered. Keep the accepted R=1,000 tables/thresholds unchanged and report these verification results
+separately. The originally claimed universal stability is replaced by the actual scope and outcomes.
+
+**Checkpoint correction.** The audit demonstrated that the legacy key omitted resolved calibration inputs.
+The strengthened key hashes the contents of the actual WP5 handoff, correction summaries, normalization
+scenarios and family residuals; WP4 profiles and residual pools; WP3 cohort fits and their processed observations;
+and the frozen-cohort manifest. It also covers result-affecting source dependencies, including the T6 code in
+`wp6_experiment.py`, the WP2 helpers used by the fitter and checkpoint implementation, plus runtime versions and
+the existing cell parameters. A relocated identical input remains equivalent; a changed input value does not.
+Normal loading never falls back to the old scheme.
+
+**Approved-cache adoption is distinct from a stale-result repair.** The audit found no stale accepted result.
+Do not recompute the accepted experiment simply because its metadata key is strengthened. Before the explicit
+one-time metadata upgrade, verify the accepted upstream inputs and simulation/coverage kernels against `e752c7e`,
+and verify each old checkpoint against its exact legacy task key. Retain a scratch backup outside the repository.
+Re-key only those validated checkpoints and prove that every payload array is bit-identical; record the old/new
+dependency fingerprints, counts and aggregate payload digest in `outputs/wp6/checkpoint_upgrade_record.json`.
+The bounded D-107 checkpoints use the same unchanged kernels and inputs and are included in that operation.
+This is explicit adoption of already-audited results, not an automatic legacy-cache exemption for future changes.
+
+**Public wording and chronology.** Correct the current README, PROGRESS and WP6 summary generator: CENTRAL has
+189 miniature wins at k=4 and 45 at k=6, none at the tested budgets from k=8, and all full-size wins from k=18.
+The exact flip can differ by geometry (A3/S/k=6: G1 miniature win, G2–G7 ties). D-118's historical generated
+summaries retain their generation-time status; this entry expressly authorizes correcting these false current
+WP6 summary claims without rewriting the accepted scientific tables. The preceding approved baseline remains
+`e752c7e`, WP7 is approved, and the numeric claim registry contains 114 entries.
+
+**Report provenance and minor factual corrections.** D-126 already required coverage of all authored numerical
+assertions. Remove the blanket heading/manual-table skips and the unused `lint:allow-digits` bypass; exempt only
+registered numbers/claims, generated slots with recorded provenance, comments and structural section numbering.
+Negative fixtures must reject numbers in prose, headings and manual cells, unresolved placeholders and invalid
+selectors; legitimate registered numbers and document numbering must pass. Correct the exclusion ranking:
+910 duplicate/republication records is the largest exclusion; 713 SS316 records is second-largest. Qualify V18/V19
+as improving miniature standing: V19 still has a slightly negative median RMSE difference. `changes_conclusion`
+compares the median of the signs of paired differences to CENTRAL, not the sign of the median difference.
+
+**License review.** No existing author decision or repository history grants a license for this project's own
+code/report. Do not invent one. The dataset's existing CC BY 4.0 attribution remains unchanged; the original
+project-materials license is the sole remaining author choice before release with explicit reuse terms.
+
+**Final verification and cache-adoption record.** All 6,251 checkpoints (6,188 accepted grid cells plus 63
+bounded verification arms) passed their exact legacy task keys before adoption. The 6,199 original cache files
+were still byte-identical to the captured starting state. Ten upstream input files and ten kernel/dependency
+source files matched `e752c7e` byte for byte; all 35 other experiment functions and module configuration matched
+as Python syntax trees. Only `main` (verification invocation) and `write_summary` (the named prose corrections)
+changed in that module. Every checkpoint payload remained bit-identical after re-keying, aggregate digest
+`07ca632bb7b914ab78ebf5a5712536728889fc0a6be061baed11d0b48f3dc58f`; the full old/new dependency evidence is in
+`outputs/wp6/checkpoint_upgrade_record.json`. Normal loading has no legacy fallback.
+
+Targeted checks passed before the full run: seven paired-stability checks, seven checkpoint checks and nine WP7
+checks. These include independent reconstruction of all 46 paired decisions and twelve crossing/bracket rows,
+eight paired-bootstrap SE checks, fresh one-worker deterministic prefixes, actual resolved WP5/scatter mutations,
+a T6-code mutation, and complete scratch-report rejection tests. `./run_all.sh` (wrapped in `caffeinate -i` to
+prevent sleep) then completed in **591.63 seconds**, exit **0**, from 2026-09-23 05:50:40 to 06:00:32 UTC.
+Raw SHA-256/archive MD5 checks and all fourteen frozen cohorts passed; WP3/WP4 validations completed; WP5's nine
+checks, WP6's twenty validation rows and eleven checks, both new seven-check suites, and WP7's nine checks passed.
+All accepted WP6 cells and bounded verification arms reused their checkpoints. Six existing SciPy KS-test
+warnings selected the asymptotic fallback; the affected scatter tests passed and their outputs did not change.
+No cold accepted-grid recomputation was performed.
+
+Independent post-run arithmetic (without importing the project decision helpers) reproduced all 6,182 cached
+non-T6 cell metrics, all 4,636 paired classifications and all 72 accepted SD* crossings. The primary WP5 family
+mean/SD remain -3.4941546891181936 / 11.433714718421587 deg C. CENTRAL remains 1,038 full-size wins, 234 miniature
+wins, 240 ties and zero ineligible comparisons; the six budget-level counts match the corrected headline.
+The 203 protected data/WP0–WP5 paths and all 36 accepted WP6 artifacts other than the explicitly corrected summary
+are byte-identical to the starting state. The warm run changed only that intended summary relative to the
+targeted builds; the new verification outputs reproduced exactly. The 114-claim and 20-constant maps are also
+byte-identical to the approved baseline. The final PDF remains fifteen pages, reproduces byte for byte, and
+every page was visually inspected. Its only content changes are the named exclusion-ranking and machining-
+allowance corrections. No accepted scientific result or final conditional conclusion changed.
+
+The final remediation commit is authorized by the author's instruction to commit after these checks pass.
+It is made on the existing `main` state, preserving `e752c7e` and all retained work-package branches. No remote
+is added and nothing is pushed. The own-code/report license remains the sole author choice; no further work
+package or scientific extension is authorized.

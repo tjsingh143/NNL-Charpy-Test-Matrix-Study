@@ -1,0 +1,84 @@
+{
+  "decision": "D-127",
+  "approved_baseline": "e752c7eb8aa19d05eef1dbf9e21bd4288754c9cc",
+  "purpose": "Explicit adoption of audited current results under complete dependency keys; no stale result discovered; no scientific arrays recomputed or modified.",
+  "legacy_dependency_fingerprint": "030ad4a9258b24cf24fc55cdf31be70137de3da9c376ccdc7ee79106d1ab8568",
+  "new_dependency_fingerprint": "e6fd8ca4ee7fa96f0333c07b774d56b925dda7b6c6beab37a1fdbfa29c2fe461",
+  "dependency_manifest": {
+    "schema": "WP6 input-sensitive checkpoints, D-127",
+    "sources": {
+      "src/wp6_design.py": "f3111e68889d0ee0274d9034fe016cf631172884c2d76a04fc78b896fd439772",
+      "src/wp6_scatter.py": "5e6254c88b0aa63fea8df76af8e75bfb99b0542f908ce1ba579bcf99be57eadb",
+      "src/wp6_correction.py": "e366901bb35bd377489b40e218d60c6b564e9e9fbb37d31fe00192ce0b0de0f2",
+      "src/wp6_simulator.py": "889a7043578136965dbde2ddea1f20821274f4ae15d2e47c84b8bb273bf578e2",
+      "src/wp6_experiment.py": "9654803bd808946c79a0ebd14efb24fec6e9b326e3175f3e116be7e0c587a067",
+      "src/wp6_checkpoint.py": "021a5180a783195f6b0f4af3755fee8b506ca31e75ee151f51672783d1714eb5",
+      "src/wp6_stability.py": "3df2d3d7ad5dba4499fc95c7e58937de0044e728a8010f33a3afc4cec786941e",
+      "src/common.py": "1f0863ba976d95bfe7fdf7256a52b6af3cd9518da5b5664749fb4dd2240c6358",
+      "src/wp2_curves.py": "d1a2e6b6db7a91d4f67d91b229efa781f4862a0fdb2c3cb5a2f951eb19e11c73",
+      "src/wp3_fitter.py": "fe6a7b32d77a289b0c89576e97d1462e79e862ee67c05aa26450ad82bcb37183",
+      "src/wp5_normalization.py": "bc9d7227e09cef6ee2eaab6ad14ae4aab9ead572eeb1fea1572e6e8c4e47e245",
+      "src/wp4_bootstrap.py": "f3e8738ba626b77b28a5a4c5acffaea89f3ff0918225ddcb729ba579792fa372",
+      "src/wp4_checkpoint.py": "0f0bf9e53453c476baa1133c16f0262b798f078e92affe4361c52e5d66076eb8"
+    },
+    "inputs": {
+      "outputs/wp5/wp6_size_correction_handoff.csv": "cb7f6f7d70fb7fd9a329d807c4d803fe54a06af0ac823a8c40e440ddaacf9309",
+      "outputs/wp5/size_correction_summary_overall.csv": "59c2212c7827fb6780bea69926fb0aae53b856426500efea44161838d4948130",
+      "outputs/wp5/normalization_sensitivity_comparison.csv": "3a26dc66f354938620a0b4bddcfb984f27b5a52257858bdba9690035906f32d7",
+      "outputs/wp5/size_correction_residuals.csv": "1d54fdc359374ecf87319c97913a913237124b3153c01c7231a83da6fb4c28a9",
+      "outputs/wp4/published_residual_scatter_summary.csv": "812b3f8b7eceeb3017ef59d60e7451564a0d54324deed60af0097c84d67f7ad5",
+      "outputs/wp4/published_residual_scatter_dataset.csv": "60b59de0fa31a48be3736bae9934617ed77b9d05309dfde63e526a3a1cff88bd",
+      "outputs/wp3/fits_primary.csv": "a6f9a7fa05ce0f63f7b413a9302ab848e7918db4538daa8791df780f3c03207e",
+      "outputs/wp3/fits_looser_cohort_curves.csv": "a1fc6337bb6508acb8742a7eb8c1231f6d51d91b096d0f8b8cac694b425891d8",
+      "data/processed/primary/charpy_records_with_curves.csv": "780c83a43d040dc84f8b3c4310e0df76b0c7cce41ed050e6ce4aaf9ca6e3d7ac",
+      "data/FROZEN_COHORTS_CP2.csv": "27e0338167054f72e55405b1532b44fa07f93194fa66cb1dd653e323ddd97090"
+    },
+    "runtime": {
+      "python": "3.9.6",
+      "numpy": "2.0.2",
+      "scipy": "1.13.1",
+      "pandas": "2.2.3"
+    }
+  },
+  "checkpoint_count": 6251,
+  "accepted_grid_count": 6188,
+  "bounded_stability_count": 63,
+  "original_cache_files_unchanged_before_adoption": 6199,
+  "upstream_files_identical_to_baseline": [
+    "outputs/wp5/wp6_size_correction_handoff.csv",
+    "outputs/wp5/size_correction_summary_overall.csv",
+    "outputs/wp5/normalization_sensitivity_comparison.csv",
+    "outputs/wp5/size_correction_residuals.csv",
+    "outputs/wp4/published_residual_scatter_summary.csv",
+    "outputs/wp4/published_residual_scatter_dataset.csv",
+    "outputs/wp3/fits_primary.csv",
+    "outputs/wp3/fits_looser_cohort_curves.csv",
+    "data/processed/primary/charpy_records_with_curves.csv",
+    "data/FROZEN_COHORTS_CP2.csv"
+  ],
+  "source_files_identical_to_baseline": [
+    "src/wp6_design.py",
+    "src/wp6_scatter.py",
+    "src/wp6_correction.py",
+    "src/wp6_simulator.py",
+    "src/common.py",
+    "src/wp2_curves.py",
+    "src/wp3_fitter.py",
+    "src/wp5_normalization.py",
+    "src/wp4_bootstrap.py",
+    "src/wp4_checkpoint.py"
+  ],
+  "experiment_functions_changed": [
+    "main (adds bounded verification invocation)",
+    "write_summary (corrects audit findings)"
+  ],
+  "experiment_other_functions_ast_identical": 35,
+  "experiment_module_configuration_ast_identical": true,
+  "exact_legacy_task_keys_verified": 6251,
+  "payloads_bit_identical": 6251,
+  "payload_digest_algorithm": "SHA-256 over sorted relative-path to per-payload digest mapping; per-payload digest covers sorted array keys, dtype, shape and bytes, excluding fingerprint metadata only.",
+  "payload_digest_before": "07ca632bb7b914ab78ebf5a5712536728889fc0a6be061baed11d0b48f3dc58f",
+  "payload_digest_after": "07ca632bb7b914ab78ebf5a5712536728889fc0a6be061baed11d0b48f3dc58f",
+  "backup": "Retained outside repository during remediation; never part of public release.",
+  "automatic_legacy_fallback": false
+}

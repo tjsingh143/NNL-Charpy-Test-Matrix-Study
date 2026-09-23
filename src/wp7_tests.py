@@ -2,17 +2,22 @@
 
 Deliberately independent, in the pattern src/wp5_tests.py and src/wp6_tests.py established: this
 module re-reads the generated artefacts from disk and re-derives what it checks from the source
-tables. It imports `wp7_report` only for the declarations it is checking against (the registries),
-never for the substitution, lint or typesetting code paths that produced the artefacts.
+tables. Artefact checks use the declared registries; the honesty check exercises the declared
+lint. Separate negative regression fixtures exercise the builder's rejection paths (D-127),
+including complete scratch reports, rather than treating those fixtures as independent science.
 
 A failure raises and stops the pipeline.
 """
 from __future__ import annotations
 
 import hashlib
+import contextlib
+import io
 import re
+import tempfile
 import zlib
 from pathlib import Path
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -235,9 +240,56 @@ def c8_pdf_delivery_integrity():
           f"elements present" + (f"; MISSING {missing}" if missing else ""))
 
 
+def c9_provenance_rejection_paths():
+    """Authored numbers cannot escape through headings/tables or a retired lint directive."""
+    positive = ("## 1. Results\n### 1.1 Index temperature\n"
+                "| Criterion | Value |\n|---|---|\n| Threshold | 41 J |\n"
+                "Full-size LSE is 2.7 J; {{clean.retained}} records remain.\n[[TAB 1]]\n")
+    if R.lint_source(positive):
+        raise AssertionError("Registered numbers or structural document numbering rejected")
+    bad_literals = {
+        "prose": "An estimated uncertainty is 987.654 degrees.\n",
+        "heading": "## 1. Estimated uncertainty of 987.654 degrees\n",
+        "manual table": "| Quantity | Estimate |\n|---|---|\n| Uncertainty | 987.654 |\n",
+        "box title": "[[BOX uncertainty of 987.654 degrees]]\n[[/BOX]]\n",
+        "retired directive": "<!-- lint:allow-digits -->\nUncertainty is 987.654 degrees.\n",
+    }
+    for name, text in bad_literals.items():
+        if not R.lint_source(text):
+            raise AssertionError(f"Unregistered number accepted in {name}")
+    source = R.SOURCE.read_text()
+    build_cases = {**{k: bad_literals[k] for k in ("prose", "heading", "manual table")},
+                   "unresolved placeholder": "{{unregistered.audit_claim}}\n"}
+    with tempfile.TemporaryDirectory(prefix="charpy-report-test-") as tmp:
+        root = Path(tmp)
+        scratch = root / "report.md"
+        for name, extra in build_cases.items():
+            scratch.write_text(source + "\n" + extra)
+            with patch.object(R, "SOURCE", scratch), patch.object(R, "REPORT", root), \
+                    patch.object(R, "typeset") as typeset, \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    R.build()
+                except SystemExit:
+                    pass
+                else:
+                    raise AssertionError(f"Complete report build accepted {name}")
+                if typeset.called or (root / "report_filled.md").exists():
+                    raise AssertionError(f"Rejected {name} reached output generation")
+    try:
+        R._select("wp1/reconciliation_table.csv", {"step": "NONEXISTENT_AUDIT_ROW"})
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("Invalid source selector accepted")
+    check("provenance guard rejects authored numbers and invalid sources", True,
+          "5 literal-negative fixtures; 4 complete-report rejection fixtures; invalid selector rejected; "
+          "registered claims/constants and section numbering pass")
+
+
 CHECKS = [c1_placeholders_resolved_and_used, c2_claim_map_rereads, c3_figure_hashes,
           c4_evidence_classes, c5_constant_provenance, c6_honesty_lint, c7_definition_of_done,
-          c8_pdf_delivery_integrity]
+          c8_pdf_delivery_integrity, c9_provenance_rejection_paths]
 
 
 def main():

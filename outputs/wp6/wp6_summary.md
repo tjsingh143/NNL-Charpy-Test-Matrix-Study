@@ -89,11 +89,11 @@ Across ALL 63 (archetype x geometry) combinations, the share of comparisons won 
 | U | 18 | 1 | 0 | 0 | 0 |
 | U | 24 | 1 | 0 | 0 | 0 |
 
-The flip is the **same for every miniature geometry**: under the pooled correction, what decides the comparison
-is the shared correction floor, not how many more specimens a geometry fits. **Miniature wins only at the
-smallest budget (k = 4, i.e. four full-size specimens' worth of material), is tied around k = 6, and loses from
-k = 8** (k = 12 for the wide uniform design). With the clustered design, a full-size programme is already good
-enough at k = 4 that miniature never wins.
+Across the CENTRAL grid, **k = 4: 189 miniature wins, k = 6: 45 miniature wins**. At tested budgets from **k = 8** miniature wins no
+comparison, and from **k = 18** full-size wins every comparison. The clustered strategy has no miniature
+wins. The pooled correction floor dominates the comparison, but the exact flip is not identical for every
+geometry and true curve: at A3 / S / k = 6, G1 wins while G2-G7 are practically tied. The table above describing
+identical geometry patterns is specific to A5; it is not a claim across all archetypes (correction D-127).
 
 How the flip depends on the true curve (strategy U, G5):
 
@@ -257,7 +257,9 @@ there (`adaptive_update_counts.csv`).
 - **The programme-level correction draw is decisive** (D-098): redrawing the residual per specimen (the
   labelled illustration, V14) lets it average away and reverses the conclusion. That is why WP5's
   curve-level estimand must be applied at programme level.
-- **Machining allowance favours miniature in RMSE terms**, although it costs miniature more specimens: at
+- **Both machining-allowance variants improve miniature standing**, although V19 retains a slightly negative
+  median RMSE difference. `changes_conclusion` compares the median of the signs of paired differences with
+  CENTRAL, not the sign of their median. At
   c = 0.5 and 1.0 mm the full-size count at k = 6 falls from 6 to 4 and
   4, where full-size RMSE is steep in N, while
   the miniature RMSE is already at its correction floor. So the idealized accounting (D-091) is, if anything,
@@ -312,12 +314,11 @@ The availability gate (90 / 95 / 99 %) changes no T1 label. The tolerance moves 
 Paired Monte Carlo SE: the batch-means SE and the paired replicate-index bootstrap SE agree within a factor 1.5
 in 97% of T1 comparisons.
 
-Monte Carlo stability (R = 1,000 against an independent R = 4,000): every label is unchanged and every RMSE moves
-by less than tau (passes). The R = 4,000 values are all slightly lower (median
--0.26 deg C) because, by the declared common-random-number design, every R = 1,000 miniature cell uses
-the same 1,000 correction draws: the shift is one sampling difference between two correction samples, repeated
-across cells, not eleven independent ones. It is within one Monte Carlo standard error of the floor (about
-0.27 deg C) and far below tau.
+Paired Monte Carlo stability completion (D-127): 63 arms at R = 4,000 on the independent stability stream; 16 CENTRAL A5/G5 pairs and 30 supplemental T3 pairs. Changed CENTRAL labels: 0 (original D-107 subset: 0 of 11). Changed supplemental labels: 1. Eligibility changes: 0.
+
+Label changes: T3 U, k=4, SD=20: FULL-SIZE WINS -> PRACTICALLY TIED. The eight SD* estimates move by at most 0.882 deg C; 8 of 8 are within their grid spacing. Budget-crossing boundary changes: C: below grid -> 4.000981 (bracketed). All paired RMSE-difference movements are below their original tau: True; the maximum is 0.941 deg C. CENTRAL labels are unchanged. Every tested label unchanged: False. Accepted R = 1,000 results and thresholds are not replaced.
+
+See monte_carlo_stability_selection.csv, monte_carlo_stability_cells.csv, monte_carlo_stability_paired.csv and monte_carlo_stability_thresholds.csv for the exact arms, paired batch and bootstrap SEs, availability, labels and numerical/practical brackets. The original monte_carlo_stability.csv remains the eleven-arm single-arm RMSE diagnostic; it did not by itself verify paired labels.
 
 ## 9. The breadth check: all 104 real fitted curves as truths (G5)
 

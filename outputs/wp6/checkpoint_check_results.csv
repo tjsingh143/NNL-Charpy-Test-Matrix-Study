@@ -1,0 +1,8 @@
+check,passed,detail
+unchanged dependencies preserve fingerprint,True,repeated source/input/runtime hashing is identical
+resolved WP5 calibration change rejects old checkpoint,True,an identical relocated input is equivalent; adding 1 deg C to the actual pooled bias invalidates
+restored WP5 inputs restore fingerprint,True,scratch mutation never changes repository inputs
+resolved scatter change rejects old checkpoint,True,changing the WP4 C1 SD values invalidates without changing symbolic scatter='C1'
+result-affecting T6 code rejects old checkpoint,True,changing coverage_task percentile limits in a source fixture invalidates
+explicit metadata upgrade preserves payload and rejects legacy key,True,all array bytes/dtypes/shapes preserved; normal loading has no legacy fallback
+all current checkpoints use complete dependency fingerprints,True,6251 valid checkpoints: accepted 6188 cells and 63 bounded verification arms

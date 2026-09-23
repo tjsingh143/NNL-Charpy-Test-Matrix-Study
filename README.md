@@ -23,10 +23,14 @@ This is a test-programme *design* question. It is not an attempt to predict full
 | WP4 Per-curve uncertainty | done (internal review approved; merged into `main`) |
 | WP5 Specimen size effect | done (CP4 approved; merged into `main`) |
 | WP6 Monte Carlo test matrix study | done (CP5 approved; merged into `main`) |
-| WP7 Report and repository | done (final author review pending; on branch `wp7`) |
+| WP7 Report and repository | done (final author review approved; merged in `e752c7e`; post-audit remediation recorded in D-127) |
 
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
 not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
+
+The project and the author-authorized post-audit remediation are complete (D-127). The final warm run passed
+in 9 minutes 51.63 seconds; the accepted scientific results are unchanged. The report has 114 registered numeric
+claims and 20 registered constants. An explicit reuse license for the project's own code/report remains an author choice.
 
 WP5 finding, in one line: the classical ligament-volume normalization plus a published temperature correction removes most of
 the specimen-size difference (median |T0 difference| 67 → 16 °C) but leaves a residual index-temperature disagreement with a
@@ -36,8 +40,8 @@ analysis set, 10 in total) to establish a size-correction uncertainty for any in
 
 WP6 finding, in one line (SYNTHETIC Monte Carlo; CP5 approved, stated in the conditional form the author approved): a miniature-specimen programme carries an
 error floor of about 12 deg C in the recovered full-size T41J - the size-correction residual, which does not average away
-with specimen count - so miniature specimens win only at the smallest budget tested (four full-size specimens' worth of
-material, and never with a clustered design); from eight full-size specimens' worth they win no comparison under any
+with specimen count - with 189 miniature wins at k = 4 and 45 at k = 6 (and none with a clustered design);
+at tested budgets from eight full-size specimens' worth they win no comparison under any
 placement strategy, true curve or geometry, and from eighteen full-size specimens win every one. Under the conservative
 correction, the empirical all-STRICT pool or the Wallin or Towers normalizations, full-size wins every sensitivity
 comparison run (budgets of six and twelve) (`outputs/wp6/wp6_summary.md`).
@@ -112,8 +116,9 @@ The eleven requirements of `PROJECT_BRIEF.md` section 10, each with the file tha
 
 `main` holds only checkpoint-approved states, one merge commit per checkpoint:
 `9bc28fc` CP1 (WP0, WP1) · `dc2b840` CP2 (WP2) · `b47d08e` CP3 (WP3) · `0b5dad6` internal WP4
-review · `c6be3ae` CP4 (WP5) · `6746f4d` CP5 (WP6). WP7 is on branch `wp7`, awaiting the final
-author review. Branches `wp2` to `wp6` are kept. There is no remote.
+review · `c6be3ae` CP4 (WP5) · `6746f4d` CP5 (WP6) · `e752c7e` final author-approved WP7 merge.
+That merge is the approved baseline for the bounded post-audit remediation in D-127. Branches `wp2` to `wp7`
+are kept. There is no remote.
 
 ## A convention worth knowing before reading the generated summaries
 
@@ -126,6 +131,10 @@ lists the adaptive-algorithm wording as open. For the same reason `outputs/wp5/w
 carries a magnitude comparison with the 2026 machine-learning paper which the report deliberately
 does **not** carry forward, because the two studies' metrics are not commensurable (`DECISIONS.md`
 D-125).
+
+D-127 explicitly authorizes correction of the WP6 summary's k=4-only and universal-stability claims. Its
+accepted scientific tables remain unchanged; separately named paired-stability tables record the bounded
+verification. The previous summary remains available in the approved `e752c7e` Git tree.
 
 One further wording rule, recorded as D-126: the plate-only arithmetic gives a larger
 correction-error floor than the pooled central case, and **no simulated winner or tie labels were
@@ -151,6 +160,9 @@ V-Notch Impact Testing. *Scientific Data* 12, 543. [doi:10.1038/s41597-025-04823
 
 Which release is primary, and why, is decision D-001 (approved at CP1); see also `data/README.md`.
 
+The repository's own code and report do not yet have an explicit reuse license. Choosing one remains an author
+decision; the dataset's CC BY 4.0 license does not supply a license for those original project materials (D-127).
+
 ## Reproduce
 
 ```bash
@@ -164,6 +176,8 @@ at checkpoint CP2 (`data/FROZEN_COHORTS_CP2.csv`) and stops if it does not; WP3 
 WP3's synthetic validation uses a fixed seed and runs in parallel worker processes; its results do not depend on the number of workers. WP4 (bootstrap uncertainty) adds 1.5-2.5 hours with the default 3 worker processes on the 8 GB development Mac (87 min measured for its two scripts; 2 h 15 min while other applications loaded the machine heavily): its SYNTHETIC checks and the 2,000-replicate bootstraps of every primary curve use per-replicate seeds, so their results do not depend on the number of worker processes either. WP4 reuses fingerprinted checkpoints in the git-ignored `cache/` when the code, package versions, parameters and input data are unchanged, so a repeat run takes about a minute for WP4; delete `cache/` to force a full recomputation. WP5 (pair inventory, size normalization and its checks) adds seconds. WP6 (the Monte Carlo test-matrix study) adds
 about 6.4 hours from a cold cache (381 min measured with 3 worker processes on the 8 GB development Mac, peak memory
 321 MB); it reuses fingerprinted checkpoints in the git-ignored `cache/wp6/`, so a repeat run takes about 1.5 minutes.
+The separately reported D-127 paired-stability verification adds 63 cached arms at R = 4,000; completing the 52
+previously absent arms took 14.1 minutes. WP6 keys include resolved calibration/scatter inputs and source content.
 Every WP6 number is SYNTHETIC and its per-replicate seeds make it independent of the worker count. On a laptop, keep
 the machine awake for a cold WP6 run (for example `caffeinate -i ./run_all.sh` on macOS): system sleep does not change
 any result, but it stretches the wall-clock time (one verified cold run took 21 h because the machine slept on battery).

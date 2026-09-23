@@ -54,6 +54,8 @@ EOF
 .venv/bin/python src/wp6_tests.py                                # WP6 independent checks: budget arithmetic, the nine-row geometry reconciliation, the
                                                                  # correction values and family pools read back at full precision, reachability, failure
                                                                  # accounting, clip fractions, the D-078 sign convention and that WP0-WP5 is untouched; seconds
+.venv/bin/python src/wp6_stability_tests.py                      # D-127 bounded paired verification: independent RMSE/SE/labels, crossings and fresh CRN prefixes
+.venv/bin/python src/wp6_checkpoint_tests.py                     # D-127 actual-input/code invalidation and validity of all current checkpoints
 .venv/bin/python src/wp7_report.py                               # WP7 report: substitutes every number from the regenerated tables, emits the
                                                                  # claim and constant source maps, and typesets report/charpy_test_matrix_study.pdf.
                                                                  # Fails on an unresolved, unused or stale placeholder, an unregistered literal

@@ -13,8 +13,8 @@ Outputs, all into `report/`:
 
 The build FAILS, with a non-zero exit, on: an unresolved placeholder; a registry entry that
 the prose never uses; a row selector matching other than exactly one row; a figure or table
-without an evidence class (D-117); a forbidden phrase (D-116); or a digit in the prose outside
-a placeholder, a rendered table or a marked protected span (D-114).
+without an evidence class (D-117); a forbidden phrase (D-116); or an unregistered numerical
+assertion in authored content, including headings and manual table cells (D-114, D-126, D-127).
 
 WP7 changes no WP0-WP6 code, output, cohort or decision (D-118); this module only reads them.
 """
@@ -753,16 +753,14 @@ def blank_comments(text: str) -> str:
 
 
 def strip_protected(text: str) -> str:
-    """Remove everything a digit is allowed to appear in, so what remains can be checked."""
-    out = []
-    for line in text.splitlines():
-        if line.lstrip().startswith(("|", "<!--", "-->")) or line.strip().startswith("#"):
-            continue
-        if line.strip().startswith("[[") or "lint:allow-digits" in line:
-            continue
-        out.append(line)
-    text = "\n".join(out)
-    text = COMMENT.sub("", text)
+    """Remove registered claims/constants and structural tokens, never whole authored lines.
+
+    Heading text, manual table cells and box titles obey the same rule as body prose (D-126,
+    D-127). Generated figure/table slots have their own provenance registries. Only a heading's
+    leading section number ("1." or "1.1", followed by whitespace) is document numbering.
+    """
+    text = blank_comments(text)
+    text = re.sub(r"(?m)^(\s*#{1,6}\s+)(?:\d+\.(?:\d+(?:\.\d+)*)?\.?\s+)", r"\1", text)
     text = PLACEHOLDER.sub("", text)
     text = SLOT.sub("", text)
     for c in CONSTANTS:
@@ -771,16 +769,12 @@ def strip_protected(text: str) -> str:
 
 
 def lint_source(src: str) -> list[str]:
-    """No literal result number may appear in the prose (D-114)."""
-    problems, allow_next = [], False
-    for i, line in enumerate(src.splitlines(), 1):
-        if "lint:allow-digits" in line:
-            allow_next = True
-            continue
+    """No unregistered numerical assertion in any authored content (D-114, D-126, D-127)."""
+    problems = []
+    for i, line in enumerate(blank_comments(src).splitlines(), 1):
         checkable = strip_protected(line)
-        if checkable.strip() and re.search(r"\d", checkable) and not allow_next:
-            problems.append(f"report.md line {i}: literal digit in prose, use a placeholder: {line.strip()[:90]}")
-        allow_next = False
+        if checkable.strip() and re.search(r"\d", checkable):
+            problems.append(f"report.md line {i}: literal digit in authored content, use a placeholder: {line.strip()[:90]}")
     return problems
 
 

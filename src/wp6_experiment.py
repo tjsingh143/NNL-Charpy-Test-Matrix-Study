@@ -1378,6 +1378,11 @@ def write_summary(cells, comparisons, thresholds, coverage, stability, labels, t
     floor_k = float(np.sqrt(con["bias_c"] ** 2 + con["sd_c"] ** 2))
     head = comparisons[comparisons.tier == "T1"]
     counts = head["winner_class"].value_counts().to_dict()
+    mini_wins = head[head.winner_class == "MINIATURE WINS"]
+    winning_budgets = ", ".join(f"k = {k}: {n} miniature wins"
+                                for k, n in mini_wins.groupby("k_budget").size().items())
+    no_mini_from = min(k for k in BUDGETS_K if k > mini_wins.k_budget.max())
+    full_from = min(k for k, g in head.groupby("k_budget") if (g.winner_class == "FULL-SIZE WINS").all())
 
     # flip budgets, per strategy, for every miniature geometry (A5)
     flip_rows = []
@@ -1441,9 +1446,8 @@ def write_summary(cells, comparisons, thresholds, coverage, stability, labels, t
     sens = tables["sensitivity_summary"].copy()
     allow = sens[sens.variant.str.contains("machining")]
 
-    # stability: the common shift and its explanation
-    stab_shift = float(stability["delta_rmse_c"].median())
-    stab_all_within = bool(stability["within_tau"].all() and stability["eligibility_unchanged"].all())
+    # D-127 corrects the old inference from single-arm RMSE to paired label stability.
+    paired_stability_text = (OUT / "monte_carlo_stability_summary.md").read_text().split("\n\n", 2)[2].strip()
 
     se_agree = float(head["se_estimators_agree"].mean())
     breadth = tables["breadth_check_summary"].pivot_table(index=["strategy", "k_budget"], columns="winner_class",
@@ -1507,11 +1511,11 @@ Across ALL 63 (archetype x geometry) combinations, the share of comparisons won 
 
 {md_table(share)}
 
-The flip is the **same for every miniature geometry**: under the pooled correction, what decides the comparison
-is the shared correction floor, not how many more specimens a geometry fits. **Miniature wins only at the
-smallest budget (k = 4, i.e. four full-size specimens' worth of material), is tied around k = 6, and loses from
-k = 8** (k = 12 for the wide uniform design). With the clustered design, a full-size programme is already good
-enough at k = 4 that miniature never wins.
+Across the CENTRAL grid, **{winning_budgets}**. At tested budgets from **k = {no_mini_from}** miniature wins no
+comparison, and from **k = {full_from}** full-size wins every comparison. The clustered strategy has no miniature
+wins. The pooled correction floor dominates the comparison, but the exact flip is not identical for every
+geometry and true curve: at A3 / S / k = 6, G1 wins while G2-G7 are practically tied. The table above describing
+identical geometry patterns is specific to A5; it is not a claim across all archetypes (correction D-127).
 
 How the flip depends on the true curve (strategy U, G5):
 
@@ -1596,7 +1600,9 @@ there (`adaptive_update_counts.csv`).
 - **The programme-level correction draw is decisive** (D-098): redrawing the residual per specimen (the
   labelled illustration, V14) lets it average away and reverses the conclusion. That is why WP5's
   curve-level estimand must be applied at programme level.
-- **Machining allowance favours miniature in RMSE terms**, although it costs miniature more specimens: at
+- **Both machining-allowance variants improve miniature standing**, although V19 retains a slightly negative
+  median RMSE difference. `changes_conclusion` compares the median of the signs of paired differences with
+  CENTRAL, not the sign of their median. At
   c = 0.5 and 1.0 mm the full-size count at k = 6 falls from {n_full_allow[0.0]} to {n_full_allow[0.5]} and
   {n_full_allow[1.0]}, where full-size RMSE is steep in N, while
   the miniature RMSE is already at its correction floor. So the idealized accounting (D-091) is, if anything,
@@ -1633,12 +1639,7 @@ The availability gate (90 / 95 / 99 %) changes no T1 label. The tolerance moves 
 Paired Monte Carlo SE: the batch-means SE and the paired replicate-index bootstrap SE agree within a factor 1.5
 in {se_agree:.0%} of T1 comparisons.
 
-Monte Carlo stability (R = 1,000 against an independent R = 4,000): every label is unchanged and every RMSE moves
-by less than tau ({'passes' if stab_all_within else 'FAILS'}). The R = 4,000 values are all slightly lower (median
-{stab_shift:+.2f} deg C) because, by the declared common-random-number design, every R = 1,000 miniature cell uses
-the same 1,000 correction draws: the shift is one sampling difference between two correction samples, repeated
-across cells, not eleven independent ones. It is within one Monte Carlo standard error of the floor (about
-0.27 deg C) and far below tau.
+{paired_stability_text}
 
 ## 9. The breadth check: all 104 real fitted curves as truths (G5)
 
@@ -1712,6 +1713,9 @@ def main():
     sub = stability_subset(cells, comparisons)
     stability = run_stability(sub, results, workers=args.workers)
     stability.to_csv(OUT / "monte_carlo_stability.csv", index=False)
+
+    import wp6_stability
+    wp6_stability.run(cells, comparisons, workers=args.workers)
 
     tables = summary_tables(cells, comparisons)
     for name, t in tables.items():
