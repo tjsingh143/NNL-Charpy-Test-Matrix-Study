@@ -18,7 +18,6 @@ RULES ENFORCED AT BUILD TIME
 
 ## An analysis of published Charpy V-notch test data
 
-Taij Singh · Materials Science and Engineering, University of California, Irvine
 
 **This is an analysis of published Charpy V-notch test data. No Charpy tests were performed for this project, no test equipment was operated, and no irradiated material was handled.** Every measurement used here was produced and published by the original investigators credited below.
 

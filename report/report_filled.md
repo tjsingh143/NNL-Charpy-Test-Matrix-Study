@@ -18,7 +18,6 @@
 
 ## An analysis of published Charpy V-notch test data
 
-Taij Singh · Materials Science and Engineering, University of California, Irvine
 
 **This is an analysis of published Charpy V-notch test data. No Charpy tests were performed for this project, no test equipment was operated, and no irradiated material was handled.** Every measurement used here was produced and published by the original investigators credited below.
 
@@ -155,7 +154,7 @@ Performance is the root-mean-square error of the recovered index temperature; a 
 
 Nothing was trusted on real data before it was shown to recover known truth on synthetic data. All results in this section are SYNTHETIC: curves generated from known parameters, with controlled scatter, at a fixed seed.
 
-![Figure 1](outputs/wp3/synthetic_error_vs_specimens.png)
+![Figure 1](../outputs/wp3/synthetic_error_vs_specimens.png)
 
 *Figure 1. Fitter validation against known truth: index-temperature error against the number of specimens, at three scatter levels. Curves generated from known parameters; no published measurement appears in this figure.* **[SYNTHETIC]** *Source: `outputs/wp3/synthetic_error_vs_specimens.png`.*
 
@@ -188,7 +187,7 @@ There were 0 optimizer failures and 0 inadmissible solutions. 18 fits rest on a 
 
 ### 6.2 Per-curve uncertainty and its cross-check (Q1, Q2)
 
-![Figure 2](outputs/wp4/worked_example_t41j_bootstrap.png)
+![Figure 2](../outputs/wp4/worked_example_t41j_bootstrap.png)
 
 *Figure 2. A worked example of one fitted transition curve. The plotted energies are PUBLISHED SOURCE DATA; the fitted curve, the pointwise bootstrap band of the fitted mean curve and the index temperature with its interval are ANALYSIS-DERIVED FROM PUBLISHED DATA. The band is a confidence band for the mean curve, not a prediction interval for a new specimen. Curve 3-17, A533B plate, irradiated.* **[PUBLISHED SOURCE DATA + ANALYSIS-DERIVED FROM PUBLISHED DATA]** *Source: `outputs/wp4/worked_example_t41j_bootstrap.png`.*
 
@@ -217,9 +216,9 @@ Against published work the magnitudes are sane and honestly larger. Over the 66 
 
 Of the candidate pairs enumerated across the cohort, 18 are strictly matched geometry comparisons, drawn from 10 independent material-condition families in 5 publications. 10 comparisons from 7 families in 5 publications reach the pre-registered primary analysis set. No cross-study comparison survives: without a heat identifier, the reported composition is the only heat proxy, and it never matches exactly across publications.
 
-![Figure 3(a)](outputs/wp5/before_after_normalization.png)
+![Figure 3(a)](../outputs/wp5/before_after_normalization.png)
 
-![Figure 3(b)](outputs/wp5/size_correction_residuals.png)
+![Figure 3(b)](../outputs/wp5/size_correction_residuals.png)
 
 *Figure 3. The specimen-size normalization and what it leaves behind.  (a) Curves before and after the classical size normalization, for four matched material-condition families.  (b) The residual disagreement that survives normalization, every comparison shown individually, by smaller-specimen geometry and by product form. In panel (a) the full-size and smaller-specimen points are PUBLISHED SOURCE DATA, the mapped points are a TRANSFORMED ESTIMATE FROM PUBLISHED DATA, and both fitted curves and the refit of the mapped points are ANALYSIS-DERIVED FROM PUBLISHED DATA. In panel (b) each plotted residual is ANALYSIS-DERIVED: the difference between a transformed estimate and a fitted full-size index temperature. Individual points are shown rather than a fitted distribution, because there are too few independent families to justify smoothing.* **[PUBLISHED SOURCE DATA + ANALYSIS-DERIVED FROM PUBLISHED DATA + TRANSFORMED ESTIMATE FROM PUBLISHED DATA]** *Source: `outputs/wp5/before_after_normalization.png`; `outputs/wp5/size_correction_residuals.png`.*
 
@@ -251,13 +250,13 @@ Finally, the choice of published correlation moves the answer more than the scat
 
 The headline comparison holds material volume fixed across 9 true curves, 7 miniature geometries, six budgets and four placement strategies — 1,512 paired comparisons. The outcome is 1,038 full-size wins, 234 miniature wins, 240 practical ties and 0 ineligible. Every one of these is a conditional fixed-volume scenario using the pooled, WEAKLY SUPPORTED correction.
 
-![Figure 4](outputs/wp6/fixed_volume_comparison.png)
+![Figure 4](../outputs/wp6/fixed_volume_comparison.png)
 
 > **Conventional E23 sub-size: not estimated — insufficient included evidence.**
 
 *Figure 4. The fixed-material-volume comparison, one panel per placement strategy. Full-size is simulated, and so are the seven approved smaller MCVN/miniaturized geometry scenarios. Conventional ASTM E23-type sub-size performance is NOT ESTIMABLE from this dataset under the approved rules, and no external correction was invented to fill that gap, so no sub-size arm appears here. Every miniature curve is a conditional fixed-volume scenario using the pooled, WEAKLY SUPPORTED correction, not a geometry-specific claim. Simulated programmes throughout.* **[SYNTHETIC]** *Source: `outputs/wp6/fixed_volume_comparison.png`.*
 
-![Figure 5](outputs/wp6/rmse_vs_specimen_count.png)
+![Figure 5](../outputs/wp6/rmse_vs_specimen_count.png)
 
 *Figure 5. Index-temperature uncertainty against specimen count for the median true curve (archetype A5), one series per test-temperature placement strategy, with the square-root-of-N reference. The horizontal line is the error floor implied by the central size correction: a full-size programme keeps improving with specimen count, a miniature programme stops at the floor. Simulated programmes throughout.* **[SYNTHETIC]** *Source: `outputs/wp6/rmse_vs_specimen_count.png`. The top 44 pixels of the source image, which contain only a title clipped in the source file itself, are masked at the report layer; the approved file is unchanged and no plot content is removed.*
 
@@ -280,7 +279,7 @@ Stated in the conditional form these results support: at the smallest budget min
 | U | 4 | 84 | 18.28 | 17.55 | 17.63 |
 | U | 8 | 168 | 10.61 | 9.72 | 9.645 |
 
-![Figure 6](outputs/wp6/correction_uncertainty_flip.png)
+![Figure 6](../outputs/wp6/correction_uncertainty_flip.png)
 
 *Figure 6. How uncertain the size correction may be before extra miniature specimens stop paying. Miniature programme error against the correction residual standard deviation, against the matching full-size programme, with the analysis-derived central and conservative values marked. Simulated programmes.* **[SYNTHETIC]** *Source: `outputs/wp6/correction_uncertainty_flip.png`.*
 
@@ -288,7 +287,7 @@ For the median true curve at a budget of eight full-size equivalents, that thres
 
 **Placement and prior knowledge (Q2, Q4).**
 
-![Figure 7](outputs/wp6/prior_error_vs_performance.png)
+![Figure 7](../outputs/wp6/prior_error_vs_performance.png)
 
 *Figure 7. Prior knowledge of the transition location. Error and estimator availability against the error in the assumed transition temperature, with the availability gate marked. Where a design misses the transition it is declared unusable rather than merely imprecise. Simulated programmes.* **[SYNTHETIC]** *Source: `outputs/wp6/prior_error_vs_performance.png`.*
 

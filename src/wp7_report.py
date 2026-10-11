@@ -844,7 +844,7 @@ def expand_slots(text: str) -> str:
         spec = FIGURES[num]
         paths, multi = spec["paths"], len(spec["paths"]) > 1
         imgs = "\n\n".join(
-            f"![Figure {num}{'(' + chr(97 + i) + ')' if multi else ''}](outputs/{path})"
+            f"![Figure {num}{'(' + chr(97 + i) + ')' if multi else ''}](../outputs/{path})"
             for i, path in enumerate(paths))
         callout = f"\n\n> **{spec['callout']}**" if spec.get("callout") else ""
         panels = ("  " + "  ".join(spec["panels"]) + " ") if spec.get("panels") else " "
@@ -1052,8 +1052,8 @@ def _block_height(block: tuple) -> float:
     if kind == "figs":
         h = 0.0
         for path in block[1]:
-            img = mpimg.imread(str(ROOT / path))
-            crop = CROPS.get(path.replace("outputs/", ""), 0)
+            img = mpimg.imread(str(REPORT / path))
+            crop = CROPS.get(path.replace("../outputs/", ""), 0)
             if crop:
                 img = img[crop:]
             h += COL_W * (img.shape[0] / img.shape[1])
@@ -1240,8 +1240,8 @@ def typeset(blocks: list[tuple], path: Path, footer: str) -> int:
             elif kind == "figs":
                 imgs = []
                 for path in block[1]:
-                    img = mpimg.imread(str(ROOT / path))
-                    crop = CROPS.get(path.replace("outputs/", ""), 0)
+                    img = mpimg.imread(str(REPORT / path))
+                    crop = CROPS.get(path.replace("../outputs/", ""), 0)
                     imgs.append(img[crop:] if crop else img)
                 avail = PAGE_H - MARGIN_TOP - MARGIN_BOT - 0.45
                 sizes = []

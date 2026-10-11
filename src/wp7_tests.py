@@ -77,7 +77,7 @@ def c3_figure_hashes():
     """Every embedded figure is the approved generated file, byte for byte - including both panels
     of the two-panel Figure 3 (D-125 item 3)."""
     filled = (REPORT / "report_filled.md").read_text()
-    embedded = re.findall(r"!\[[^\]]*\]\(outputs/([^)]+)\)", filled)
+    embedded = re.findall(r"!\[[^\]]*\]\(\.\./outputs/([^)]+)\)", filled)
     declared = [p for spec in R.FIGURES.values() for p in spec["paths"]]
     bad = [p for p in embedded if not (OUTPUTS / p).exists()]
     digests = {p: hashlib.sha256((OUTPUTS / p).read_bytes()).hexdigest()[:12] for p in embedded
@@ -220,7 +220,6 @@ def c8_pdf_delivery_integrity():
     flat = re.sub(r"\s+", "", text)
     expect = {
         "title": "CharpyTransitionTemperatureUncertainty",
-        "byline": "TaijSingh\xb7MaterialsScienceandEngineering,UniversityofCalifornia,Irvine",
         "section 1": "1.Objectiveandscope",
         "section 2": "2.Datasource,provenanceandlicense",
         "section 3": "3.Datacleaningandinclusioncriteria",
@@ -234,10 +233,11 @@ def c8_pdf_delivery_integrity():
     }
     missing = [k for k, v in expect.items() if v not in flat]
     pages = len(re.findall(rb"/Type\s*/Page[^s]", pdf.read_bytes()))
-    check("the built PDF contains its title, byline, sections 1-9 and the conditional conclusion",
-          not missing,
+    attribution = bool(re.search(r"Taij\s*Singh|(?:developed|created|written|built)\s+by\s+(?:Claude|Astra|ChatGPT)", text, re.I))
+    check("the built PDF contains its title, sections 1-9 and the conditional conclusion without a project byline",
+          not missing and not attribution,
           f"{len(text):,} characters extracted over {pages} pages; all {len(expect)} required "
-          f"elements present" + (f"; MISSING {missing}" if missing else ""))
+          f"elements present; project byline absent" + (f"; MISSING {missing}" if missing else ""))
 
 
 def c9_provenance_rejection_paths():

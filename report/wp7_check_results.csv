@@ -6,5 +6,5 @@ every placeholder resolves and every registry entry is used,True,"114 placeholde
 every registered numeric constant is provenance-tracked,True,"20 constants: 3 method/configuration, 14 externally cited, 3 document metadata; all carry a source"
 the honesty lint holds and the conclusions stay conditional,True,0 forbidden phrases; the conclusions carry all 3 required conditional phrases; the plate-only statement carries its no-verdict rider
 README definition-of-done names an existing file per brief item,True,"11 checklist rows naming 15 paths, all present"
-"the built PDF contains its title, byline, sections 1-9 and the conditional conclusion",True,"117,687 characters extracted over 15 pages; all 12 required elements present"
+"the built PDF contains its title, sections 1-9 and the conditional conclusion without a project byline",True,"117,604 characters extracted over 15 pages; all 11 required elements present; project byline absent"
 provenance guard rejects authored numbers and invalid sources,True,5 literal-negative fixtures; 4 complete-report rejection fixtures; invalid selector rejected; registered claims/constants and section numbering pass

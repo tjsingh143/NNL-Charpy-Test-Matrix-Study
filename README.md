@@ -28,7 +28,7 @@ This is a test-programme *design* question. It is not an attempt to predict full
 Progress and open issues: `PROGRESS.md`. Every judgement call: `DECISIONS.md`. WP4 intervals are nominal 95 % percentile bootstrap intervals,
 not intervals calibrated to exactly 95 % coverage (`DECISIONS.md` D-056).
 
-The project and the author-authorized post-audit remediation are complete (D-127). The final warm run passed
+The project and the recorded post-audit remediation are complete (D-127). The final warm run passed
 in 9 minutes 51.63 seconds; the accepted scientific results are unchanged. The report has 114 registered numeric
 claims and 20 registered constants. An explicit reuse license for the project's own code/report remains an author choice.
 
@@ -117,8 +117,10 @@ The eleven requirements of `PROJECT_BRIEF.md` section 10, each with the file tha
 `main` holds only checkpoint-approved states, one merge commit per checkpoint:
 `9bc28fc` CP1 (WP0, WP1) · `dc2b840` CP2 (WP2) · `b47d08e` CP3 (WP3) · `0b5dad6` internal WP4
 review · `c6be3ae` CP4 (WP5) · `6746f4d` CP5 (WP6) · `e752c7e` final author-approved WP7 merge.
-That merge is the approved baseline for the bounded post-audit remediation in D-127. Branches `wp2` to `wp7`
-are kept. There is no remote.
+That merge is the approved baseline for the bounded post-audit remediation in D-127.
+The published repository is [NNL-Charpy-Test-Matrix-Study](https://github.com/tjsingh143/NNL-Charpy-Test-Matrix-Study),
+with `main` as its remote branch. The checkpoint commits remain in its history;
+the earlier work-package branches are not published as remote branches.
 
 ## A convention worth knowing before reading the generated summaries
 
@@ -165,6 +167,11 @@ decision; the dataset's CC BY 4.0 license does not supply a license for those or
 
 ## Reproduce
 
+Use a checkout of this repository; the clone requires GitHub access while the
+repository is private. Start with the [report and reading guide](report/README.md)
+for a result overview, or run the full pipeline below. A cold run includes the
+multi-hour bootstrap and Monte Carlo stages described above.
+
 ```bash
 ./run_all.sh
 ```
@@ -189,7 +196,7 @@ any result, but it stretches the wall-clock time (one verified cold run took 21 
 | `PROJECT_BRIEF.md` | Requirements (with approved amendments listed at the top) |
 | `DECISIONS.md` | Every judgement call, with alternatives and consequences |
 | `PROGRESS.md` | Last checkpoint, decisions in force, next permitted work, open issues |
-| `CLAUDE.md` | Persistent working rules for AI-assisted sessions on this repository |
+| `CLAUDE.md` | Persistent repository working rules |
 | `data/` | Vendored raw data, license, checksums, processed data, CP2-frozen cohort fingerprints (see `data/README.md`) |
 | `src/common.py` | Paths, checksum verification, spreadsheet loader |
 | `src/curated_metadata.py` | All hand-curated inputs: column meanings, name maps, reference-level evidence |
@@ -230,3 +237,13 @@ any result, but it stretches the wall-clock time (one verified cold run took 21 
 | `cache/` | Git-ignored fingerprinted checkpoints for WP4 and WP6; delete to force full recomputation |
 | `AGENTS.md` | A pointer to `CLAUDE.md`, so the working rules have a single source |
 | `outputs/wp6/` | Every file SYNTHETIC (Monte Carlo test-matrix study; not published measurements): the frozen grid, per-cell results, paired comparisons, the fixed-volume headline, the correction threshold, sensitivities, coverage, stability, nine figures, `wp6_summary.md` |
+
+## Code excerpts
+
+[Verified code excerpts](report/CODE_SAMPLES.md) provide direct source links for the main implementation boundaries.
+
+## Review material
+
+[Project portfolio](https://drive.google.com/drive/folders/1-6q6Ov90tmctstE85jX_RiqzB6v1-ybm) contains the project overview, architecture,
+code examples, testing notes, and supporting evidence. Portfolio measurements
+retain their stated snapshot and verification boundaries.
