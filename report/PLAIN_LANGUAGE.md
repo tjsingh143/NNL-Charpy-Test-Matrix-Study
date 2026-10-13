@@ -1,7 +1,7 @@
 # The project in plain language
 
 This is background for three readers: a professor who wants to know whether the reasoning holds, a
-technical interviewer who wants to know whether the author understands what they did, and a
+technical interviewer assessing the methods and their limits, and a
 first-year engineering student who has not met any of this before. It explains the ideas. The
 numbers, and the evidence behind them, are in `report/charpy_test_matrix_study.pdf`; every figure in
 that report comes from `outputs/`, and every number in it is traceable through

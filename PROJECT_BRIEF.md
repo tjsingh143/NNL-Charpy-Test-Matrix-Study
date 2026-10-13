@@ -2,6 +2,10 @@
 
 **Read this whole file before writing any code.**
 
+This is the original planning and checkpoint record. Current technical presentation
+starts in [README.md](README.md); approvals and amendments below retain their
+historical roles and do not assign implementation or report authorship.
+
 > **Approved amendments.** Where an amendment below conflicts with the original text, the amendment governs. The original text
 > is kept unchanged for the record. Other checkpoint decisions that work *within* this brief are logged in `DECISIONS.md`.
 >
@@ -16,11 +20,11 @@ why before proceeding.
 
 ---
 
-## 1. Who this is for and why it exists
+## 1. Original planning context and purpose
 
-The author is a first-year Materials Science and Engineering student at UC Irvine applying
-to the Naval Nuclear Laboratory's Materials Engineering Internship at Bettis Atomic Power
-Laboratory. The posting's first two responsibilities are:
+The study's original planning context was the Naval Nuclear Laboratory's Materials
+Engineering Internship at Bettis Atomic Power Laboratory, with first-year Materials
+Science and Engineering prerequisites. The posting's first two responsibilities are:
 
 1. "design, coordination, & documentation of material test programs"
 2. "analysis and modeling of test program data"

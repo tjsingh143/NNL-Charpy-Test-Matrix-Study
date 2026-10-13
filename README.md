@@ -247,3 +247,5 @@ any result, but it stretches the wall-clock time (one verified cold run took 21 
 [Project portfolio](https://drive.google.com/drive/folders/1-6q6Ov90tmctstE85jX_RiqzB6v1-ybm) contains the project overview, architecture,
 code examples, testing notes, and supporting evidence. Portfolio measurements
 retain their stated snapshot and verification boundaries.
+
+[Review entry point](https://drive.google.com/file/d/1WstnvYdA5BG5hjWH9u2CzKcGII_XLW0W/view?usp=drivesdk) · [Overview](https://drive.google.com/file/d/11qstiNq0ro1u1rVzUI96Ld9m915S8ZtR/view?usp=drivesdk) · [Testing](https://drive.google.com/file/d/1mLitF_1YwvKiCoK4hFhY6sH8iOxhNhxe/view?usp=drivesdk) · [Code samples](https://drive.google.com/file/d/1I-0ubE6ncC7dHs8Wu5ywaWNCx_U2SBa9/view?usp=drivesdk)
